@@ -54,4 +54,4 @@
 
 ### **4. Flujo del sistema**
 
-![Flujo del sistema](img/flow.png)
+![Flujo del sistema](img/flow2.png)
