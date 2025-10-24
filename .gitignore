@@ -1,3 +1,8 @@
+# Python.gitignore
+
+# Personal ignore rules:
+/imgLIT
+/cache_photolith/
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
