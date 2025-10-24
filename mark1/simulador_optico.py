@@ -16,15 +16,13 @@ from matplotlib.figure import Figure
 class LithographySimulator(QWidget):
     def __init__(self):
         super().__init__()
-
-        self.setWindowTitle("Simulador Óptico de Maggi V1.1")
+        self.setWindowTitle("Simulador Óptico de Maggi V1.0")
         self.setGeometry(100, 100, 1400, 700)
 
         self.pattern = None
         self.real_image = None
         self.sigma = 2.0
         self.psf_type = "Gaussiana"
-        
         main_layout = QVBoxLayout()
         control_layout = QHBoxLayout()
         export_layout = QHBoxLayout()
