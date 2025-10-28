@@ -110,6 +110,7 @@ class LithographySimulator(QWidget):
         self.dark_mode = True
         self.projector_active = False
         self.projection_window = None
+        self.has_second_monitor = self.check_second_monitor()  # Detectar segundo monitor
         self.init_cache_system()
         
         main_layout = QVBoxLayout()
@@ -250,6 +251,11 @@ class LithographySimulator(QWidget):
             self.projection_window = None
         super().closeEvent(event)
     
+    def check_second_monitor(self):
+        """Verifica si hay un segundo monitor conectado"""
+        screens = QApplication.screens()
+        return len(screens) > 1
+    
     def create_input_dialog(self, title, label, text=""):
         dialog = QInputDialog(self)
         dialog.setWindowTitle(title)
@@ -328,6 +334,34 @@ class LithographySimulator(QWidget):
             self.update_projector_button()
 
     def toggle_projector(self):
+        self.has_second_monitor = self.check_second_monitor()
+        if not self.has_second_monitor and not self.projector_active:
+            QMessageBox.warning(
+                self, 
+                "Monitor no detectado", 
+                "No se detectó un segundo monitor conectado.\n\n"
+                "Por favor, conecte un segundo monitor para usar la función de proyección."
+            )
+            self.update_projector_button()  
+            return  # no proyectar si no hay segundo monitor
+        
+        # si el monitor se desconectó mientras estaba proyectando, cerrar proyección
+        if not self.has_second_monitor and self.projector_active:
+            if self.projection_window is not None:
+                self.projection_window.close()
+                self.projection_window = None
+            self.brightness_slider.setVisible(False)
+            self.brightness_label.setVisible(False)
+            self.projector_active = False
+            self.update_projector_button()
+            QMessageBox.warning(
+                self, 
+                "Monitor desconectado", 
+                "Se perdió la conexión con el segundo monitor.\n\n"
+                "La proyección se ha detenido."
+            )
+            return
+        
         self.projector_active = not self.projector_active
         
         if self.projector_active:
@@ -357,13 +391,30 @@ class LithographySimulator(QWidget):
         self.update_projector_button()
     
     def update_projector_button(self):
-        if self.projector_active:
+        # actualizar detección de segundo monitor
+        self.has_second_monitor = self.check_second_monitor()
+        
+        if not self.has_second_monitor:
+            led = "🟠"
+            status = "DESCONECTADO"
+            self.projector_button.setStyleSheet("""
+                QPushButton {
+                    background-color: #FF8C00;
+                    color: #FFFFFF;
+                    font-weight: bold;
+                }
+                QPushButton:hover {
+                    background-color: #FFA500;
+                }
+            """)
+        elif self.projector_active:
             led = "🟢"
             status = "ACTIVO"
+            self.projector_button.setStyleSheet("")
         else:
             led = "🔴"
             status = "INACTIVO"
-        
+            self.projector_button.setStyleSheet("")
         self.projector_button.setText(f"{led} Proyectar ({status})")
 
     def save_image(self):
@@ -377,7 +428,7 @@ class LithographySimulator(QWidget):
             "Carpeta destino:", 
             folders + ["[Nueva carpeta]"], 0, False
         )
-        
+
         if not ok:
             return
         
