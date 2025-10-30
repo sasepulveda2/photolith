@@ -23,6 +23,9 @@ from PyQt5.QtWidgets import (
     QGraphicsOpacityEffect,
     QLineEdit,
     QScrollArea,
+    QDialog,
+    QRadioButton,
+    QButtonGroup,
 )
 from PyQt5.QtCore import Qt, QPropertyAnimation, QEasingCurve, QSize, QTimer
 from PyQt5.QtGui import QDragEnterEvent, QDropEvent, QIcon, QPixmap, QImage
@@ -44,6 +47,7 @@ class ProjectionWindow(QWidget):
 
         self.original_image = None
         self.brightness_factor = 1.0
+        self.screen_geometry = None
 
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
@@ -90,7 +94,48 @@ class ProjectionWindow(QWidget):
 
         pixmap = QPixmap.fromImage(q_image)
 
-        self.image_label.setPixmap(pixmap)
+        if self.parent_simulator:
+            scaled_pixmap = self._apply_scale(pixmap)
+            self.image_label.setPixmap(scaled_pixmap)
+        else:
+            self.image_label.setPixmap(pixmap)
+
+    def _apply_scale(self, pixmap):
+        if not self.parent_simulator or not self.screen_geometry:
+            return pixmap
+
+        scale_mode = self.parent_simulator.scale_mode
+        scale_percentage = self.parent_simulator.scale_percentage
+
+        if scale_mode == "automatic":
+
+            screen_width = self.screen_geometry.width()
+            screen_height = self.screen_geometry.height()
+
+            scaled_pixmap = pixmap.scaled(
+                screen_width, screen_height, Qt.KeepAspectRatio, Qt.SmoothTransformation
+            )
+        else:
+            original_width = pixmap.width()
+            original_height = pixmap.height()
+
+            scale_factor = scale_percentage / 100.0
+            new_width = int(original_width * scale_factor)
+            new_height = int(original_height * scale_factor)
+
+            scaled_pixmap = pixmap.scaled(
+                new_width, new_height, Qt.KeepAspectRatio, Qt.SmoothTransformation
+            )
+
+        if self.parent_simulator:
+            self.parent_simulator.update_projection_stats(
+                pixmap.width(),
+                pixmap.height(),
+                scaled_pixmap.width(),
+                scaled_pixmap.height(),
+            )
+
+        return scaled_pixmap
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
@@ -111,9 +156,12 @@ class ProjectionWindow(QWidget):
             secondary_screen = screens[0]
 
         geometry = secondary_screen.geometry()
+        self.screen_geometry = geometry
 
         self.setGeometry(geometry)
         self.showFullScreen()
+
+        self._apply_brightness_and_display()
 
 
 class LithographySimulator(QWidget):
@@ -138,6 +186,17 @@ class LithographySimulator(QWidget):
         self.projection_window = None
         self.has_second_monitor = self.check_second_monitor()
 
+        self.scale_mode = "automatic"
+        self.scale_percentage = 100
+        self.current_scale_info = {
+            "original": (0, 0),
+            "scaled": (0, 0),
+            "percentage": 0,
+        }
+
+        self.inter_cycle_delay = 0
+        self.final_brightness_mode = "zero"
+
         self.exposure_timer = QTimer()
         self.exposure_timer.timeout.connect(self.stop_timed_exposure)
         self.exposure_active = False
@@ -149,6 +208,10 @@ class LithographySimulator(QWidget):
         self.countdown_timer = QTimer()
         self.countdown_timer.timeout.connect(self.update_countdown)
         self.countdown_timer.setInterval(100)
+
+        self.inter_cycle_timer = QTimer()
+        self.inter_cycle_timer.setSingleShot(True)
+        self.inter_cycle_timer.timeout.connect(self.resume_next_cycle)
 
         self.frequency_mode = False
         self.frequency_timer = QTimer()
@@ -230,33 +293,38 @@ class LithographySimulator(QWidget):
         self.max_label = QLabel("Intensidad máxima: -")
         self.max_label.setObjectName("statLabel")
 
+        self.scale_info_label = QLabel("Escala proyección: -")
+        self.scale_info_label.setObjectName("statLabel")
+        self.projected_resolution_label = QLabel("Resolución proyectada: -")
+        self.projected_resolution_label.setObjectName("statLabel")
+
         stats_layout.addWidget(self.resolution_label)
         stats_layout.addWidget(self.min_label)
         stats_layout.addWidget(self.avg_label)
         stats_layout.addWidget(self.max_label)
+        stats_layout.addWidget(self.scale_info_label)
+        stats_layout.addWidget(self.projected_resolution_label)
 
         self.info_layout.addWidget(stats_container)
 
         self.info_layout.addSpacing(20)
 
-     
         tabs_layout = QHBoxLayout()
         self.exposure_tab_button = QPushButton("⏱️ EXPOSICIÓN")
         self.exposure_tab_button.setCheckable(True)
         self.exposure_tab_button.setChecked(True)
         self.exposure_tab_button.clicked.connect(self.show_exposure_section)
         self.exposure_tab_button.setObjectName("tabButton")
-        
+
         self.frequency_tab_button = QPushButton(" FRECUENCIA")
         self.frequency_tab_button.setCheckable(True)
         self.frequency_tab_button.clicked.connect(self.show_frequency_section)
         self.frequency_tab_button.setObjectName("tabButton")
-        
+
         tabs_layout.addWidget(self.exposure_tab_button)
         tabs_layout.addWidget(self.frequency_tab_button)
         self.info_layout.addLayout(tabs_layout)
 
-      
         self.exposure_container = QWidget()
         self.exposure_container.setObjectName("statsContainer")
         exposure_layout = QVBoxLayout(self.exposure_container)
@@ -316,7 +384,6 @@ class LithographySimulator(QWidget):
 
         self.info_layout.addWidget(self.exposure_container)
 
-    
         self.frequency_container = QWidget()
         self.frequency_container.setObjectName("statsContainer")
         frequency_main_layout = QVBoxLayout(self.frequency_container)
@@ -369,7 +436,7 @@ class LithographySimulator(QWidget):
         frequency_main_layout.addWidget(self.frequency_status_label)
 
         self.info_layout.addWidget(self.frequency_container)
-        self.frequency_container.setVisible(False)  
+        self.frequency_container.setVisible(False)
 
         self.info_layout.addSpacing(20)
 
@@ -442,13 +509,13 @@ class LithographySimulator(QWidget):
     def check_second_monitor(self):
         screens = QApplication.screens()
         return len(screens) > 1
-    
+
     def show_exposure_section(self):
         self.exposure_container.setVisible(True)
         self.frequency_container.setVisible(False)
         self.exposure_tab_button.setChecked(True)
         self.frequency_tab_button.setChecked(False)
-    
+
     def show_frequency_section(self):
         self.exposure_container.setVisible(False)
         self.frequency_container.setVisible(True)
@@ -945,7 +1012,6 @@ class LithographySimulator(QWidget):
             )
             return
 
-
         self.exposure_duration = exposure_time
         self.exposure_cycles_total = cycles
         self.exposure_cycles_completed = 0
@@ -955,18 +1021,15 @@ class LithographySimulator(QWidget):
         self.brightness_slider.setValue(intensity)
         self.update_brightness()
 
-
         self.exposure_active = True
         self.exposure_button.setVisible(False)
         self.stop_exposure_button.setVisible(True)
 
-     
         self.exposure_time_input.setEnabled(False)
         self.exposure_intensity_input.setEnabled(False)
         self.exposure_cycles_input.setEnabled(False)
         self.brightness_slider.setEnabled(False)
 
- 
         self.exposure_timer.start(int(exposure_time * 1000))
         self.countdown_timer.start()
 
@@ -986,13 +1049,11 @@ class LithographySimulator(QWidget):
         )
 
     def stop_timed_exposure(self):
-
         self.countdown_timer.stop()
 
         self.exposure_cycles_completed += 1
 
         if self.exposure_cycles_completed < self.exposure_cycles_total:
-
             self.brightness_slider.setValue(0)
             self.update_brightness()
 
@@ -1001,23 +1062,23 @@ class LithographySimulator(QWidget):
                 f"Preparando siguiente ciclo..."
             )
 
-            self.brightness_slider.setValue(self.exposure_target_brightness)
-            self.update_brightness()
-
-            self.exposure_start_time = time.time()
-            self.exposure_timer.start(int(self.exposure_duration * 1000))
-            self.countdown_timer.start()
+            if self.inter_cycle_delay > 0:
+                self.inter_cycle_timer.start(self.inter_cycle_delay)
+            else:
+                self.resume_next_cycle()
         else:
-
-            self.brightness_slider.setValue(0)
+            if self.final_brightness_mode == "zero":
+                self.brightness_slider.setValue(0)
+            else:
+                self.brightness_slider.setValue(100)
             self.update_brightness()
 
             self.finish_exposure_sequence()
 
     def finish_exposure_sequence(self):
-
         self.exposure_timer.stop()
         self.countdown_timer.stop()
+        self.inter_cycle_timer.stop()
 
         self.exposure_active = False
         self.exposure_button.setVisible(True)
@@ -1028,17 +1089,21 @@ class LithographySimulator(QWidget):
         self.exposure_cycles_input.setEnabled(True)
         self.brightness_slider.setEnabled(True)
 
+        brightness_text = "0%" if self.final_brightness_mode == "zero" else "100%"
         self.exposure_status_label.setText(
             f"✅ Exposición completada: {self.exposure_cycles_completed} ciclo(s) | "
-            f"Brillo reducido a 0%"
+            f"Brillo final: {brightness_text}"
         )
 
     def force_stop_exposure(self):
-
         self.exposure_timer.stop()
         self.countdown_timer.stop()
+        self.inter_cycle_timer.stop()
 
-        self.brightness_slider.setValue(0)
+        if self.final_brightness_mode == "zero":
+            self.brightness_slider.setValue(0)
+        else:
+            self.brightness_slider.setValue(100)
         self.update_brightness()
 
         self.exposure_active = False
@@ -1174,15 +1239,30 @@ class LithographySimulator(QWidget):
     def stop_frequency_mode(self):
 
         self.force_stop_frequency()
+
+        if self.final_brightness_mode == "full":
+            final_brightness = 100
+            brightness_text = "Brillo final: 100%"
+        else:
+            final_brightness = 0
+            brightness_text = "Brillo final: 0%"
+
         self.frequency_status_label.setText(
-            f"✅ Modo de frecuencia completado: {self.frequency_cycle_count} ciclos"
+            f"✅ Modo de frecuencia completado: {self.frequency_cycle_count} ciclos - {brightness_text}"
         )
 
     def force_stop_frequency(self):
         self.frequency_mode = False
         self.frequency_timer.stop()
 
-        self.brightness_slider.setValue(0)
+        if self.final_brightness_mode == "full":
+            final_brightness = 100
+            brightness_text = "Brillo final: 100%"
+        else:
+            final_brightness = 0
+            brightness_text = "Brillo final: 0%"
+
+        self.brightness_slider.setValue(final_brightness)
         self.update_brightness()
 
         self.frequency_button.setVisible(True)
@@ -1197,7 +1277,7 @@ class LithographySimulator(QWidget):
             self.frequency_cycle_count = 0
 
         self.frequency_status_label.setText(
-            f"⏹️ Modo de frecuencia detenido: {self.frequency_cycle_count} ciclos completados"
+            f"⏹️ Modo de frecuencia detenido: {self.frequency_cycle_count} ciclos completados - {brightness_text}"
         )
 
     def show_preferences_menu(self):
@@ -1235,6 +1315,12 @@ class LithographySimulator(QWidget):
 
         theme_action.triggered.connect(self.toggle_theme)
 
+        scale_action = menu.addAction("📐 Configuración de Escala")
+        scale_action.triggered.connect(self.show_scale_config)
+
+        exposure_config_action = menu.addAction("⏱️ Configuración de Exposición")
+        exposure_config_action.triggered.connect(self.show_exposure_config)
+
         menu.exec_(
             self.preferences_button.mapToGlobal(
                 self.preferences_button.rect().bottomLeft()
@@ -1255,6 +1341,392 @@ class LithographySimulator(QWidget):
 
         self.fade_animation.finished.connect(self.apply_theme_and_fade_in)
         self.fade_animation.start()
+
+    def show_scale_config(self):
+
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Configuración de Escala de Proyección")
+        dialog.setFixedWidth(450)
+        dialog.setWindowFlags(dialog.windowFlags() & ~Qt.WindowContextHelpButtonHint)
+
+        if self.dark_mode and sys.platform == "win32":
+            try:
+                hwnd = int(dialog.winId())
+                DWMWA_USE_IMMERSIVE_DARK_MODE = 20
+                value = ctypes.c_int(1)
+                ctypes.windll.dwmapi.DwmSetWindowAttribute(
+                    hwnd,
+                    DWMWA_USE_IMMERSIVE_DARK_MODE,
+                    ctypes.byref(value),
+                    ctypes.sizeof(value),
+                )
+            except:
+                pass
+
+        layout = QVBoxLayout()
+        layout.setSpacing(16)
+        layout.setContentsMargins(20, 20, 20, 20)
+
+        title_label = QLabel("📐 Escala de Imagen Proyectada")
+        title_label.setStyleSheet(
+            f"""
+            font-size: 16px;
+            font-weight: bold;
+            color: {'#03DAC6' if self.dark_mode else '#00796B'};
+            padding: 10px 0;
+        """
+        )
+        layout.addWidget(title_label)
+
+        mode_group = QButtonGroup(dialog)
+
+        automatic_radio = QRadioButton("🔄 Automático (Ajustar al monitor)")
+        automatic_radio.setChecked(self.scale_mode == "automatic")
+        mode_group.addButton(automatic_radio, 0)
+
+        manual_radio = QRadioButton("🎚️ Manual (Porcentaje personalizado)")
+        manual_radio.setChecked(self.scale_mode == "manual")
+        mode_group.addButton(manual_radio, 1)
+
+        layout.addWidget(automatic_radio)
+        layout.addWidget(manual_radio)
+
+        manual_container = QWidget()
+        manual_layout = QVBoxLayout(manual_container)
+        manual_layout.setContentsMargins(20, 10, 0, 10)
+
+        scale_slider_label = QLabel(f"Escala: {self.scale_percentage}%")
+        scale_slider_label.setStyleSheet("font-size: 13px;")
+        manual_layout.addWidget(scale_slider_label)
+
+        scale_slider = QSlider(Qt.Horizontal)
+        scale_slider.setMinimum(0)
+        scale_slider.setMaximum(200)
+        scale_slider.setValue(self.scale_percentage)
+        scale_slider.setEnabled(self.scale_mode == "manual")
+
+        def update_slider_label(value):
+            scale_slider_label.setText(f"Escala: {value}%")
+
+        scale_slider.valueChanged.connect(update_slider_label)
+        manual_layout.addWidget(scale_slider)
+
+        range_label = QLabel(
+            "0% = Sin imagen | 100% = Tamaño original | 200% = Doble tamaño"
+        )
+        range_label.setStyleSheet("font-size: 11px; color: #888888;")
+        manual_layout.addWidget(range_label)
+
+        layout.addWidget(manual_container)
+
+        def on_mode_changed():
+            is_manual = manual_radio.isChecked()
+            scale_slider.setEnabled(is_manual)
+
+        automatic_radio.toggled.connect(on_mode_changed)
+        manual_radio.toggled.connect(on_mode_changed)
+
+        button_layout = QHBoxLayout()
+        button_layout.addStretch()
+
+        cancel_button = QPushButton("Cancelar")
+        cancel_button.clicked.connect(dialog.reject)
+        button_layout.addWidget(cancel_button)
+
+        apply_button = QPushButton("✓ Aplicar")
+        apply_button.setDefault(True)
+        apply_button.clicked.connect(dialog.accept)
+        button_layout.addWidget(apply_button)
+
+        layout.addLayout(button_layout)
+
+        dialog.setLayout(layout)
+
+        dialog.setStyleSheet(
+            f"""
+            QDialog {{
+                background-color: {'#1E1E1E' if self.dark_mode else '#FFFFFF'};
+                color: {'#E0E0E0' if self.dark_mode else '#000000'};
+            }}
+            QRadioButton {{
+                color: {'#E0E0E0' if self.dark_mode else '#000000'};
+                font-size: 13px;
+                padding: 5px;
+            }}
+            QRadioButton::indicator {{
+                width: 18px;
+                height: 18px;
+            }}
+            QPushButton {{
+                background-color: {'#2C2C2C' if self.dark_mode else '#F0F0F0'};
+                border: 1px solid {'#3E3E3E' if self.dark_mode else '#CCCCCC'};
+                border-radius: 6px;
+                padding: 8px 16px;
+                color: {'#E0E0E0' if self.dark_mode else '#000000'};
+                min-width: 80px;
+            }}
+            QPushButton:hover {{
+                background-color: {'#3A3A3A' if self.dark_mode else '#E0E0E0'};
+            }}
+            QPushButton:default {{
+                background-color: #03DAC6;
+                color: #000000;
+                border: 1px solid #03DAC6;
+            }}
+            QPushButton:default:hover {{
+                background-color: #00BFA5;
+            }}
+        """
+        )
+
+        if dialog.exec_() == QDialog.Accepted:
+            old_mode = self.scale_mode
+            old_percentage = self.scale_percentage
+
+            self.scale_mode = "automatic" if automatic_radio.isChecked() else "manual"
+            self.scale_percentage = scale_slider.value()
+
+            if (
+                old_mode != self.scale_mode or old_percentage != self.scale_percentage
+            ) and self.projector_active:
+                if self.projection_window:
+                    self.projection_window._apply_brightness_and_display()
+
+    def update_projection_stats(
+        self, original_width, original_height, scaled_width, scaled_height
+    ):
+        if original_width > 0 and original_height > 0:
+            scale_w = (scaled_width / original_width) * 100
+            scale_h = (scaled_height / original_height) * 100
+            avg_scale = (scale_w + scale_h) / 2
+        else:
+            avg_scale = 0
+
+        self.current_scale_info = {
+            "original": (original_width, original_height),
+            "scaled": (scaled_width, scaled_height),
+            "percentage": avg_scale,
+        }
+
+        self.scale_info_label.setText(f"Escala proyección: {avg_scale:.1f}%")
+        self.projected_resolution_label.setText(
+            f"Resolución proyectada: {scaled_width}x{scaled_height} px"
+        )
+
+    def show_exposure_config(self):
+
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Configuración de Exposición")
+        dialog.setFixedWidth(500)
+        dialog.setWindowFlags(dialog.windowFlags() & ~Qt.WindowContextHelpButtonHint)
+
+        if self.dark_mode and sys.platform == "win32":
+            try:
+                hwnd = int(dialog.winId())
+                DWMWA_USE_IMMERSIVE_DARK_MODE = 20
+                value = ctypes.c_int(1)
+                ctypes.windll.dwmapi.DwmSetWindowAttribute(
+                    hwnd,
+                    DWMWA_USE_IMMERSIVE_DARK_MODE,
+                    ctypes.byref(value),
+                    ctypes.sizeof(value),
+                )
+            except:
+                pass
+
+        layout = QVBoxLayout()
+        layout.setSpacing(16)
+        layout.setContentsMargins(20, 20, 20, 20)
+
+        title_label = QLabel("⏱️ Configuración de Exposición")
+        title_label.setStyleSheet(
+            f"""
+            font-size: 16px;
+            font-weight: bold;
+            color: {'#03DAC6' if self.dark_mode else '#00796B'};
+            padding: 10px 0;
+        """
+        )
+        layout.addWidget(title_label)
+
+        brightness_title = QLabel("💡 Brillo Final al Completar")
+        brightness_title.setStyleSheet(
+            "font-size: 14px; font-weight: bold; margin-top: 10px;"
+        )
+        layout.addWidget(brightness_title)
+
+        brightness_group = QButtonGroup(dialog)
+
+        brightness_zero_radio = QRadioButton("🔴 Apagar (0% de brillo)")
+        brightness_zero_radio.setChecked(self.final_brightness_mode == "zero")
+        brightness_group.addButton(brightness_zero_radio, 0)
+
+        brightness_full_radio = QRadioButton("🟢 Mantener encendido (100% de brillo)")
+        brightness_full_radio.setChecked(self.final_brightness_mode == "full")
+        brightness_group.addButton(brightness_full_radio, 1)
+
+        layout.addWidget(brightness_zero_radio)
+        layout.addWidget(brightness_full_radio)
+
+        brightness_desc = QLabel(
+            "Esta configuración controla el brillo de la imagen al finalizar todos los ciclos de exposición o el modo de frecuencia."
+        )
+        brightness_desc.setStyleSheet(
+            "font-size: 11px; color: #888888; margin-left: 20px;"
+        )
+        brightness_desc.setWordWrap(True)
+        layout.addWidget(brightness_desc)
+
+        separator1 = QLabel()
+        separator1.setStyleSheet(
+            f"background-color: {'#3E3E3E' if self.dark_mode else '#CCCCCC'}; max-height: 1px;"
+        )
+        separator1.setFixedHeight(1)
+        layout.addWidget(separator1)
+
+        delay_title = QLabel("⏸️ Tiempo entre Ciclos")
+        delay_title.setStyleSheet(
+            "font-size: 14px; font-weight: bold; margin-top: 10px;"
+        )
+        layout.addWidget(delay_title)
+
+        delay_desc = QLabel(
+            "Tiempo de pausa (oscuridad) entre cada ciclo de exposición:"
+        )
+        delay_desc.setStyleSheet("font-size: 12px; margin-bottom: 5px;")
+        layout.addWidget(delay_desc)
+
+        delay_input_layout = QHBoxLayout()
+
+        delay_input = QLineEdit()
+        delay_input.setText(
+            str(
+                self.inter_cycle_delay
+                if self.inter_cycle_delay < 1000
+                else self.inter_cycle_delay // 1000
+            )
+        )
+        delay_input.setPlaceholderText("0")
+        delay_input.setMaximumWidth(100)
+        delay_input_layout.addWidget(QLabel("Tiempo:"))
+        delay_input_layout.addWidget(delay_input)
+
+        delay_unit_combo = QComboBox()
+        delay_unit_combo.addItems(["milisegundos", "segundos"])
+        if self.inter_cycle_delay >= 1000:
+            delay_unit_combo.setCurrentText("segundos")
+        else:
+            delay_unit_combo.setCurrentText("milisegundos")
+        delay_unit_combo.setMaximumWidth(120)
+        delay_input_layout.addWidget(delay_unit_combo)
+        delay_input_layout.addStretch()
+
+        layout.addLayout(delay_input_layout)
+
+        delay_note = QLabel(
+            "0 = Sin pausa entre ciclos | Durante la pausa, la imagen estará en 0% de brillo"
+        )
+        delay_note.setStyleSheet("font-size: 11px; color: #888888; margin-left: 20px;")
+        delay_note.setWordWrap(True)
+        layout.addWidget(delay_note)
+
+        button_layout = QHBoxLayout()
+        button_layout.addStretch()
+
+        cancel_button = QPushButton("Cancelar")
+        cancel_button.clicked.connect(dialog.reject)
+        button_layout.addWidget(cancel_button)
+
+        apply_button = QPushButton("✓ Aplicar")
+        apply_button.setDefault(True)
+        apply_button.clicked.connect(dialog.accept)
+        button_layout.addWidget(apply_button)
+
+        layout.addLayout(button_layout)
+
+        dialog.setLayout(layout)
+
+        dialog.setStyleSheet(
+            f"""
+            QDialog {{
+                background-color: {'#1E1E1E' if self.dark_mode else '#FFFFFF'};
+                color: {'#E0E0E0' if self.dark_mode else '#000000'};
+            }}
+            QRadioButton {{
+                color: {'#E0E0E0' if self.dark_mode else '#000000'};
+                font-size: 13px;
+                padding: 5px;
+            }}
+            QRadioButton::indicator {{
+                width: 18px;
+                height: 18px;
+            }}
+            QLabel {{
+                color: {'#E0E0E0' if self.dark_mode else '#000000'};
+            }}
+            QLineEdit {{
+                background-color: {'#2C2C2C' if self.dark_mode else '#FFFFFF'};
+                border: 1px solid {'#3E3E3E' if self.dark_mode else '#CCCCCC'};
+                border-radius: 6px;
+                padding: 6px;
+                color: {'#E0E0E0' if self.dark_mode else '#000000'};
+            }}
+            QComboBox {{
+                background-color: {'#2C2C2C' if self.dark_mode else '#F5F5F5'};
+                border: 1px solid {'#3E3E3E' if self.dark_mode else '#CCCCCC'};
+                border-radius: 6px;
+                padding: 6px;
+                color: {'#E0E0E0' if self.dark_mode else '#000000'};
+            }}
+            QPushButton {{
+                background-color: {'#2C2C2C' if self.dark_mode else '#F0F0F0'};
+                border: 1px solid {'#3E3E3E' if self.dark_mode else '#CCCCCC'};
+                border-radius: 6px;
+                padding: 8px 16px;
+                color: {'#E0E0E0' if self.dark_mode else '#000000'};
+                min-width: 80px;
+            }}
+            QPushButton:hover {{
+                background-color: {'#3A3A3A' if self.dark_mode else '#E0E0E0'};
+            }}
+            QPushButton:default {{
+                background-color: #03DAC6;
+                color: #000000;
+                border: 1px solid #03DAC6;
+            }}
+            QPushButton:default:hover {{
+                background-color: #00BFA5;
+            }}
+        """
+        )
+
+        if dialog.exec_() == QDialog.Accepted:
+            self.final_brightness_mode = (
+                "zero" if brightness_zero_radio.isChecked() else "full"
+            )
+
+            try:
+                delay_value = float(delay_input.text())
+                if delay_value < 0:
+                    delay_value = 0
+
+                if delay_unit_combo.currentText() == "segundos":
+                    self.inter_cycle_delay = int(delay_value * 1000)
+                else:
+                    self.inter_cycle_delay = int(delay_value)
+            except ValueError:
+                self.inter_cycle_delay = 0
+
+    def resume_next_cycle(self):
+        if not self.exposure_active:
+            return
+
+        self.brightness_slider.setValue(self.exposure_target_brightness)
+        self.update_brightness()
+
+        self.exposure_start_time = time.time()
+        self.exposure_timer.start(int(self.exposure_duration * 1000))
+        self.countdown_timer.start()
 
     def apply_theme_and_fade_in(self):
         self.apply_theme()
