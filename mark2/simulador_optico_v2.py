@@ -184,10 +184,11 @@ class ProjectionWindow(QWidget):
         
         # Crear una imagen negra del tamaño de la pantalla
         black_image = np.zeros((height, width), dtype=np.uint8)
+        black_image = np.ascontiguousarray(black_image)
         
         # Convertir a QPixmap y mostrar
         bytes_per_line = width
-        q_image = QImage(black_image.data, width, height, bytes_per_line, QImage.Format_Grayscale8)
+        q_image = QImage(black_image.tobytes(), width, height, bytes_per_line, QImage.Format_Grayscale8)
         pixmap = QPixmap.fromImage(q_image)
         
         self.image_label.setPixmap(pixmap)
@@ -270,7 +271,7 @@ class ProjectionWindow(QWidget):
         
         # Convertir a QPixmap y mostrar
         bytes_per_line = screen_width
-        q_image = QImage(canvas.data, screen_width, screen_height, bytes_per_line, QImage.Format_Grayscale8)
+        q_image = QImage(canvas.tobytes(), screen_width, screen_height, bytes_per_line, QImage.Format_Grayscale8)
         pixmap = QPixmap.fromImage(q_image)
         
         # Mostrar en tamaño completo del monitor
@@ -371,12 +372,13 @@ class ProjectionWindow(QWidget):
         # NumPy/OpenCV puede tener un sistema de coordenadas diferente
         # Esto evita que la imagen completa aparezca invertida verticalmente
         scaled = np.flipud(scaled)
+        scaled = np.ascontiguousarray(scaled)
 
         if scaled.ndim == 2:
             height, width = scaled.shape
             bytes_per_line = width
             q_image = QImage(
-                scaled.data,
+                scaled.tobytes(),
                 width,
                 height,
                 bytes_per_line,
@@ -386,7 +388,7 @@ class ProjectionWindow(QWidget):
             height, width, channels = scaled.shape
             bytes_per_line = width * channels
             q_image = QImage(
-                scaled.data,
+                scaled.tobytes(),
                 width,
                 height,
                 bytes_per_line,
@@ -398,13 +400,13 @@ class ProjectionWindow(QWidget):
             height, width = gray.shape
             bytes_per_line = width
             q_image = QImage(
-                gray.data,
+                gray.tobytes(),
                 width,
                 height,
                 bytes_per_line,
                 QImage.Format_Grayscale8,
             )
-
+        
         pixmap = QPixmap.fromImage(q_image)
 
         if self.parent_simulator:
