@@ -212,3 +212,4 @@ marimo/_lsp/
 __marimo__/
 /mark2/bassler_cam_test
 /mark2/cache_photolith
+mark2/simulador_optico.py
