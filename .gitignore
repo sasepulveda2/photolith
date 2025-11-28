@@ -210,3 +210,5 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+/mark2/bassler_cam_test
+/mark2/cache_photolith
