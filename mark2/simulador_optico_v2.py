@@ -4691,7 +4691,7 @@ class LithographySimulator(QWidget):
         self.display_grid()
 
     def apply_grid_effects(self, image):
-        """Aplica los efectos de intensidad y desenfoque a la imagen para el grid"""
+        """Aplica los efectos de intensidad, desenfoque y modo binario a la imagen para el grid"""
         if image is None:
             return None
         
@@ -4708,6 +4708,22 @@ class LithographySimulator(QWidget):
         
         intensity_factor = self.brightness / 100.0
         result = result * intensity_factor
+        
+        # Aplicar modo binario si está activado
+        if self.binary_mode_enabled:
+            # Convertir a porcentaje 0-100 para comparar con threshold
+            intensity_percent = result * 100.0
+            
+            # Aplicar inversión antes de binarización si está activada
+            if self.invert_projection:
+                intensity_percent = 100.0 - intensity_percent
+            
+            # Binarización estricta: >= threshold → blanco (255), < threshold → negro (0)
+            result = np.where(intensity_percent >= self.binary_threshold, 1.0, 0.0)
+        else:
+            # Aplicar inversión en modo escala de grises si está activada
+            if self.invert_projection:
+                result = 1.0 - result
         
         # Volver a rango 0-255 para visualización
         result = (result * 255.0).clip(0, 255).astype(np.uint8)
@@ -4728,6 +4744,9 @@ class LithographySimulator(QWidget):
         
         # Aplicar transformaciones geométricas (rotación, espejos) y luego mostrar
         display_image = self.apply_image_transforms(self.image_on_grid)
+        
+        # Aplicar efectos (sigma, brightness, binario, inversión) a la visualización
+        display_image = self.apply_grid_effects(display_image)
         
         # NOTA: El downscaling NO se aplica aquí en la visualización del grid
         # Se aplica individualmente a cada CHUNK después de la segmentación
@@ -5682,13 +5701,14 @@ class LithographySimulator(QWidget):
     def update_sigma(self):
         self.sigma = self.sigma_slider.value()
         self.sigma_label.setText(f"Sigma (Desenfoque): {self.sigma:.1f}")
-        if self.pattern is not None:
-            if not self.grid_view_active:
-                self.simulate_optics()
-            elif self.apply_effects_to_grid and self.grid_generated:
-              
-                self.image_on_grid = self.apply_grid_effects(self.pattern.copy())
-                self.quick_redraw_image()
+        
+        # Actualizar visualización del grid si está activo
+        if self.grid_view_active and self.image_on_grid is not None:
+            self.quick_redraw_image()
+        
+        # Actualizar vista de imagen principal SOLO si NO estamos en vista de grid
+        if not self.grid_view_active and self.pattern is not None:
+            self.simulate_optics()
 
     def update_brightness(self):
         self.brightness = self.brightness_slider.value()
@@ -5696,9 +5716,13 @@ class LithographySimulator(QWidget):
         if self.projector_active and self.projection_window is not None:
             self.projection_window.set_brightness(self.brightness)
         
-        if self.apply_effects_to_grid and self.grid_view_active and self.grid_generated and self.pattern is not None:
-            self.image_on_grid = self.apply_grid_effects(self.pattern.copy())
+        # Actualizar visualización del grid si está activo
+        if self.grid_view_active and self.image_on_grid is not None:
             self.quick_redraw_image()
+        
+        # Actualizar vista de imagen principal SOLO si NO estamos en vista de grid
+        if not self.grid_view_active and self.pattern is not None:
+            self.simulate_optics()
 
     def toggle_binary_mode(self, state):
         """Activa o desactiva el modo de binarización."""
@@ -5711,6 +5735,14 @@ class LithographySimulator(QWidget):
                 image = self._get_projection_image()
                 if image is not None:
                     self.projection_window.set_image(image)
+        
+        # Actualizar visualización del grid si está activo
+        if self.grid_view_active and self.image_on_grid is not None:
+            self.quick_redraw_image()
+        
+        # Actualizar vista de imagen principal SOLO si NO estamos en vista de grid
+        if not self.grid_view_active and self.pattern is not None:
+            self.simulate_optics()
                     
         self.binary_status_label.setText(f"Estado: {'✓ Activo' if self.binary_mode_enabled else '✗ Inactivo'}")
 
@@ -5720,6 +5752,14 @@ class LithographySimulator(QWidget):
         self.binary_threshold_input.setText(f"{self.binary_threshold:.1f}")
         if self.projector_active and self.projection_window is not None:
             self.projection_window.set_binary_threshold(self.binary_threshold)
+        
+        # Actualizar visualización del grid si está activo y en modo binario
+        if self.binary_mode_enabled and self.grid_view_active and self.image_on_grid is not None:
+            self.quick_redraw_image()
+        
+        # Actualizar vista de imagen principal SOLO si NO estamos en vista de grid
+        if self.binary_mode_enabled and not self.grid_view_active and self.pattern is not None:
+            self.simulate_optics()
 
     def update_binary_threshold_from_input(self):
         """Actualiza el umbral de binarización desde el campo de texto."""
@@ -5730,6 +5770,14 @@ class LithographySimulator(QWidget):
                 self.binary_threshold_slider.setValue(int(round(value)))
                 if self.projector_active and self.projection_window is not None:
                     self.projection_window.set_binary_threshold(self.binary_threshold)
+                
+                # Actualizar visualización del grid si está activo y en modo binario
+                if self.binary_mode_enabled and self.grid_view_active and self.image_on_grid is not None:
+                    self.quick_redraw_image()
+                
+                # Actualizar vista de imagen principal SOLO si NO estamos en vista de grid
+                if self.binary_mode_enabled and not self.grid_view_active and self.pattern is not None:
+                    self.simulate_optics()
             else:
                 self.binary_threshold_input.setText(f"{self.binary_threshold:.1f}")
         except ValueError:
@@ -5740,8 +5788,12 @@ class LithographySimulator(QWidget):
         self.save_grid_config()
         self._update_invert_button_text()
         
-        # Actualizar preview
-        if self.pattern is not None:
+        # Actualizar visualización del grid si está activo
+        if self.grid_view_active and self.image_on_grid is not None:
+            self.quick_redraw_image()
+        
+        # Actualizar preview SOLO si NO estamos en vista de grid
+        if not self.grid_view_active and self.pattern is not None:
             self.simulate_optics()
 
         if self.projector_active and self.projection_window is not None:
@@ -8950,10 +9002,41 @@ class LithographySimulator(QWidget):
             print(f"No se pudo aplicar barra de título clara: {e}")
 
     def simulate_optics(self):
+        # Aplicar desenfoque gaussiano (para mapa de calor)
         psf_result = gaussian_filter(self.pattern, sigma=self.sigma)
-        intensity_percentage = (psf_result / psf_result.max()) * 100
+        
+        # Calcular intensidad en porcentaje para mapa de calor (derecha)
+        intensity_percentage = (psf_result / psf_result.max()) * 100 if psf_result.max() > 0 else psf_result
+        
+        # Preparar imagen original para visualización (izquierda)
+        display_pattern = self.pattern.copy().astype(np.float64)
+        
+        # Normalizar a 0-1
+        if display_pattern.max() > 0:
+            display_pattern = display_pattern / display_pattern.max()
+        
+        # Aplicar brillo
+        display_pattern = display_pattern * (self.brightness / 100.0)
+        
+        # Aplicar modo binario si está activado (SOLO a imagen original izquierda)
+        if self.binary_mode_enabled:
+            # Convertir a porcentaje
+            intensity_percent = display_pattern * 100.0
+            
+            # Aplicar inversión antes de binarización si está activada
+            if self.invert_projection:
+                intensity_percent = 100.0 - intensity_percent
+            
+            # Binarización estricta
+            display_pattern = np.where(intensity_percent >= self.binary_threshold, 1.0, 0.0)
+        else:
+            # Aplicar inversión en modo escala de grises si está activada
+            if self.invert_projection:
+                display_pattern = 1.0 - display_pattern
+        
         self.last_intensity = intensity_percentage
-        self.plot_results(self.pattern, psf_result, intensity_percentage)
+        # Pasar imagen original procesada (izquierda) y mapa de calor sin cambios (derecha)
+        self.plot_results(display_pattern, psf_result, intensity_percentage)
         self.update_info_panel(intensity_percentage)
 
         # Si estamos en modo "Imagen Completa" (segmentation_mode == 3) y hay proyección activa,
@@ -8980,15 +9063,12 @@ class LithographySimulator(QWidget):
             for spine in ax.spines.values():
                 spine.set_edgecolor(text_color)
 
-        # Aplicar inversión si está activa
-        display_pattern = pattern
-        if self.invert_projection:
-            display_pattern = 1.0 - pattern
-
-        ax1.imshow(display_pattern, cmap="gray")
+        # Mostrar imagen original procesada (ya con efectos aplicados)
+        ax1.imshow(pattern, cmap="gray")
         ax1.set_xlabel("X")
         ax1.set_ylabel("Y")
 
+        # Mostrar mapa de calor (sin efectos binarios, solo intensidad)
         ax2.imshow(intensity_percentage, cmap="inferno")
         ax2.set_xlabel("X")
         ax2.set_ylabel("Y")
