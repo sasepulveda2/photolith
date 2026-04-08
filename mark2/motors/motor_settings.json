@@ -1,0 +1,21 @@
+{
+  "port_identity": {
+    "vid": 6790,
+    "pid": 29987,
+    "manufacturer": "wch.cn",
+    "product": null
+  },
+  "baud": 250000,
+  "positions": {
+    "X": 0,
+    "Y": 0,
+    "Z": 0,
+    "E": 0
+  },
+  "last_movement": {
+    "axis": "X",
+    "delta_steps": -1000,
+    "multiplier": 1000,
+    "position_after": -1000
+  }
+}
