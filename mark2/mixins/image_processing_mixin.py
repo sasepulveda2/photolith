@@ -9,7 +9,6 @@ import numpy as np
 from scipy.ndimage import gaussian_filter
 
 from PyQt5.QtWidgets import QMessageBox
-from PyQt5.QtCore import Qt
 
 
 class ImageProcessingMixin:

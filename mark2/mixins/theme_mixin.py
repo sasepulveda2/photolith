@@ -6,16 +6,10 @@ toolbar, deteccion de monitores y eventos de ventana.
 """
 import sys
 import ctypes
-import time
-import numpy as np
 
 from PyQt5.QtWidgets import (
-    QApplication, QWidget, QGraphicsOpacityEffect, QMessageBox,
-    QDesktopWidget,
+    QApplication, QMessageBox,
 )
-from PyQt5.QtCore import Qt, QPropertyAnimation, QEasingCurve
-from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
-from projection_window import ProjectionWindow
 
 
 class ThemeMixin:

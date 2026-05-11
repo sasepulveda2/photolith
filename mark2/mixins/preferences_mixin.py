@@ -6,13 +6,14 @@ colores del grid y opciones avanzadas.
 """
 import sys
 import ctypes
+import time
 
 from PyQt5.QtWidgets import (
-    QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QSlider,
+    QGraphicsOpacityEffect, QMenu, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QSlider,
     QComboBox, QLineEdit, QDialog, QRadioButton, QButtonGroup,
-    QMessageBox,
+    QMessageBox, QWidget,
 )
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import QEasingCurve, QPropertyAnimation, Qt
 
 
 class PreferencesMixin:

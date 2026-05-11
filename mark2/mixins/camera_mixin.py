@@ -6,7 +6,6 @@ incluyendo captura de frames, ajuste de exposicion, ganancia, gamma
 y nivel de negro.
 """
 import cv2
-import numpy as np
 
 try:
     from pypylon import pylon
@@ -17,7 +16,6 @@ except ImportError:
 
 from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtCore import QTimer
-from PyQt5.QtGui import QPixmap, QImage
 
 
 class CameraMixin:

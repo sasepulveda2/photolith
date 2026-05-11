@@ -5,7 +5,6 @@ Contiene el metodo _build_ui() que construye toda la interfaz grafica:
 toolbar, sidebar, canvas, secciones colapsables, controles de exposicion,
 segmentacion, calibracion y consola de log.
 """
-import os
 from PyQt5.QtWidgets import (
     QApplication, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QSlider,
     QComboBox, QCheckBox, QLineEdit, QScrollArea, QWidget,
@@ -13,7 +12,6 @@ from PyQt5.QtWidgets import (
     QTreeWidget,
 )
 from PyQt5.QtCore import Qt, QSize, QTimer
-from PyQt5.QtGui import QIcon
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas,
     NavigationToolbar2QT as NavigationToolbar,
@@ -44,6 +42,9 @@ class UISetupMixin:
 
         self.preferences_button = QPushButton("⚙️ Preferencias")
         self.preferences_button.clicked.connect(self.show_preferences_menu)
+
+        self.motors_button = QPushButton("⚙️ Motores")
+        self.motors_button.clicked.connect(self.toggle_motors_panel)
 
         self.projector_button = QPushButton("🎬 Proyectar")
         self.projector_button.clicked.connect(self.toggle_projector)
@@ -77,6 +78,7 @@ class UISetupMixin:
         control_layout.addWidget(self.toggle_view_button)
         control_layout.addWidget(self.calibration_button)
         control_layout.addWidget(self.preferences_button)
+        control_layout.addWidget(self.motors_button)
         control_layout.addWidget(self.projector_button)
         control_layout.addWidget(self.sigma_label)
         control_layout.addWidget(self.sigma_slider)
@@ -658,6 +660,39 @@ class UISetupMixin:
         self.segment_overlap_label.setStyleSheet("font-size: 10px;")
         segmentation_layout.addWidget(self.segment_overlap_label)
 
+        # ═══════════════════════════════════════════════════════════════════════════
+        # CALIBRACIÓN FÍSICA (TAMAÑO EN RESINA)
+        # ═══════════════════════════════════════════════════════════════════════════
+        calib_label = QLabel("📏 Calibración Física (En Resina):")
+        calib_label.setObjectName("statLabel")
+        calib_label.setStyleSheet("font-weight: bold; margin-top: 10px;")
+        segmentation_layout.addWidget(calib_label)
+
+        self.btn_calib_white = QPushButton("⬜ Proyectar Patrón Blanco (Medir)")
+        self.btn_calib_white.clicked.connect(self.project_white_calibration_pattern)
+        segmentation_layout.addWidget(self.btn_calib_white)
+
+        dim_layout = QHBoxLayout()
+        self.phys_width_spin = QDoubleSpinBox()
+        self.phys_width_spin.setRange(0.01, 1000.0)
+        self.phys_width_spin.setDecimals(2)
+        self.phys_width_spin.setSuffix(" mm")
+        self.phys_width_spin.setValue(self.physical_segment_width if hasattr(self, 'physical_segment_width') else 10.0)
+        self.phys_width_spin.valueChanged.connect(self.save_physical_dimensions)
+        
+        self.phys_height_spin = QDoubleSpinBox()
+        self.phys_height_spin.setRange(0.01, 1000.0)
+        self.phys_height_spin.setDecimals(2)
+        self.phys_height_spin.setSuffix(" mm")
+        self.phys_height_spin.setValue(self.physical_segment_height if hasattr(self, 'physical_segment_height') else 10.0)
+        self.phys_height_spin.valueChanged.connect(self.save_physical_dimensions)
+        
+        dim_layout.addWidget(QLabel("Ancho:"))
+        dim_layout.addWidget(self.phys_width_spin)
+        dim_layout.addWidget(QLabel("Alto:"))
+        dim_layout.addWidget(self.phys_height_spin)
+        segmentation_layout.addLayout(dim_layout)
+
         # Botón para aplicar segmentación
         self.apply_segmentation_button = QPushButton("✂️ Aplicar Segmentación")
         self.apply_segmentation_button.setObjectName("modernButton")
@@ -665,6 +700,7 @@ class UISetupMixin:
         self.apply_segmentation_button.setToolTip(
             "Divide la imagen según la configuración de segmentos"
         )
+        self.apply_segmentation_button.setStyleSheet("margin-top: 10px;")
         segmentation_layout.addWidget(self.apply_segmentation_button)
 
         # Checkbox para mostrar overlay de segmentos

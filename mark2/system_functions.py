@@ -98,6 +98,9 @@ class LithographySimulator(
         self.sigma = DEFAULT_SIGMA
         self.brightness = DEFAULT_BRIGHTNESS
         self.invert_projection = False
+        
+        self.physical_segment_width = 10.0
+        self.physical_segment_height = 10.0
         self.binary_threshold = DEFAULT_BINARY_THRESHOLD
         self.binary_mode_enabled = False
         self.downscale_factor = DEFAULT_DOWNSCALE_FACTOR
@@ -215,3 +218,68 @@ class LithographySimulator(
 
         # ── Sistema de Archivos ──────────────────────────────────
         self.init_cache_system()
+
+        # ── Motores ──────────────────────────────────────────────
+        self.motor_gui = None
+
+    def toggle_motors_panel(self):
+        """Muestra u oculta el panel de control de motores NEMA."""
+        if self.motor_gui is None:
+            # Importación lazy para no ralentizar el inicio
+            from motors.main import load_settings, seleccionar_puerto_y_baud, save_settings, puerto_key
+            from motors.motor_controller import CrealityController
+            from motors.gui import MotorGUI
+            from PyQt5.QtWidgets import QMessageBox
+            from PyQt5.QtCore import Qt
+
+            settings = load_settings()
+            puerto, baud = seleccionar_puerto_y_baud(settings)
+
+            if not puerto:
+                return
+
+            controller = CrealityController(
+                puerto.device, 
+                baud=baud,
+                initial_positions=settings.get("positions", {}),
+                mapping=settings.get("mapping")
+            )
+            if not controller.connect():
+                QMessageBox.critical(self, "Error de Conexión", f"No se pudo conectar a la placa en {puerto.device}.")
+                return
+
+            settings["port_identity"] = puerto_key(puerto)
+            settings["baud"] = baud
+            save_settings(settings)
+
+            def guardar_posiciones(positions):
+                settings["positions"] = positions
+                save_settings(settings)
+
+            def guardar_ultimo_movimiento(movement):
+                settings["last_movement"] = movement
+                save_settings(settings)
+
+            def guardar_mapping(mapping):
+                settings["mapping"] = mapping
+                save_settings(settings)
+
+            controller.on_positions_changed = guardar_posiciones
+            controller.on_last_movement_changed = guardar_ultimo_movimiento
+
+            # Instanciamos el MotorGUI como panel Tool/Flotante
+            self.motor_gui = MotorGUI(controller, mapping=settings.get("mapping"), on_mapping_changed=guardar_mapping)
+            # Configurar como panel flotante que pertenece a esta ventana principal
+            self.motor_gui.setWindowFlags(Qt.Tool)
+            
+            # Mantener la estética
+            if hasattr(self, "dark_mode") and self.dark_mode:
+                # El gui.py de motors ya tiene estilo, pero por las dudas
+                pass
+
+        if self.motor_gui.isVisible():
+            self.motor_gui.hide()
+        else:
+            self.motor_gui.show()
+            self.motor_gui.raise_()
+            self.motor_gui.activateWindow()

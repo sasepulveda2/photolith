@@ -4,15 +4,11 @@ Mixin de control de proyeccion.
 Gestiona proyeccion en monitor secundario, exposicion temporizada,
 modo frecuencia, secuencias de segmentos y aplicacion de efectos.
 """
-import sys
 import time
 import cv2
-import numpy as np
-import ctypes
 
-from PyQt5.QtWidgets import QApplication, QMessageBox
+from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtCore import QTimer
-from matplotlib.patches import Rectangle
 from projection_window import ProjectionWindow
 
 
@@ -1300,3 +1296,45 @@ class ProjectionMixin:
         )
         self.ax.add_patch(rect_highlight)
 
+    def project_white_calibration_pattern(self):
+        """Proyecta un patrón completamente blanco para medir el tamaño físico del campo de proyección."""
+        from PyQt5.QtWidgets import QMessageBox
+        import numpy as np
+
+        if not self.projector_active:
+            QMessageBox.warning(
+                self, 
+                "Proyector Inactivo", 
+                "Debe encender el proyector (botón '🎬 Proyectar') antes de calibrar."
+            )
+            return
+
+        if self.projection_window is not None:
+            # Crear un rectángulo blanco del tamaño de la resolución activa
+            w = self.projection_window.screen_geometry.width()
+            h = self.projection_window.screen_geometry.height()
+            
+            # Matriz blanca (255)
+            white_pattern = np.ones((h, w, 3), dtype=np.uint8) * 255
+            
+            # Forzar actualización sin procesar nada
+            self.projection_window.update_segment(white_pattern)
+            self.log_to_console("⬜ Patrón de Calibración Blanco proyectado en pantalla completa.", "SUCCESS")
+            
+            QMessageBox.information(
+                self,
+                "Calibración de Proyección",
+                "Se está proyectando un patrón completamente blanco.\n\n"
+                "Mida con un calibre físico (en mm) el ancho y el alto reales de este patrón "
+                "sobre su plataforma de resina, y escriba esos valores en los recuadros de calibración."
+            )
+
+    def save_physical_dimensions(self):
+        """Guarda las dimensiones físicas del segmento en el estado de memoria."""
+        if hasattr(self, 'phys_width_spin') and hasattr(self, 'phys_height_spin'):
+            self.physical_segment_width = self.phys_width_spin.value()
+            self.physical_segment_height = self.phys_height_spin.value()
+            self.log_to_console(
+                f"📏 Dimensiones físicas actualizadas: {self.physical_segment_width} mm x {self.physical_segment_height} mm", 
+                "INFO"
+            )

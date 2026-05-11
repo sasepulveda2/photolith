@@ -4,9 +4,6 @@ Mixin de interfaz de calibracion.
 Construye y gestiona la interfaz completa de calibracion con pestanas
 para fuente de imagen, analisis de brillo y generacion de matrices.
 """
-import os
-import cv2
-import numpy as np
 
 try:
     from pypylon import pylon
@@ -18,11 +15,9 @@ except ImportError:
 from PyQt5.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QSlider,
     QComboBox, QCheckBox, QLineEdit, QScrollArea, QWidget,
-    QRadioButton, QButtonGroup, QMessageBox,
-    QFileDialog, QFrame,
+    QRadioButton, QButtonGroup, QFrame,
 )
-from PyQt5.QtCore import Qt, QTimer, QSize
-from PyQt5.QtGui import QPixmap, QImage
+from PyQt5.QtCore import Qt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from UI.collapsible_section import CollapsibleSection

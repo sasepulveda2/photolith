@@ -7,15 +7,33 @@
   },
   "baud": 250000,
   "positions": {
-    "X": 0,
-    "Y": 0,
-    "Z": 0,
+    "X": 1,
+    "Y": -24398,
+    "Z": -26465,
     "E": 0
   },
   "last_movement": {
-    "axis": "X",
-    "delta_steps": -1000,
-    "multiplier": 1000,
-    "position_after": -1000
+    "axis": "Z",
+    "delta_steps": 640,
+    "multiplier": 640,
+    "position_after": -26465
+  },
+  "mapping": {
+    "X": {
+      "motor": "X",
+      "invert": false
+    },
+    "Y": {
+      "motor": "Y",
+      "invert": false
+    },
+    "Z": {
+      "motor": "Z",
+      "invert": false
+    },
+    "E": {
+      "motor": "E",
+      "invert": false
+    }
   }
 }

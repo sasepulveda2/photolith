@@ -12,8 +12,12 @@ from PyQt5.QtWidgets import (
     QLabel,
     QMessageBox,
 )
-from motor_controller import CrealityController
-from gui import MotorGUI
+try:
+    from .motor_controller import CrealityController
+    from .gui import MotorGUI
+except ImportError:
+    from motor_controller import CrealityController
+    from gui import MotorGUI
 
 SETTINGS_FILE = Path(__file__).resolve().with_name("motor_settings.json")
 DEFAULT_BAUDS = [9600, 57600, 115200, 250000, 500000, 1000000]
@@ -58,6 +62,13 @@ def load_settings():
         "baud": 250000,
         "positions": {"X": 0, "Y": 0, "Z": 0, "E": 0},
         "last_movement": None,
+        "mapping": {
+            "X": {"motor": "X", "invert": False},
+            "Y": {"motor": "Y", "invert": False},
+            "Z": {"motor": "Z", "invert": False},
+            "E": {"motor": "E", "invert": False}
+        },
+        "steps_360": {"X": 3200, "Y": 3200, "Z": 640, "E": 3200}
     }
     try:
         data = json.loads(SETTINGS_FILE.read_text(encoding="utf-8"))
@@ -81,6 +92,21 @@ def load_settings():
     last_movement = data.get("last_movement")
     if isinstance(last_movement, dict):
         defaults["last_movement"] = last_movement
+
+    mapping = data.get("mapping")
+    if isinstance(mapping, dict):
+        for logical in ["X", "Y", "Z", "E"]:
+            if logical in mapping:
+                defaults["mapping"][logical].update(mapping[logical])
+
+    steps_360 = data.get("steps_360")
+    if isinstance(steps_360, dict):
+        for logical in ["X", "Y", "Z", "E"]:
+            if logical in steps_360:
+                try:
+                    defaults["steps_360"][logical] = int(steps_360[logical])
+                except (TypeError, ValueError):
+                    pass
 
     return defaults
 
@@ -108,11 +134,61 @@ def find_matching_port(ports, identity):
 class PortSelectorDialog(QDialog):
     def __init__(self, ports, settings, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Seleccionar puerto y baudios")
+        self.setWindowTitle("Conexión del Controlador - NanoFab")
         self.setMinimumWidth(480)
+        self.setStyleSheet("""
+            QDialog {
+                background-color: #1e1e2e;
+                color: #cdd6f4;
+                font-family: "Segoe UI", "Roboto", sans-serif;
+            }
+            QLabel {
+                color: #bac2de;
+                font-size: 14px;
+                font-weight: bold;
+                margin-top: 5px;
+            }
+            QComboBox {
+                background-color: #181825;
+                color: #cdd6f4;
+                border: 1px solid #45475a;
+                border-radius: 6px;
+                padding: 8px 15px;
+                font-size: 14px;
+            }
+            QComboBox:hover {
+                border: 1px solid #89b4fa;
+            }
+            QComboBox::drop-down {
+                border: none;
+            }
+            QPushButton {
+                background-color: #45475a;
+                color: #cdd6f4;
+                font-size: 14px;
+                font-weight: bold;
+                border: none;
+                border-radius: 8px;
+                padding: 10px;
+                min-width: 120px;
+            }
+            QPushButton:hover {
+                background-color: #585b70;
+            }
+            QPushButton#btnOk {
+                background-color: #89b4fa;
+                color: #11111b;
+            }
+            QPushButton#btnOk:hover {
+                background-color: #b4befe;
+            }
+        """)
 
         layout = QVBoxLayout(self)
-        layout.addWidget(QLabel("Puertos seriales detectados:"))
+        layout.setContentsMargins(25, 25, 25, 25)
+        layout.setSpacing(15)
+        
+        layout.addWidget(QLabel("PUERTOS SERIALES DETECTADOS"))
 
         self.combo = QComboBox()
         for port in ports:
@@ -139,9 +215,10 @@ class PortSelectorDialog(QDialog):
                 if port and port_matches_identity(port, settings.get("port_identity")):
                     self.combo.setCurrentIndex(index)
                     break
+        self.combo.setMinimumHeight(40)
         layout.addWidget(self.combo)
 
-        layout.addWidget(QLabel("Baud rate:"))
+        layout.addWidget(QLabel("BAUD RATE"))
         self.baud_combo = QComboBox()
         baud_values = list(DEFAULT_BAUDS)
         saved_baud = settings.get("baud", 250000)
@@ -152,11 +229,13 @@ class PortSelectorDialog(QDialog):
         saved_index = self.baud_combo.findData(saved_baud)
         if saved_index >= 0:
             self.baud_combo.setCurrentIndex(saved_index)
+        self.baud_combo.setMinimumHeight(40)
         layout.addWidget(self.baud_combo)
 
         buttons = QHBoxLayout()
         btn_cancel = QPushButton("Cancelar")
-        btn_ok = QPushButton("Usar este puerto")
+        btn_ok = QPushButton("Conectar")
+        btn_ok.setObjectName("btnOk")
         btn_cancel.clicked.connect(self.reject)
         btn_ok.clicked.connect(self.accept)
         buttons.addWidget(btn_cancel)
@@ -205,7 +284,12 @@ if __name__ == "__main__":
     if not puerto:
         sys.exit(0)
 
-    controller = CrealityController(puerto.device, baud=baud)
+    controller = CrealityController(
+        puerto.device, 
+        baud=baud,
+        initial_positions=settings.get("positions", {}),
+        mapping=settings.get("mapping")
+    )
     if controller.connect():
         settings["port_identity"] = puerto_key(puerto)
         settings["baud"] = baud
@@ -219,11 +303,23 @@ if __name__ == "__main__":
             settings["last_movement"] = movement
             save_settings(settings)
 
+        def guardar_mapping(mapping):
+            settings["mapping"] = mapping
+            save_settings(settings)
+
+        def guardar_steps_360(steps):
+            settings["steps_360"] = steps
+            save_settings(settings)
+
+        controller.on_positions_changed = guardar_posiciones
+        controller.on_last_movement_changed = guardar_ultimo_movimiento
+
         window = MotorGUI(
-            controller,
-            initial_positions=settings.get("positions", {}),
-            on_positions_changed=guardar_posiciones,
-            on_last_movement_changed=guardar_ultimo_movimiento,
+            controller, 
+            mapping=settings.get("mapping"), 
+            on_mapping_changed=guardar_mapping,
+            steps_360=settings.get("steps_360"),
+            on_steps_360_changed=guardar_steps_360
         )
         window.show()
         sys.exit(app.exec_())
@@ -240,7 +336,12 @@ if __name__ == "__main__":
         sys.exit(1)
 
     settings["baud"] = dialog.selected_baud()
-    controller = CrealityController(selected_port.device, baud=settings["baud"])
+    controller = CrealityController(
+        selected_port.device, 
+        baud=settings["baud"],
+        initial_positions=settings.get("positions", {}),
+        mapping=settings.get("mapping")
+    )
     if controller.connect():
         settings["port_identity"] = puerto_key(selected_port)
         save_settings(settings)
@@ -253,12 +354,14 @@ if __name__ == "__main__":
             settings["last_movement"] = movement
             save_settings(settings)
 
-        window = MotorGUI(
-            controller,
-            initial_positions=settings.get("positions", {}),
-            on_positions_changed=guardar_posiciones,
-            on_last_movement_changed=guardar_ultimo_movimiento,
-        )
+        def guardar_mapping(mapping):
+            settings["mapping"] = mapping
+            save_settings(settings)
+
+        controller.on_positions_changed = guardar_posiciones
+        controller.on_last_movement_changed = guardar_ultimo_movimiento
+
+        window = MotorGUI(controller, mapping=settings.get("mapping"), on_mapping_changed=guardar_mapping)
         window.show()
         sys.exit(app.exec_())
 

@@ -4,12 +4,13 @@ Mixin de analisis de intensidad.
 Carga de imagenes de calibracion, analisis de brillo por zonas/pixeles,
 estadisticas de uniformidad y previsualizacion de umbrales binarios.
 """
+import os
+
 import cv2
+from matplotlib.figure import Figure
 import numpy as np
 
-from PyQt5.QtWidgets import QFileDialog, QMessageBox, QDialog, QVBoxLayout, QLabel
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QPixmap, QImage
+from PyQt5.QtWidgets import QFileDialog, QMessageBox, QVBoxLayout
 
 
 class IntensityAnalysisMixin:
