@@ -40,7 +40,7 @@ class UISetupMixin:
         self.calibration_button = QPushButton("🎯 Calibración")
         self.calibration_button.clicked.connect(self.toggle_calibration_view)
 
-        self.preferences_button = QPushButton("⚙️ Preferencias")
+        self.preferences_button = QPushButton(" Preferencias")
         self.preferences_button.clicked.connect(self.show_preferences_menu)
 
         self.motors_button = QPushButton("⚙️ Motores")
