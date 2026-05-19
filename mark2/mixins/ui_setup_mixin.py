@@ -56,6 +56,8 @@ class UISetupMixin:
         self.sigma_slider.setMaximum(30)
         self.sigma_slider.setValue(int(self.sigma))
         self.sigma_slider.valueChanged.connect(self.update_sigma)
+        self.sigma_label.setVisible(False)
+        self.sigma_slider.setVisible(False)
 
         self.brightness_label = QLabel(f"Brillo Proyección: {self.brightness}%")
         self.brightness_slider = QSlider(Qt.Horizontal)
@@ -660,38 +662,7 @@ class UISetupMixin:
         self.segment_overlap_label.setStyleSheet("font-size: 10px;")
         segmentation_layout.addWidget(self.segment_overlap_label)
 
-        # ═══════════════════════════════════════════════════════════════════════════
-        # CALIBRACIÓN FÍSICA (TAMAÑO EN RESINA)
-        # ═══════════════════════════════════════════════════════════════════════════
-        calib_label = QLabel("📏 Calibración Física (En Resina):")
-        calib_label.setObjectName("statLabel")
-        calib_label.setStyleSheet("font-weight: bold; margin-top: 10px;")
-        segmentation_layout.addWidget(calib_label)
 
-        self.btn_calib_white = QPushButton("⬜ Proyectar Patrón Blanco (Medir)")
-        self.btn_calib_white.clicked.connect(self.project_white_calibration_pattern)
-        segmentation_layout.addWidget(self.btn_calib_white)
-
-        dim_layout = QHBoxLayout()
-        self.phys_width_spin = QDoubleSpinBox()
-        self.phys_width_spin.setRange(0.01, 1000.0)
-        self.phys_width_spin.setDecimals(2)
-        self.phys_width_spin.setSuffix(" mm")
-        self.phys_width_spin.setValue(self.physical_segment_width if hasattr(self, 'physical_segment_width') else 10.0)
-        self.phys_width_spin.valueChanged.connect(self.save_physical_dimensions)
-        
-        self.phys_height_spin = QDoubleSpinBox()
-        self.phys_height_spin.setRange(0.01, 1000.0)
-        self.phys_height_spin.setDecimals(2)
-        self.phys_height_spin.setSuffix(" mm")
-        self.phys_height_spin.setValue(self.physical_segment_height if hasattr(self, 'physical_segment_height') else 10.0)
-        self.phys_height_spin.valueChanged.connect(self.save_physical_dimensions)
-        
-        dim_layout.addWidget(QLabel("Ancho:"))
-        dim_layout.addWidget(self.phys_width_spin)
-        dim_layout.addWidget(QLabel("Alto:"))
-        dim_layout.addWidget(self.phys_height_spin)
-        segmentation_layout.addLayout(dim_layout)
 
         # Botón para aplicar segmentación
         self.apply_segmentation_button = QPushButton("✂️ Aplicar Segmentación")
@@ -717,6 +688,159 @@ class UISetupMixin:
         self.segmentation_section.setContentWidget(segmentation_content)
         self.segmentation_section.setVisible(False)
         self.info_layout.addWidget(self.segmentation_section)
+
+        # ═══════════════════════════════════════════════════════════════════════════
+        # CONTROL DE MOTORES (INTEGRADO EN SIDEBAR)
+        # ═══════════════════════════════════════════════════════════════════════════
+        self.motors_sidebar_section = CollapsibleSection("⚙️ CONTROL DE MOTORES", self, expanded=False)
+        motors_sidebar_content = QWidget()
+        motors_sidebar_content.setObjectName("statsContainer")
+        motors_layout = QVBoxLayout(motors_sidebar_content)
+        motors_layout.setContentsMargins(12, 12, 12, 12)
+        motors_layout.setSpacing(10)
+
+        # Estado de la conexión
+        self.motors_sidebar_status = QLabel("Desconectado")
+        self.motors_sidebar_status.setObjectName("statLabel")
+        self.motors_sidebar_status.setStyleSheet("color: #F44336; font-weight: bold;")
+        motors_layout.addWidget(self.motors_sidebar_status)
+
+        # Botón Conectar
+        self.btn_connect_motors_sidebar = QPushButton("🔌 Conectar Hardware")
+        self.btn_connect_motors_sidebar.setObjectName("modernButton")
+        self.btn_connect_motors_sidebar.clicked.connect(self.connect_motors_sidebar)
+        motors_layout.addWidget(self.btn_connect_motors_sidebar)
+
+        # Configuración de los Pulsos (Steps e Intervalo)
+        pulses_label = QLabel("Parámetros de Pulso:")
+        pulses_label.setObjectName("statLabel")
+        pulses_label.setStyleSheet("font-weight: bold; margin-top: 5px;")
+        motors_layout.addWidget(pulses_label)
+
+        steps_layout = QHBoxLayout()
+        steps_label = QLabel("Steps:")
+        steps_label.setObjectName("statLabel")
+        self.motor_steps_spin = QSpinBox()
+        self.motor_steps_spin.setRange(1, 10000)
+        self.motor_steps_spin.setValue(1) # Se sobrescribirá al cargar configuración
+        self.motor_steps_spin.valueChanged.connect(self.save_motor_sidebar_settings)
+        steps_layout.addWidget(steps_label)
+        steps_layout.addWidget(self.motor_steps_spin)
+        motors_layout.addLayout(steps_layout)
+
+        interval_layout = QHBoxLayout()
+        interval_label = QLabel("Velocidad (ms):")
+        interval_label.setObjectName("statLabel")
+        self.motor_interval_spin = QSpinBox()
+        self.motor_interval_spin.setRange(10, 2000)
+        self.motor_interval_spin.setValue(100) # Se sobrescribirá al cargar configuración
+        self.motor_interval_spin.setToolTip("Retardo entre pulsos cuando se mantiene presionado el botón")
+        self.motor_interval_spin.valueChanged.connect(self.update_motor_autorepeat_settings)
+        interval_layout.addWidget(interval_label)
+        interval_layout.addWidget(self.motor_interval_spin)
+        motors_layout.addLayout(interval_layout)
+
+        # Layout principal horizontal para separar X/Y (Pad) y Z (Vertical)
+        controls_layout = QHBoxLayout()
+        
+        # Pad en cruz para X / Y
+        xy_pad_layout = QVBoxLayout()
+        
+        btn_y_plus = QPushButton("Y+")
+        btn_y_minus = QPushButton("Y-")
+        btn_x_minus = QPushButton("X-")
+        btn_x_plus = QPushButton("X+")
+        
+        pad_style = """
+            QPushButton {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #03DAC6, stop:1 #018786);
+                border: none;
+                border-radius: 8px;
+                color: #121212;
+                font-weight: bold;
+                font-size: 16px;
+                padding: 0px;
+            }
+            QPushButton:hover {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #00E5CC, stop:1 #01A299);
+            }
+            QPushButton:pressed {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #018786, stop:1 #016968);
+            }
+        """
+        
+        for btn in (btn_y_plus, btn_y_minus, btn_x_minus, btn_x_plus):
+            btn.setFixedSize(45, 45)
+            btn.setStyleSheet(pad_style)
+            btn.setAutoRepeat(True)
+            btn.setAutoRepeatDelay(300)
+        
+        btn_y_plus.clicked.connect(lambda: self.execute_sidebar_motor_move("Y", 1))
+        btn_y_minus.clicked.connect(lambda: self.execute_sidebar_motor_move("Y", -1))
+        btn_x_plus.clicked.connect(lambda: self.execute_sidebar_motor_move("X", 1))
+        btn_x_minus.clicked.connect(lambda: self.execute_sidebar_motor_move("X", -1))
+
+        # Fila Y+
+        row1 = QHBoxLayout()
+        row1.addStretch()
+        row1.addWidget(btn_y_plus)
+        row1.addStretch()
+        
+        # Fila X- y X+
+        row2 = QHBoxLayout()
+        row2.addStretch()
+        row2.addWidget(btn_x_minus)
+        row2.addSpacing(10)
+        row2.addWidget(btn_x_plus)
+        row2.addStretch()
+        
+        # Fila Y-
+        row3 = QHBoxLayout()
+        row3.addStretch()
+        row3.addWidget(btn_y_minus)
+        row3.addStretch()
+        
+        xy_pad_layout.addLayout(row1)
+        xy_pad_layout.addLayout(row2)
+        xy_pad_layout.addLayout(row3)
+        
+        # Controles para Z
+        z_pad_layout = QVBoxLayout()
+        z_pad_layout.setAlignment(Qt.AlignCenter)
+        
+        z_label = QLabel("Eje Z")
+        z_label.setObjectName("statLabel")
+        z_label.setAlignment(Qt.AlignCenter)
+        z_label.setStyleSheet("font-weight: bold;")
+        
+        btn_z_plus = QPushButton("Z+")
+        btn_z_minus = QPushButton("Z-")
+        
+        for btn in (btn_z_plus, btn_z_minus):
+            btn.setFixedSize(45, 45)
+            btn.setStyleSheet(pad_style)
+            btn.setAutoRepeat(True)
+            btn.setAutoRepeatDelay(300)
+            
+        btn_z_plus.clicked.connect(lambda: self.execute_sidebar_motor_move("Z", 1))
+        btn_z_minus.clicked.connect(lambda: self.execute_sidebar_motor_move("Z", -1))
+        
+        z_pad_layout.addWidget(z_label)
+        z_pad_layout.addWidget(btn_z_plus)
+        z_pad_layout.addWidget(btn_z_minus)
+
+        self.motor_buttons = [btn_y_plus, btn_y_minus, btn_x_minus, btn_x_plus, btn_z_plus, btn_z_minus]
+        
+        # Unir PADs
+        controls_layout.addLayout(xy_pad_layout)
+        controls_layout.addSpacing(10)
+        controls_layout.addLayout(z_pad_layout)
+        
+        motors_layout.addLayout(controls_layout)
+
+        self.motors_sidebar_section.setContentWidget(motors_sidebar_content)
+        self.motors_sidebar_section.setVisible(True)
+        self.info_layout.addWidget(self.motors_sidebar_section)
 
         self.info_layout.addSpacing(20)
 
@@ -776,6 +900,14 @@ class UISetupMixin:
         freq_layout.addWidget(self.exposure_cycles_input)
         freq_layout.addStretch()
 
+        self.mirror_exposure_checkbox = QCheckBox("🪞 Espejo (Invertir Proyección)")
+        self.mirror_exposure_checkbox.setChecked(False)
+        self.mirror_exposure_checkbox.toggled.connect(self.toggle_exposure_mirror)
+        
+        exposure_layout.addLayout(time_layout)
+        exposure_layout.addLayout(intensity_layout)
+        exposure_layout.addLayout(freq_layout)
+        exposure_layout.addWidget(self.mirror_exposure_checkbox)
         # Botón para proyectar imagen manualmente
         self.project_image_button = QPushButton("🖼️ Proyectar Imagen Completa")
         self.project_image_button.clicked.connect(self.project_full_image)
@@ -795,9 +927,6 @@ class UISetupMixin:
         self.exposure_status_label = QLabel("Estado: Inactivo")
         self.exposure_status_label.setObjectName("statLabel")
 
-        exposure_layout.addLayout(time_layout)
-        exposure_layout.addLayout(intensity_layout)
-        exposure_layout.addLayout(freq_layout)
         exposure_layout.addWidget(self.project_image_button)
         exposure_layout.addWidget(self.exposure_button)
         exposure_layout.addWidget(self.stop_exposure_button)
@@ -1349,4 +1478,7 @@ class UISetupMixin:
         app.screenRemoved.connect(self.on_screen_changed)
         for screen in app.screens():
             screen.geometryChanged.connect(self.on_screen_changed)
+
+        # Inicializar el estado de la pantalla en tiempo real
+        self.on_screen_changed()
 

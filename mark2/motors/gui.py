@@ -510,10 +510,18 @@ class MotorGUI(QWidget):
         try:
             self.ctrl.step_move(eje, steps_base, multiplicador)
             self.status_label.setText("🟢 Movimiento Exitoso")
-            self.status_label.setStyleSheet("color: #a6e3a1;")
-        except Exception as exc:
-            self.status_label.setText(f"🔴 Error de Conexión: {exc}")
-            self.status_label.setStyleSheet("color: #f38ba8;")
+            self.status_label.setStyleSheet("color: #03DAC6;")
+        except Exception:
+            self.status_label.setText("⏳ Error detectado. Intentando Auto-Reconexión...")
+            self.status_label.setStyleSheet("color: #FFC107;")
+            self.repaint()
+            
+            if self.ctrl.reconnect():
+                self.status_label.setText("🟢 Reconectado. Repita el comando por seguridad.")
+                self.status_label.setStyleSheet("color: #03DAC6;")
+            else:
+                self.status_label.setText("🔴 Motor Desconectado (Fallo en puerto)")
+                self.status_label.setStyleSheet("color: #F44336;")
 
     def ejecutar_giro_completo(self, direccion):
         eje = self.axis_sel.currentText()
@@ -522,10 +530,18 @@ class MotorGUI(QWidget):
         try:
             self.ctrl.step_move(eje, steps_totales, 1)
             self.status_label.setText(f"🟢 Giro Completo Exitoso en {eje}")
-            self.status_label.setStyleSheet("color: #a6e3a1;")
-        except Exception as exc:
-            self.status_label.setText(f"🔴 Error de Conexión: {exc}")
-            self.status_label.setStyleSheet("color: #f38ba8;")
+            self.status_label.setStyleSheet("color: #03DAC6;")
+        except Exception:
+            self.status_label.setText("⏳ Error detectado. Intentando Auto-Reconexión...")
+            self.status_label.setStyleSheet("color: #FFC107;")
+            self.repaint()
+            
+            if self.ctrl.reconnect():
+                self.status_label.setText("🟢 Reconectado. Repita el comando por seguridad.")
+                self.status_label.setStyleSheet("color: #03DAC6;")
+            else:
+                self.status_label.setText("🔴 Motor Desconectado (Fallo en puerto)")
+                self.status_label.setStyleSheet("color: #F44336;")
 
     def actualizar_pantalla(self):
         eje = self.axis_sel.currentText()
@@ -546,16 +562,27 @@ class MotorGUI(QWidget):
         self.status_label.setStyleSheet("color: #a6e3a1;")
 
     def volver_al_origen(self):
-        try:
+        def _do_home():
             movimientos = self.ctrl.home_all()
             if movimientos == 0:
                 self.status_label.setText("🟢 Ya está en el origen")
             else:
                 self.status_label.setText("🟢 Regreso al origen completado")
             self.status_label.setStyleSheet("color: #03DAC6;")
-        except Exception as exc:
-            self.status_label.setText(f"🔴 Error en eje: {exc}")
-            self.status_label.setStyleSheet("color: #F44336;")
+
+        try:
+            _do_home()
+        except Exception:
+            self.status_label.setText("⏳ Error detectado. Intentando Auto-Reconexión...")
+            self.status_label.setStyleSheet("color: #FFC107;")
+            self.repaint()
+            
+            if self.ctrl.reconnect():
+                self.status_label.setText("🟢 Reconectado. Repita el comando por seguridad.")
+                self.status_label.setStyleSheet("color: #03DAC6;")
+            else:
+                self.status_label.setText("🔴 Motor Desconectado (Fallo en puerto)")
+                self.status_label.setStyleSheet("color: #F44336;")
 
     def reconectar(self):
         self.status_label.setText("⏳ Reconectando...")

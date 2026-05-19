@@ -70,6 +70,12 @@ class PreferencesMixin:
         )
         effects_action.triggered.connect(self.toggle_grid_effects)
 
+        # Opción para mostrar/ocultar heatmap
+        heatmap_action = menu.addAction(
+            "Ocultar Heatmap en vista principal" if getattr(self, "show_heatmap", False) else "Mostrar Heatmap en vista principal"
+        )
+        heatmap_action.triggered.connect(self.toggle_heatmap_visibility)
+
         # Opción para limpiar cache de segmentación
         clear_cache_action = menu.addAction("🗑️ Limpiar Cache de Segmentación")
         clear_cache_action.triggered.connect(self.clear_segmentation_cache)
@@ -96,6 +102,14 @@ class PreferencesMixin:
         self.fade_animation.finished.connect(self.apply_theme_and_fade_in)
         self.fade_animation.start()
 
+    def toggle_heatmap_visibility(self):
+        """Activa o desactiva la vista del heatmap en la pantalla principal."""
+        self.show_heatmap = not getattr(self, "show_heatmap", False)
+        # Si hay una imagen cargada, volver a dibujarla para reflejar el cambio
+        if hasattr(self, 'pattern') and self.pattern is not None:
+            if not self.grid_view_active:
+                if hasattr(self, 'simulate_optics'):
+                    self.simulate_optics()
 
     def toggle_grid_effects(self):
         """Activa o desactiva la aplicación de efectos (intensidad/desenfoque) en el grid"""

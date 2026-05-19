@@ -44,7 +44,53 @@ class CalibrationUIMixin:
             title.setAlignment(Qt.AlignCenter)
             calib_layout.addWidget(title)
 
-            # Pestañas
+            # --- TIPO DE CALIBRACIÓN ---
+            type_layout = QHBoxLayout()
+            type_label = QLabel("Modo de Calibración:")
+            type_label.setStyleSheet("font-weight: bold; color: #03DAC6;")
+            self.calibration_mode_combo = QComboBox()
+            self.calibration_mode_combo.addItems(["Calibración de Cámara", "Calibración Manual"])
+            self.calibration_mode_combo.currentIndexChanged.connect(self.on_calibration_mode_changed)
+            type_layout.addWidget(type_label)
+            type_layout.addWidget(self.calibration_mode_combo)
+            type_layout.addStretch()
+            calib_layout.addLayout(type_layout)
+
+            # -----------------------------------------------------------------
+            # CONTENEDOR PARA CALIBRACIÓN MANUAL
+            # -----------------------------------------------------------------
+            self.manual_calib_widget = QWidget()
+            manual_layout = QVBoxLayout(self.manual_calib_widget)
+            manual_layout.setContentsMargins(20, 20, 20, 20)
+            manual_layout.setSpacing(15)
+            
+            manual_title = QLabel("🔧 Calibración Manual")
+            manual_title.setStyleSheet("font-size: 14px; font-weight: bold; color: #03DAC6;")
+            manual_layout.addWidget(manual_title)
+
+            self.manual_calib_white_btn = QPushButton("⬜ Proyectar Patrón Blanco (Medir)")
+            self.manual_calib_white_btn.clicked.connect(self.project_white_calibration_pattern)
+            manual_layout.addWidget(self.manual_calib_white_btn)
+
+            from PyQt5.QtWidgets import QDoubleSpinBox
+            manual_exp_layout = QHBoxLayout()
+            manual_exp_layout.addWidget(QLabel("Tiempo Exposición (s):"))
+            self.manual_calib_time_spin = QDoubleSpinBox()
+            self.manual_calib_time_spin.setRange(0.1, 1000.0)
+            self.manual_calib_time_spin.setValue(10.0)
+            manual_exp_layout.addWidget(self.manual_calib_time_spin)
+            manual_exp_layout.addStretch()
+            manual_layout.addLayout(manual_exp_layout)
+
+            self.manual_calib_expose_btn = QPushButton("▶️ Iniciar Exposición")
+            self.manual_calib_expose_btn.clicked.connect(self.start_manual_calib_exposure)
+            manual_layout.addWidget(self.manual_calib_expose_btn)
+            manual_layout.addStretch()
+            
+            self.manual_calib_widget.setVisible(False)
+            calib_layout.addWidget(self.manual_calib_widget)
+
+            # Pestañas (Calibración Cámara)
             self.calibration_tabs = QTabWidget()
             self.calibration_tabs.setObjectName("calibrationTabs")
 
@@ -1005,3 +1051,25 @@ class CalibrationUIMixin:
                 self.start_basler_button.setEnabled(False)
             self.load_calib_image_button.setEnabled(True)
 
+    def on_calibration_mode_changed(self, index):
+        """Maneja el cambio entre Calibración de Cámara y Calibración Manual."""
+        if index == 0:
+            # Calibración de Cámara
+            if hasattr(self, "calibration_tabs"):
+                self.calibration_tabs.setVisible(True)
+            if hasattr(self, "manual_calib_widget"):
+                self.manual_calib_widget.setVisible(False)
+        else:
+            # Calibración Manual
+            if hasattr(self, "calibration_tabs"):
+                self.calibration_tabs.setVisible(False)
+            if hasattr(self, "manual_calib_widget"):
+                self.manual_calib_widget.setVisible(True)
+
+    def start_manual_calib_exposure(self):
+        """Inicia una exposición con el tiempo definido en calibración manual."""
+        time_s = self.manual_calib_time_spin.value()
+        if hasattr(self, "time_input"):
+            self.time_input.setText(str(time_s))
+        if hasattr(self, "start_exposure"):
+            self.start_exposure()

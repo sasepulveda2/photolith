@@ -949,15 +949,22 @@ class ThemeMixin:
         # Gestionar visibilidad y estado de campos relacionados con proyección
         if hasattr(self, "monitor_resolution_label"):
             if has_second:
-                # Monitor secundario detectado - mostrar información con indicador verde
-                secondary = screens[1]
-                geometry = secondary.geometry()
-                self.monitor_resolution_label.setText(
-                    f"✓ Monitor proyección: {geometry.width()}x{geometry.height()}"
-                )
-                self.monitor_resolution_label.setStyleSheet(
-                    "color: #00FF00;" if self.dark_mode else "color: #008800;"
-                )
+                if getattr(self, "projector_active", False):
+                    # Monitor secundario detectado y proyección activa
+                    secondary = screens[1]
+                    geometry = secondary.geometry()
+                    self.monitor_resolution_label.setText(
+                        f"✓ Monitor proyección: {geometry.width()}x{geometry.height()}"
+                    )
+                    self.monitor_resolution_label.setStyleSheet(
+                        "color: #00FF00;" if self.dark_mode else "color: #008800;"
+                    )
+                else:
+                    # Monitor secundario detectado pero proyección inactiva
+                    self.monitor_resolution_label.setText("✓ Monitor proyección: Conectado (Apagado)")
+                    self.monitor_resolution_label.setStyleSheet(
+                        "color: #888888;" if self.dark_mode else "color: #666666;"
+                    )
                 self.monitor_resolution_label.setVisible(True)
 
                 # Habilitar el botón de proyección

@@ -76,10 +76,17 @@ class ImageProcessingMixin:
         bg_color = "#121212" if self.dark_mode else "#FFFFFF"
         text_color = "white" if self.dark_mode else "black"
 
-        ax1 = self.figure.add_subplot(1, 2, 1)
-        ax2 = self.figure.add_subplot(1, 2, 2)
+        show_heat = getattr(self, "show_heatmap", False)
 
-        for ax in [ax1, ax2]:
+        if show_heat:
+            ax1 = self.figure.add_subplot(1, 2, 1)
+            ax2 = self.figure.add_subplot(1, 2, 2)
+            axes = [ax1, ax2]
+        else:
+            ax1 = self.figure.add_subplot(1, 1, 1)
+            axes = [ax1]
+
+        for ax in axes:
             ax.set_facecolor(bg_color)
             ax.tick_params(colors=text_color)
             ax.xaxis.label.set_color(text_color)
@@ -92,11 +99,13 @@ class ImageProcessingMixin:
         ax1.set_xlabel("X")
         ax1.set_ylabel("Y")
 
-        # Mostrar mapa de calor (sin efectos binarios, solo intensidad)
-        ax2.imshow(intensity_percentage, cmap="inferno")
-        ax2.set_xlabel("X")
-        ax2.set_ylabel("Y")
+        if show_heat:
+            # Mostrar mapa de calor (sin efectos binarios, solo intensidad)
+            ax2.imshow(intensity_percentage, cmap="inferno")
+            ax2.set_xlabel("X")
+            ax2.set_ylabel("Y")
 
+        self.figure.tight_layout()
         self.canvas.draw()
 
 
@@ -437,6 +446,11 @@ class ImageProcessingMixin:
         # Se aplica individualmente a cada CHUNK en _apply_effects_to_segment()
         # Esto mantiene la segmentación alineada con el grid
 
+        # Aplicar espejo de exposición si está activo
+        if image is not None and getattr(self, "exposure_mirror_h", False):
+            import cv2
+            image = cv2.flip(image, 1)
+
         return image
 
 
@@ -486,7 +500,6 @@ class ImageProcessingMixin:
         # Aplicar inversión si está activa
         if self.invert_projection:
             final_image = 255 - final_image
-
         return final_image
 
 

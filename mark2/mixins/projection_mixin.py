@@ -182,8 +182,11 @@ class ProjectionMixin:
     def project_full_image(self):
         """
         Proyecta la imagen completa manualmente en el monitor secundario.
-        La imagen permanecerá hasta que se apague el proyector o se inicie otra operación.
+        Actúa como un interruptor (toggle) que fuerza el brillo al 100% y luego lo restaura.
         """
+        if not hasattr(self, "is_projecting_full_image"):
+            self.is_projecting_full_image = False
+
         if not self.projector_active:
             QMessageBox.warning(
                 self,
@@ -199,24 +202,54 @@ class ProjectionMixin:
             )
             return
 
-        # Obtener imagen a proyectar
-        image_to_project = self._get_projection_image()
+        if not self.is_projecting_full_image:
+            # Obtener imagen a proyectar
+            image_to_project = self._get_projection_image()
 
-        if image_to_project is None:
-            QMessageBox.warning(
-                self,
-                "Sin imagen",
-                "No hay imagen disponible para proyectar.\n\n"
-                "Cargue una imagen primero.",
+            if image_to_project is None:
+                QMessageBox.warning(
+                    self,
+                    "Sin imagen",
+                    "No hay imagen disponible para proyectar.\n\n"
+                    "Cargue una imagen primero.",
+                )
+                return
+
+            # Guardar brillo actual y forzar al máximo (100%)
+            if hasattr(self, 'brightness'):
+                self._prev_brightness_for_full_img = self.brightness
+            self.projection_window.set_brightness(100.0)
+
+            # Proyectar imagen completa
+            self.projection_window.set_image(image_to_project)
+            self.is_projecting_full_image = True
+            
+            if hasattr(self, 'project_image_button'):
+                self.project_image_button.setText("⏹️ Detener Imagen Completa")
+                self.project_image_button.setStyleSheet("background-color: #f38ba8; color: #11111b; font-weight: bold;")
+
+            self.log_to_console(
+                "🖼️ Proyectando imagen completa en monitor secundario (Brillo 100%)", "SUCCESS"
             )
-            return
-
-        # Proyectar imagen completa
-        self.projection_window.set_image(image_to_project)
-
-        self.log_to_console(
-            "🖼️ Proyectando imagen completa en monitor secundario", "SUCCESS"
-        )
+        else:
+            # Detener proyección
+            import numpy as np
+            black_pattern = np.zeros((self.projection_window.screen_geometry.height(), self.projection_window.screen_geometry.width(), 3), dtype=np.uint8)
+            
+            # Restaurar brillo
+            if hasattr(self, '_prev_brightness_for_full_img'):
+                self.projection_window.set_brightness(self._prev_brightness_for_full_img)
+            else:
+                self.projection_window.set_brightness(100.0)
+                
+            self.projection_window.update_segment(black_pattern)
+            self.is_projecting_full_image = False
+            
+            if hasattr(self, 'project_image_button'):
+                self.project_image_button.setText("🖼️ Proyectar Imagen Completa")
+                self.project_image_button.setStyleSheet("")
+                
+            self.log_to_console("⬛ Proyección de imagen completa detenida.", "INFO")
 
 
     def start_timed_exposure(self):
@@ -243,6 +276,10 @@ class ProjectionMixin:
                 "Debe activar la proyección antes de iniciar la exposición.",
             )
             return
+
+        # Desactivar proyección de imagen completa si está encendida
+        if getattr(self, "is_projecting_full_image", False):
+            self.project_full_image()
 
         # Asegurar que se proyecta la imagen completa
         if self.projection_window is not None and self.pattern is not None:
@@ -395,6 +432,25 @@ class ProjectionMixin:
         )
 
 
+    def toggle_exposure_mirror(self, checked):
+        """Activa o desactiva el espejo horizontal específicamente para la exposición."""
+        self.exposure_mirror_h = bool(checked)
+        self.log_to_console(f"🪞 Modo Espejo de Exposición: {'Activado' if checked else 'Desactivado'}", "INFO")
+        
+        # Si la proyección ya está mostrándose, actualizarla
+        if getattr(self, "is_projecting_full_image", False):
+            self.is_projecting_full_image = False
+            self.project_full_image()
+        elif hasattr(self, "current_projecting_segment") and self.current_projecting_segment is not None:
+            if hasattr(self, "sequence_paused") and self.sequence_paused:
+                segment_data = self.current_projecting_segment.get("segment_data")
+                if segment_data and self.projector_active and self.projection_window is not None:
+                    processed_segment = self._apply_effects_to_segment(
+                        segment_data["image"], 
+                        skip_binary_effects=segment_data.get("effects_applied", False)
+                    )
+                    self.projection_window.update_segment(processed_segment)
+
     def force_stop_exposure(self):
         self.exposure_timer.stop()
         self.countdown_timer.stop()
@@ -444,6 +500,10 @@ class ProjectionMixin:
                 "Debe activar la proyección antes de iniciar el modo de frecuencia.",
             )
             return
+
+        # Desactivar proyección de imagen completa si está encendida
+        if getattr(self, "is_projecting_full_image", False):
+            self.project_full_image()
 
         # Asegurar que se proyecta la imagen completa
         if self.projection_window is not None and self.pattern is not None:
@@ -657,6 +717,10 @@ class ProjectionMixin:
                     return  # No se pudo activar
             else:
                 return
+
+        # Desactivar proyección de imagen completa si está encendida
+        if getattr(self, "is_projecting_full_image", False):
+            self.project_full_image()
 
         # Calcular total de segmentos de imagen
         self.total_segments = len(self.image_segments)
@@ -1111,6 +1175,11 @@ class ProjectionMixin:
         ):
             processed = 255 - processed if processed.max() > 1 else 1.0 - processed
 
+        # 5.5 ESPEJO DE EXPOSICIÓN
+        if getattr(self, "exposure_mirror_h", False):
+            import cv2
+            processed = cv2.flip(processed, 1)
+
         # 6. CALIBRACIÓN (MATRIZ DE ATENUACIÓN)
         # Aplicar matriz de compensación de uniformidad si está activa
         if (
@@ -1297,9 +1366,12 @@ class ProjectionMixin:
         self.ax.add_patch(rect_highlight)
 
     def project_white_calibration_pattern(self):
-        """Proyecta un patrón completamente blanco para medir el tamaño físico del campo de proyección."""
+        """Proyecta un patrón completamente blanco al 100% de brillo como toggle."""
         from PyQt5.QtWidgets import QMessageBox
         import numpy as np
+
+        if not hasattr(self, "is_projecting_white_pattern"):
+            self.is_projecting_white_pattern = False
 
         if not self.projector_active:
             QMessageBox.warning(
@@ -1310,24 +1382,47 @@ class ProjectionMixin:
             return
 
         if self.projection_window is not None:
-            # Crear un rectángulo blanco del tamaño de la resolución activa
-            w = self.projection_window.screen_geometry.width()
-            h = self.projection_window.screen_geometry.height()
-            
-            # Matriz blanca (255)
-            white_pattern = np.ones((h, w, 3), dtype=np.uint8) * 255
-            
-            # Forzar actualización sin procesar nada
-            self.projection_window.update_segment(white_pattern)
-            self.log_to_console("⬜ Patrón de Calibración Blanco proyectado en pantalla completa.", "SUCCESS")
-            
-            QMessageBox.information(
-                self,
-                "Calibración de Proyección",
-                "Se está proyectando un patrón completamente blanco.\n\n"
-                "Mida con un calibre físico (en mm) el ancho y el alto reales de este patrón "
-                "sobre su plataforma de resina, y escriba esos valores en los recuadros de calibración."
-            )
+            if not self.is_projecting_white_pattern:
+                w = self.projection_window.screen_geometry.width()
+                h = self.projection_window.screen_geometry.height()
+                
+                white_pattern = np.ones((h, w, 3), dtype=np.uint8) * 255
+                
+                # Forzar brillo al máximo en la ventana
+                if hasattr(self, 'brightness'):
+                    self._prev_brightness_for_calib = self.brightness
+                self.projection_window.set_brightness(100.0)
+                
+                self.projection_window.update_segment(white_pattern)
+                self.log_to_console("⬜ Patrón de Calibración Blanco proyectado al máximo brillo.", "SUCCESS")
+                
+                self.is_projecting_white_pattern = True
+                
+                if hasattr(self, 'btn_calib_white'):
+                    self.btn_calib_white.setText("⏹️ Detener Proyección Blanca")
+                    self.btn_calib_white.setStyleSheet("background-color: #f38ba8; color: #11111b; font-weight: bold;")
+                    
+            else:
+                # Restaurar brillo original
+                if hasattr(self, '_prev_brightness_for_calib'):
+                    self.projection_window.set_brightness(self._prev_brightness_for_calib)
+                else:
+                    self.projection_window.set_brightness(100.0)
+                
+                self.log_to_console("⬛ Proyección blanca detenida.", "INFO")
+                
+                self.is_projecting_white_pattern = False
+                
+                if hasattr(self, 'btn_calib_white'):
+                    self.btn_calib_white.setText("⬜ Proyectar Patrón Blanco (Medir)")
+                    self.btn_calib_white.setStyleSheet("")
+                    
+                # Volver a proyectar el estado normal (la máscara o pantalla negra)
+                if hasattr(self, 'update_projection'):
+                    self.update_projection()
+                else:
+                    black_pattern = np.zeros((self.projection_window.screen_geometry.height(), self.projection_window.screen_geometry.width(), 3), dtype=np.uint8)
+                    self.projection_window.update_segment(black_pattern)
 
     def save_physical_dimensions(self):
         """Guarda las dimensiones físicas del segmento en el estado de memoria."""

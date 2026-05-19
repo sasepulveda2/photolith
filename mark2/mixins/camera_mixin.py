@@ -6,6 +6,15 @@ incluyendo captura de frames, ajuste de exposicion, ganancia, gamma
 y nivel de negro.
 """
 import cv2
+import os
+
+# Suprimir advertencias de backend (como DSHOW can't capture by index)
+os.environ["OPENCV_LOG_LEVEL"] = "SILENT"
+os.environ["OPENCV_VIDEOIO_DEBUG"] = "0"
+try:
+    cv2.setLogLevel(0)
+except AttributeError:
+    pass
 
 try:
     from pypylon import pylon

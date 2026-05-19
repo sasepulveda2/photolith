@@ -203,6 +203,7 @@ class LithographySimulator(
         self.segments_y = 4
         self.show_segments_overlay = False
         self.segmentation_mode = 0
+        self.show_heatmap = False
 
         # ── Cache de Segmentacion ────────────────────────────────
         self._pattern_load_id = None
@@ -221,6 +222,8 @@ class LithographySimulator(
 
         # ── Motores ──────────────────────────────────────────────
         self.motor_gui = None
+        self.motor_controller_instance = None
+        self.load_motor_sidebar_settings()
 
     def toggle_motors_panel(self):
         """Muestra u oculta el panel de control de motores NEMA."""
@@ -283,3 +286,119 @@ class LithographySimulator(
             self.motor_gui.show()
             self.motor_gui.raise_()
             self.motor_gui.activateWindow()
+
+    # ═══════════════════════════════════════════════════════════════════════════
+    # LÓGICA DE CONTROLADORES DE MOTOR (SIDEBAR INTEGRADA)
+    # ═══════════════════════════════════════════════════════════════════════════
+    def load_motor_sidebar_settings(self):
+        """Carga la configuración de pasos e intervalo desde motor_settings.json."""
+        try:
+            from motors.main import load_settings
+            settings = load_settings()
+            self._motor_sidebar_steps = settings.get("sidebar_steps", 1)
+            self._motor_sidebar_interval = settings.get("sidebar_interval", 100)
+        except ImportError:
+            self._motor_sidebar_steps = 1
+            self._motor_sidebar_interval = 100
+
+        # Asignar a la UI si ya está construida
+        if hasattr(self, 'motor_steps_spin'):
+            self.motor_steps_spin.setValue(self._motor_sidebar_steps)
+        if hasattr(self, 'motor_interval_spin'):
+            self.motor_interval_spin.setValue(self._motor_sidebar_interval)
+            self.update_motor_autorepeat_settings(self._motor_sidebar_interval)
+
+    def save_motor_sidebar_settings(self):
+        """Guarda la configuración de pulsos en memoria."""
+        if not hasattr(self, 'motor_steps_spin'):
+            return
+            
+        steps = self.motor_steps_spin.value()
+        interval = self.motor_interval_spin.value()
+        
+        self._motor_sidebar_steps = steps
+        self._motor_sidebar_interval = interval
+        
+        try:
+            from motors.main import load_settings, save_settings
+            settings = load_settings()
+            settings["sidebar_steps"] = steps
+            settings["sidebar_interval"] = interval
+            save_settings(settings)
+        except ImportError:
+            pass
+
+    def update_motor_autorepeat_settings(self, interval):
+        """Actualiza el tiempo de autorepetencia de los botones fluidos."""
+        if hasattr(self, 'motor_buttons'):
+            for btn in self.motor_buttons:
+                btn.setAutoRepeatInterval(interval)
+        self.save_motor_sidebar_settings()
+
+    def connect_motors_sidebar(self):
+        """Intenta conectar el controlador directamente a la ventana principal."""
+        self.motors_sidebar_status.setText("Conectando...")
+        self.motors_sidebar_status.setStyleSheet("color: #FFC107; font-weight: bold;")
+        from PyQt5.QtWidgets import QApplication
+        QApplication.processEvents()
+        
+        from motors.main import load_settings, seleccionar_puerto_y_baud, save_settings, puerto_key
+        from motors.motor_controller import CrealityController
+        from PyQt5.QtWidgets import QMessageBox
+        
+        settings = load_settings()
+        puerto, baud = seleccionar_puerto_y_baud(settings)
+
+        if not puerto:
+            self.motors_sidebar_status.setText("Desconectado")
+            self.motors_sidebar_status.setStyleSheet("color: #F44336; font-weight: bold;")
+            return
+
+        self.motor_controller_instance = CrealityController(
+            puerto.device, 
+            baud=baud,
+            initial_positions=settings.get("positions", {}),
+            mapping=settings.get("mapping")
+        )
+        
+        if not self.motor_controller_instance.connect():
+            self.motors_sidebar_status.setText("Fallo Conexión")
+            self.motors_sidebar_status.setStyleSheet("color: #F44336; font-weight: bold;")
+            QMessageBox.critical(self, "Error de Conexión", f"No se pudo conectar a la placa en {puerto.device}.")
+            self.motor_controller_instance = None
+            return
+
+        settings["port_identity"] = puerto_key(puerto)
+        settings["baud"] = baud
+        save_settings(settings)
+
+        self.motors_sidebar_status.setText("Conectado (Listo)")
+        self.motors_sidebar_status.setStyleSheet("color: #03DAC6; font-weight: bold;")
+        self.log_to_console(f"✅ Hardware Motor conectado en {puerto.device}", "SUCCESS")
+
+    def execute_sidebar_motor_move(self, axis, direction):
+        """Ejecuta un movimiento utilizando la configuración de pasos fluida."""
+        if self.motor_controller_instance is None:
+            # Intentar conectar automáticamente la primera vez
+            self.connect_motors_sidebar()
+            if self.motor_controller_instance is None:
+                return
+                
+        steps_base = direction
+        multiplicador = self.motor_steps_spin.value()
+        
+        try:
+            self.motor_controller_instance.step_move(axis, steps_base, multiplicador)
+        except Exception:
+            self.motors_sidebar_status.setText("Reconectando...")
+            self.motors_sidebar_status.setStyleSheet("color: #FFC107; font-weight: bold;")
+            
+            if self.motor_controller_instance.reconnect():
+                self.motors_sidebar_status.setText("Conectado (Listo)")
+                self.motors_sidebar_status.setStyleSheet("color: #03DAC6; font-weight: bold;")
+                # Reintentar el comando
+                self.motor_controller_instance.step_move(axis, steps_base, multiplicador)
+            else:
+                self.motors_sidebar_status.setText("Fallo Conexión")
+                self.motors_sidebar_status.setStyleSheet("color: #F44336; font-weight: bold;")
+                self.motor_controller_instance = None
