@@ -6,7 +6,7 @@ Métodos:
     _build_console_section()   → consola de log en el pie de la ventana
 """
 from PyQt5.QtWidgets import (
-    QVBoxLayout, QLabel, QPushButton, QWidget, QTextEdit, QTreeWidget,
+    QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QWidget, QTextEdit, QTreeWidget, QLineEdit
 )
 from PyQt5.QtCore import Qt, QSize
 from UI.collapsible_section import CollapsibleSection
@@ -39,25 +39,71 @@ class FileConsolePanelBuilder:
 
         self.info_layout.addWidget(self.file_tree, stretch=1)
 
-    def _build_console_section(self) -> CollapsibleSection:
+    def _build_console_section(self) -> QWidget:
         """📋 Consola del Sistema — log de mensajes en el pie de la ventana."""
-        console_section = CollapsibleSection("📋 Consola del Sistema", expanded=False)
-        content = QWidget()
-        console_layout = QVBoxLayout(content)
+        class ConsoleWidget(QWidget):
+            def __init__(self, parent=None):
+                super().__init__(parent)
+                self.content_container = None
+
+            def resizeEvent(self, event):
+                super().resizeEvent(event)
+                if self.content_container:
+                    # Hide content if height is less than 80px
+                    self.content_container.setVisible(self.height() >= 80)
+
+        console_widget = ConsoleWidget()
+        console_layout = QVBoxLayout(console_widget)
         console_layout.setContentsMargins(*CONSOLE_CONTENT_MARGINS)
+
+        title = QLabel("📋 Consola del Sistema")
+        title.setStyleSheet("font-weight: bold; color: #A6E3A1; margin-bottom: 5px;")
+        console_layout.addWidget(title)
+
+        console_widget.setMinimumHeight(35) # Permite bajar hasta que solo se vea el título
+
+        content_container = QWidget()
+        content_layout = QVBoxLayout(content_container)
+        content_layout.setContentsMargins(0, 0, 0, 0)
+        console_widget.content_container = content_container
 
         self.system_console = QTextEdit()
         self.system_console.setReadOnly(True)
-        self.system_console.setMaximumHeight(CONSOLE_MAX_HEIGHT)
+        self.system_console.setMinimumHeight(0)
         self.system_console.setPlaceholderText(
             "Los mensajes del sistema aparecerán aquí..."
         )
 
+        import shutil
+        has_console = shutil.which("powershell") or shutil.which("cmd")
+
+        self.console_input = QLineEdit()
+        self.console_input.setPlaceholderText("Escriba un comando y presione Enter (ej. ping google.com, dir, clear)...")
+        if hasattr(self, "execute_system_command"):
+            self.console_input.returnPressed.connect(self.execute_system_command)
+        else:
+            # Fallback connection if method not added yet
+            self.console_input.returnPressed.connect(lambda: self.log_to_console("Ejecución de comandos en preparación...", "WARNING"))
+
         clear_btn = QPushButton("🗑️ Limpiar Consola")
         clear_btn.clicked.connect(self.clear_console)
 
-        console_layout.addWidget(self.system_console)
-        console_layout.addWidget(clear_btn)
-        console_section.setContentWidget(content)
+        # Input and clear button in a horizontal layout
+        input_layout = QHBoxLayout()
+        input_layout.addWidget(self.console_input, stretch=1)
+        input_layout.addWidget(clear_btn)
 
-        return console_section
+        if not has_console:
+            self.console_input.hide()
+            clear_btn.hide()
+
+        content_layout.addWidget(self.system_console)
+        content_layout.addLayout(input_layout)
+        
+        console_layout.addWidget(content_container)
+
+        # Modificamos la política de tamaño
+        from PyQt5.QtWidgets import QSizePolicy
+        console_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.MinimumExpanding)
+
+        return console_widget

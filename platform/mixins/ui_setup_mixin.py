@@ -95,10 +95,31 @@ class UISetupMixin(
         canvas_layout.addLayout(self.canvas_with_toolbar, stretch=3)
         canvas_layout.addWidget(sidebar, stretch=1)
 
+        canvas_widget = QWidget()
+        canvas_widget.setLayout(canvas_layout)
+
+        from PyQt5.QtWidgets import QSplitter
+        v_splitter = QSplitter(Qt.Vertical)
+        v_splitter.addWidget(canvas_widget)
+        v_splitter.addWidget(console_section)
+        
+        # Mejoras de fluidez y visuales
+        v_splitter.setOpaqueResize(True)
+        v_splitter.setCollapsible(1, False) # Impide que la consola colapse por completo
+        v_splitter.setStyleSheet(
+            "QSplitter::handle { background: #3B4252; height: 6px; margin: 2px 0px; border-radius: 3px; }"
+            "QSplitter::handle:hover { background: #A6E3A1; }"
+        )
+        
+        # Asignar prioridad de expansión al canvas (índice 0)
+        v_splitter.setStretchFactor(0, 1)
+        v_splitter.setStretchFactor(1, 0)
+        # Darle poco espacio a la consola inicialmente
+        v_splitter.setSizes([800, 150])
+
         main_layout = QVBoxLayout()
         main_layout.addLayout(control_layout)
-        main_layout.addLayout(canvas_layout)
-        main_layout.addWidget(console_section)
+        main_layout.addWidget(v_splitter)
         self.setLayout(main_layout)
 
         self.apply_theme()

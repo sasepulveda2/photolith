@@ -69,6 +69,66 @@ class ThemeMixin:
         self.system_console.clear()
         self.log_to_console("Consola limpiada", "INFO")
 
+    def execute_system_command(self):
+        """Ejecuta comandos del sistema desde la consola."""
+        if not hasattr(self, "console_input"):
+            return
+            
+        cmd = self.console_input.text().strip()
+        if not cmd:
+            return
+            
+        self.console_input.clear()
+        self.log_to_console(f"$&gt; {cmd}", "INFO")
+        
+        if cmd.lower() in ["clear", "cls"]:
+            self.clear_console()
+            return
+            
+        if not hasattr(self, "cmd_process"):
+            from PyQt5.QtCore import QProcess
+            self.cmd_process = QProcess()
+            self.cmd_process.setProcessChannelMode(QProcess.MergedChannels)
+            self.cmd_process.readyReadStandardOutput.connect(self._handle_cmd_output)
+            self.cmd_process.finished.connect(self._handle_cmd_finished)
+            
+        if self.cmd_process.state() == 2: # QProcess::Running
+            self.log_to_console("⚠️ Espere a que el comando actual termine.", "WARNING")
+            return
+            
+        import shutil
+        if shutil.which("powershell"):
+            self.cmd_process.start("powershell.exe", ["-NoProfile", "-Command", cmd])
+        elif shutil.which("cmd"):
+            self.cmd_process.start("cmd.exe", ["/c", cmd])
+        else:
+            self.log_to_console("Error: No se encontró PowerShell ni CMD.", "ERROR")
+
+    def _handle_cmd_output(self):
+        """Procesa y muestra la salida estándar de comandos del sistema."""
+        if not hasattr(self, "cmd_process"): return
+        
+        output_bytes = self.cmd_process.readAllStandardOutput().data()
+        try:
+            # PowerShell usually outputs in utf-8 or cp1252 depending on the system
+            output = output_bytes.decode('utf-8', errors='replace').strip()
+        except:
+            output = output_bytes.decode('cp850', errors='replace').strip()
+            
+        if output:
+            import html
+            safe_output = html.escape(output).replace("\\n", "<br>")
+            formatted_message = f'<div style="color: #A6E3A1; font-family: Consolas, monospace; white-space: pre-wrap; margin-left: 10px;">{safe_output}</div>'
+            self.system_console.append(formatted_message)
+            
+            scrollbar = self.system_console.verticalScrollBar()
+            scrollbar.setValue(scrollbar.maximum())
+
+    def _handle_cmd_finished(self, exitCode, exitStatus):
+        """Maneja el fin de un comando."""
+        if exitCode != 0:
+            self.log_to_console(f"Comando finalizó con código {exitCode}", "ERROR")
+
     def apply_theme(self) -> None:
         """Aplica el tema actual (dark/light) a toda la aplicación."""
         if self.dark_mode:
