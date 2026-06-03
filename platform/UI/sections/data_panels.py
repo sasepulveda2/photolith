@@ -36,6 +36,10 @@ class DataPanelsBuilder:
         self.monitor_resolution_label  = QLabel("Monitor proyección: -")
         self.calibration_status_label  = QLabel("Calibración: Inactiva")
 
+        # Spatial calibration labels
+        self.pixel_scale_label = QLabel("Escala: No calibrada")
+        self.image_physical_size_label = QLabel("Tamaño físico: -")
+
         # Visibilidad inicial
         self.scale_info_label.setVisible(False)
         self.projected_resolution_label.setVisible(False)
@@ -50,6 +54,7 @@ class DataPanelsBuilder:
             self.resolution_label, self.min_label, self.avg_label, self.max_label,
             self.scale_info_label, self.projected_resolution_label,
             self.monitor_resolution_label, self.calibration_status_label,
+            self.pixel_scale_label, self.image_physical_size_label,
         ):
             lbl.setObjectName("statLabel")
             layout.addWidget(lbl)

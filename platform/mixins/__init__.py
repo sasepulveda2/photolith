@@ -9,6 +9,7 @@ from mixins.file_management_mixin import FileManagementMixin
 from mixins.preferences_mixin import PreferencesMixin
 from mixins.theme_mixin import ThemeMixin
 from mixins.ui_setup_mixin import UISetupMixin
+from mixins.spatial_calibration_mixin import SpatialCalibrationMixin
 
 __all__ = [
     "CalibrationUIMixin",
@@ -22,4 +23,5 @@ __all__ = [
     "PreferencesMixin",
     "ThemeMixin",
     "UISetupMixin",
+    "SpatialCalibrationMixin",
 ]

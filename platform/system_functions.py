@@ -46,6 +46,7 @@ from mixins import (
     PreferencesMixin,
     ThemeMixin,
     UISetupMixin,
+    SpatialCalibrationMixin,
 )
 
 
@@ -61,12 +62,13 @@ class LithographySimulator(
     FileManagementMixin,
     PreferencesMixin,
     ThemeMixin,
+    SpatialCalibrationMixin,
     QWidget,
 ):
     """
     Controlador principal del simulador de litografia.
 
-    Compone funcionalidad de 11 mixins especializados.
+    Compone funcionalidad de 12 mixins especializados.
     El estado se inicializa en _init_state() y la interfaz
     se construye en _build_ui() (UISetupMixin).
     """
@@ -74,6 +76,7 @@ class LithographySimulator(
     def __init__(self):
         super().__init__()
         self._init_state()
+        self._init_spatial_calibration()
         self._build_ui()
 
     def _init_state(self):

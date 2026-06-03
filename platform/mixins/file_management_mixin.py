@@ -266,6 +266,9 @@ class FileManagementMixin:
             self.projector_button.setVisible(True)
             self.update_projector_button()
             self._refresh_invert_button_state()
+            
+            if hasattr(self, "update_spatial_labels"):
+                self.update_spatial_labels()
 
 
     def save_image(self):

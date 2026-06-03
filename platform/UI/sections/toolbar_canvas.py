@@ -37,10 +37,14 @@ class ToolbarCanvasBuilder:
         self.toggle_view_button = QPushButton("📏 Vista Grid")
         self.toggle_view_button.clicked.connect(self.toggle_grid_view)
 
-        self.calibration_button = QPushButton("🎯 Calibración")
+        self.calibration_button = QPushButton("🎯 Calibración Óptica")
         self.calibration_button.clicked.connect(self.toggle_calibration_view)
 
-        self.preferences_button = QPushButton(" Preferencias")
+        self.spatial_calib_button = QPushButton("📏 Calibrar Tamaño")
+        self.spatial_calib_button.clicked.connect(self.toggle_spatial_calibration_mode)
+        self.spatial_calib_button.setToolTip("Dibuja una línea para definir el tamaño real de los píxeles")
+
+        self.preferences_button = QPushButton(" preferencias")
         self.preferences_button.clicked.connect(self.show_preferences_menu)
 
         self.motors_button = QPushButton("⚙️ Motores")
@@ -79,7 +83,7 @@ class ToolbarCanvasBuilder:
 
         # ── Ensamblar ─────────────────────────────────────────────────────────
         for widget in (
-            self.load_button, self.toggle_view_button, self.calibration_button,
+            self.load_button, self.toggle_view_button, self.spatial_calib_button, self.calibration_button,
             self.preferences_button, self.motors_button, self.projector_button,
             self.sigma_label, self.sigma_slider,
             self.brightness_label, self.brightness_slider,
