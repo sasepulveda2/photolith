@@ -261,3 +261,83 @@ GRID_UNITS = ["nm", "µm", "mm", "cm", "m"]
 DRAG_MODES = ["Fixed (Chunks)", "Free (Píxel)"]
 
 MOTOR_PAD_AUTOREPEAT_DELAY = 300
+
+# ═════════════════════════════════════════════════════════════════════════
+# THEME & UI COMPONENT CONSTANTS
+# ═════════════════════════════════════════════════════════════════════════
+
+CONSOLE_LOG_COLORS = {
+    "INFO": "#BBBBBB",
+    "SUCCESS": "#4CAF50",
+    "WARNING": "#FFC107",
+    "ERROR": "#F44336",
+    "OPTIMIZATION": "#03DAC6",
+    "SEGMENTATION": "#BB86FC",
+}
+
+TOOLBAR_ACTIONS_TO_REMOVE = ["Save", "Subplots", "Customize"]
+TOOLBAR_TOOLTIPS = {
+    "Home": "🏠 Vista inicial",
+    "Back": "◀ Retroceder vista",
+    "Forward": "▶ Avanzar vista",
+    "Pan": "✋ Mover/Zoom (Click: mover, Arrastrar: zoom)",
+}
+
+EMPTY_CANVAS_TEXT_NORMAL = "Cargue un patrón para comenzar"
+EMPTY_CANVAS_TEXT_GRID = "Presione \"Generar Grid\" para visualizar"
+EMPTY_CANVAS_FONT_SIZE = 14
+
+MONITOR_STATUS_CONNECTED = "✓ Monitor proyección: {}"
+MONITOR_STATUS_CONNECTED_OFF = "✓ Monitor proyección: Conectado (Apagado)"
+MONITOR_STATUS_DISCONNECTED = "⚠️ Monitor externo no detectado"
+
+STYLE_MONITOR_CONNECTED_DARK = "color: #00FF00;"
+STYLE_MONITOR_CONNECTED_LIGHT = "color: #008800;"
+STYLE_MONITOR_CONNECTED_OFF_DARK = "color: #888888;"
+STYLE_MONITOR_CONNECTED_OFF_LIGHT = "color: #666666;"
+STYLE_MONITOR_DISCONNECTED = "color: #FF6B6B; font-weight: bold;"
+
+TOOLTIP_PROJECTOR_ENABLE = "Activar/desactivar proyección en monitor secundario"
+TOOLTIP_PROJECTOR_DISABLE = "⚠️ Conecte un monitor secundario para usar la proyección"
+
+MSG_MONITOR_DISCONNECTED_TITLE = "Monitor desconectado"
+MSG_MONITOR_DISCONNECTED_BODY = "El monitor secundario se desconectó.\n\nLa proyección se cerrará automáticamente."
+
+# ═════════════════════════════════════════════════════════════════════════
+# PROJECTION & CALIBRATION MESSAGES
+# ═════════════════════════════════════════════════════════════════════════
+
+MSG_PROJECTOR_NOT_DETECTED_TITLE = "Monitor no detectado"
+MSG_PROJECTOR_NOT_DETECTED_BODY = "No se detectó un segundo monitor conectado.\n\nPor favor, conecte un segundo monitor para usar la función de proyección."
+MSG_PROJECTOR_INACTIVE_TITLE = "Proyección inactiva"
+MSG_PROJECTOR_INACTIVE_BODY = "Debe activar la proyección antes de iniciar esta operación."
+
+ERR_CONFLICT_TITLE = "Conflicto"
+ERR_CONFLICT_EXPOSURE = "No se puede iniciar {action} mientras la exposición está activa."
+ERR_CONFLICT_FREQUENCY = "No se puede iniciar {action} mientras el modo frecuencia está activo."
+ERR_CONFLICT_SEQUENCE = "No se puede iniciar {action} mientras la secuencia de segmentos está activa."
+
+MSG_NO_IMAGE_PROJ_TITLE = "Sin imagen"
+MSG_NO_IMAGE_PROJ_BODY = "No hay imagen disponible para proyectar.\n\nCargue una imagen primero."
+
+MSG_INVALID_EXPOSURE_TIME = "Por favor ingrese un tiempo de exposición válido (en segundos).\n\nEjemplo: 5, 10.5, 0.001 (1ms), 0.000001 (1μs)"
+MSG_INVALID_INTENSITY = "Por favor ingrese una intensidad válida (0-100).\n\nEjemplo: 50, 80, 100, 75.5"
+MSG_INVALID_CYCLES = "Por favor ingrese un número de ciclos válido (número entero positivo).\n\nEjemplo: 1, 3 o 5"
+
+MSG_INVALID_FREQUENCY = "Por favor ingrese una frecuencia válida (mayor a 0).\n\nEjemplo: 1, 2.5 o 10"
+MSG_INVALID_DURATION = "Por favor ingrese una duración válida (0 para infinito).\n\nEjemplo: 0, 30 o 60"
+
+MSG_NO_SEGMENTS_TITLE = "Sin segmentos de imagen"
+MSG_NO_SEGMENTS_BODY = "Debe aplicar segmentación de imagen antes de iniciar una secuencia.\n\nPasos:\n1. Cargue una imagen\n2. Vaya a '✂️ SEGMENTACIÓN DE IMAGEN'\n3. Configure el modo y número de segmentos\n4. Presione 'Aplicar Segmentación'"
+
+STYLE_PROJECTOR_BTN_DISCONNECTED = """
+    QPushButton {
+        background-color: #FF8C00;
+        color: #FFFFFF;
+        font-weight: bold;
+    }
+    QPushButton:hover {
+        background-color: #FFA500;
+    }
+"""
+STYLE_BTN_ACTIVE_RED = "background-color: #f38ba8; color: #11111b; font-weight: bold;"
