@@ -4,6 +4,11 @@ Mixin de matrices de atenuacion.
 Generacion, previsualizacion, persistencia y aplicacion de matrices
 de compensacion de uniformidad para correccion del proyector.
 """
+from PyQt5.QtWidgets import QLabel
+from matplotlib.backends.backend_qtagg import FigureCanvas
+from matplotlib.figure import Figure
+from PyQt5.QtWidgets import QVBoxLayout
+from PyQt5.QtWidgets import QDialog
 import cv2
 import numpy as np
 

@@ -164,6 +164,47 @@ class FileManagementMixin:
             print(f"Error al guardar configuración del grid: {e}")
 
 
+    
+    def _load_image_as_numpy(self, file_path):
+        import numpy as np
+        if file_path.lower().endswith('.svg'):
+            from PyQt5.QtSvg import QSvgRenderer
+            from PyQt5.QtGui import QPainter, QImage
+            
+            renderer = QSvgRenderer(file_path)
+            default_size = renderer.defaultSize()
+            width = default_size.width()
+            height = default_size.height()
+            
+            if width <= 0 or height <= 0:
+                width = 1024
+                height = 1024
+            
+            # Scale up small SVGs to prevent pixelation loss
+            if width < 512 and height < 512:
+                scale = 512 / max(width, height)
+                width = int(width * scale)
+                height = int(height * scale)
+                
+            image = QImage(width, height, QImage.Format_ARGB32)
+            image.fill(0xFFFFFFFF)  # Fill white
+            
+            painter = QPainter(image)
+            renderer.render(painter)
+            painter.end()
+            
+            image = image.convertToFormat(QImage.Format_Grayscale8)
+            ptr = image.bits()
+            ptr.setsize(image.height() * image.width())
+            arr = np.array(ptr).reshape(image.height(), image.width())
+            return arr.copy() / 255.0
+        else:
+            import cv2
+            img = cv2.imread(file_path, cv2.IMREAD_GRAYSCALE)
+            if img is None: return None
+            return img / 255.0
+
+
     def dragEnterEvent(self, event: QDragEnterEvent):
         if event.mimeData().hasUrls():
             event.acceptProposedAction()
@@ -173,7 +214,7 @@ class FileManagementMixin:
         urls = event.mimeData().urls()
         if urls:
             file_path = urls[0].toLocalFile()
-            if file_path.lower().endswith((".png", ".jpg", ".jpeg", ".bmp", ".tiff")):
+            if file_path.lower().endswith((".png", ".jpg", ".jpeg", ".bmp", ".tiff", ".svg")):
                 if self.pattern is not None:
                     reply = QMessageBox.question(
                         self,
@@ -193,7 +234,7 @@ class FileManagementMixin:
 
     def load_pattern(self):
         file_path, _ = QFileDialog.getOpenFileName(
-            self, "Seleccionar patrón", "", "Imágenes (*.png *.jpg *.bmp *.tiff)"
+            self, "Seleccionar patrón", "", "Imágenes (*.png *.jpg *.bmp *.tiff *.svg)"
         )
         if file_path:
             if self.pattern is not None:
@@ -341,7 +382,7 @@ class FileManagementMixin:
                 tree_item.setIcon(0, self.style().standardIcon(self.style().SP_DirIcon))
                 self.populate_tree(item_path, tree_item)
             else:
-                if item.lower().endswith((".png", ".jpg", ".jpeg", ".bmp", ".tiff")):
+                if item.lower().endswith((".png", ".jpg", ".jpeg", ".bmp", ".tiff", ".svg")):
                     thumbnail = self.create_thumbnail(item_path, size=56)
                     if thumbnail:
                         tree_item.setIcon(0, QIcon(thumbnail))
@@ -353,7 +394,28 @@ class FileManagementMixin:
 
     def create_thumbnail(self, image_path, size=56):
         try:
+            
+            if image_path.lower().endswith('.svg'):
+                from PyQt5.QtSvg import QSvgRenderer
+                from PyQt5.QtGui import QPainter
+                from PyQt5.QtCore import Qt, QRectF
+                renderer = QSvgRenderer(image_path)
+                image = QImage(size, size, QImage.Format_ARGB32)
+                image.fill(0x00000000)
+                painter = QPainter(image)
+                ds = renderer.defaultSize()
+                if ds.width() > 0 and ds.height() > 0:
+                    scaled = ds.scaled(size, size, Qt.KeepAspectRatio)
+                    x = (size - scaled.width()) / 2
+                    y = (size - scaled.height()) / 2
+                    renderer.render(painter, QRectF(x, y, scaled.width(), scaled.height()))
+                else:
+                    renderer.render(painter)
+                painter.end()
+                return QPixmap.fromImage(image)
+            
             img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+
             if img is None:
                 return None
 
@@ -469,7 +531,7 @@ class FileManagementMixin:
     def load_from_tree(self, item, column):
         item_path = item.data(0, Qt.UserRole)
         if os.path.isfile(item_path) and item_path.lower().endswith(
-            (".png", ".jpg", ".bmp", ".tiff")
+            (".png", ".jpg", ".bmp", ".tiff", ".svg")
         ):
             image = cv2.imread(item_path, cv2.IMREAD_GRAYSCALE)
             self.pattern = image / 255.0

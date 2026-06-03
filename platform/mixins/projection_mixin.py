@@ -6,1428 +6,861 @@ modo frecuencia, secuencias de segmentos y aplicacion de efectos.
 """
 import time
 import cv2
+import numpy as np
 
 from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtCore import QTimer
 from projection_window import ProjectionWindow
+from constants import (
+    MSG_PROJECTOR_NOT_DETECTED_TITLE,
+    MSG_PROJECTOR_NOT_DETECTED_BODY,
+    MSG_PROJECTOR_INACTIVE_TITLE,
+    MSG_PROJECTOR_INACTIVE_BODY,
+    ERR_CONFLICT_TITLE,
+    ERR_CONFLICT_EXPOSURE,
+    ERR_CONFLICT_FREQUENCY,
+    ERR_CONFLICT_SEQUENCE,
+    MSG_NO_IMAGE_PROJ_TITLE,
+    MSG_NO_IMAGE_PROJ_BODY,
+    MSG_INVALID_EXPOSURE_TIME,
+    MSG_INVALID_INTENSITY,
+    MSG_INVALID_CYCLES,
+    MSG_INVALID_FREQUENCY,
+    MSG_INVALID_DURATION,
+    MSG_NO_SEGMENTS_TITLE,
+    MSG_NO_SEGMENTS_BODY,
+    STYLE_PROJECTOR_BTN_DISCONNECTED,
+    STYLE_BTN_ACTIVE_RED,
+)
 
 
 class ProjectionMixin:
     """Mixin: Projection functionality."""
 
-    def toggle_projector(self):
-        self.has_second_monitor = self.check_second_monitor()
-        if not self.has_second_monitor and not self.projector_active:
-            QMessageBox.warning(
-                self,
-                "Monitor no detectado",
-                "No se detectó un segundo monitor conectado.\n\n"
-                "Por favor, conecte un segundo monitor para usar la función de proyección.",
-            )
-            self.update_projector_button()
-            return  # no proyectar si no hay segundo monitor
+    # ═══════════════════════════════════════════════════════════════════════════
+    # GESTIÓN DEL PROYECTOR Y VENTANA SECUNDARIA
+    # ═══════════════════════════════════════════════════════════════════════════
 
-        # si el monitor se desconectó mientras estaba proyectando, cerrar proyección
-        if not self.has_second_monitor and self.projector_active:
-            if self.projection_window is not None:
-                self.projection_window.close()
-                self.projection_window = None
-            self.brightness_slider.setVisible(False)
-            self.brightness_label.setVisible(False)
-            self.projector_active = False
+    def toggle_projector(self):
+        """Activa o desactiva la ventana de proyección secundaria."""
+        self.has_second_monitor = self.check_second_monitor()
+        
+        if not self.has_second_monitor and not getattr(self, "projector_active", False):
+            self._show_warning(MSG_PROJECTOR_NOT_DETECTED_TITLE, MSG_PROJECTOR_NOT_DETECTED_BODY)
             self.update_projector_button()
-            QMessageBox.warning(
-                self,
-                "Monitor desconectado",
-                "Se perdió la conexión con el segundo monitor.\n\n"
-                "La proyección se ha detenido.",
-            )
             return
 
-        self.projector_active = not self.projector_active
+        if not self.has_second_monitor and getattr(self, "projector_active", False):
+            self._force_close_projection_on_disconnect()
+            return
+
+        self.projector_active = not getattr(self, "projector_active", False)
 
         if self.projector_active:
-            # Verificar que hay imagen disponible (aunque no la proyectaremos completa)
-            image_to_project = self._get_projection_image()
-            if image_to_project is not None:
-                # ═══════════════════════════════════════════════════════════════════
-                # PROYECTOR SIEMPRE INICIA EN NEGRO
-                # ═══════════════════════════════════════════════════════════════════
-                # La imagen solo se proyecta cuando:
-                # - Se presiona "Proyectar Imagen" explícitamente
-                # - Se inicia Exposición
-                # - Se inicia Frecuencia
-                # - Se inicia Secuencia de Slices
+            self._activate_projector()
+        else:
+            self._deactivate_projector()
 
-                self.projection_window = ProjectionWindow(
-                    self
-                )  # Inicia con pantalla negra automáticamente
-                self.projection_window.set_inversion(self.invert_projection)
-                self.projection_window.set_binary_threshold(self.binary_threshold)
-                self.projection_window.set_binary_mode(self.binary_mode_enabled)
-                self.projection_window.show_on_secondary_monitor()
+        self.update_projector_button()
 
-                # SIEMPRE iniciar con pantalla negra
-                self.projection_window.show_black_screen()
-                self.log_to_console(
-                    "✓ Proyector activado - Pantalla en NEGRO\n"
-                    "  La imagen se proyectará al iniciar Exposición, Frecuencia o Secuencia",
-                    "INFO",
-                )
+    def _activate_projector(self):
+        """Inicializa la ventana de proyección con pantalla negra."""
+        image_to_project = self._get_projection_image()
+        if image_to_project is None:
+            self._show_warning(MSG_NO_IMAGE_PROJ_TITLE, MSG_NO_IMAGE_PROJ_BODY)
+            self.projector_active = False
+            return
 
-                self.brightness_slider.setVisible(True)
-                self.brightness_label.setVisible(True)
-                # self.binary_section.setVisible(True) - Always visible in sidebar
-                self.project_image_button.setVisible(
-                    True
-                )  # Botón para proyectar imagen manualmente
+        self.projection_window = ProjectionWindow(self)
+        self.projection_window.set_inversion(getattr(self, "invert_projection", False))
+        self.projection_window.set_binary_threshold(getattr(self, "binary_threshold", 127))
+        self.projection_window.set_binary_mode(getattr(self, "binary_mode_enabled", False))
+        self.projection_window.show_on_secondary_monitor()
+        self.projection_window.show_black_screen()
+
+        self.log_to_console(
+            "✓ Proyector activado - Pantalla en NEGRO\n"
+            "  La imagen se proyectará al iniciar Exposición, Frecuencia o Secuencia",
+            "INFO",
+        )
+        self._set_projection_ui_visibility(True)
+
+    def _deactivate_projector(self):
+        """Detiene cualquier modo activo y cierra la ventana de proyección."""
+        self._stop_all_active_modes()
+
+        if getattr(self, "projection_window", None) is not None:
+            self.projection_window.close()
+            self.projection_window = None
+
+        self._set_projection_ui_visibility(False)
+
+    def _force_close_projection_on_disconnect(self):
+        """Cierra la proyección si el monitor se desconectó abruptamente."""
+        if getattr(self, "projection_window", None) is not None:
+            self.projection_window.close()
+            self.projection_window = None
+        
+        self.projector_active = False
+        self._set_projection_ui_visibility(False)
+        self.update_projector_button()
+        
+        self._show_warning(
+            "Monitor desconectado",
+            "Se perdió la conexión con el segundo monitor.\n\nLa proyección se ha detenido."
+        )
+
+    def _set_projection_ui_visibility(self, visible: bool):
+        """Muestra u oculta los controles dependientes de la proyección."""
+        if hasattr(self, "brightness_slider"):
+            self.brightness_slider.setVisible(visible)
+            self.brightness_label.setVisible(visible)
+            self.project_image_button.setVisible(visible)
+            
+            if not visible:
+                self.exposure_button.setVisible(False)
+                self.stop_exposure_button.setVisible(False)
+                self.frequency_button.setVisible(False)
+                self.stop_frequency_button.setVisible(False)
+            else:
                 self.exposure_button.setVisible(True)
                 self.frequency_button.setVisible(True)
-                # NO llamar update_brightness() para no proyectar la imagen completa
-                # self.update_brightness()
 
-                # Mostrar campos de resolución proyectada ahora que hay proyección activa
-                self._update_projection_resolution_fields(True)
-            else:
-                QMessageBox.warning(
-                    self,
-                    "Advertencia",
-                    "No hay imagen para proyectar.\nCargue una imagen en Vista Normal o Vista Grid.",
-                )
-                self.projector_active = False
-        else:
-            if self.exposure_active:
-                self.force_stop_exposure()
+        self._update_projection_resolution_fields(visible)
 
-            if self.frequency_mode:
-                self.force_stop_frequency()
-
-            # Detener secuencia de slices si está activa
-            if hasattr(self, "sequence_running") and self.sequence_running:
-                self.stop_sequence()
-                self.log_to_console(
-                    "⏹️ Secuencia detenida - Proyector desactivado", "INFO"
-                )
-
-            if self.projection_window is not None:
-                self.projection_window.close()
-                self.projection_window = None
-            self.brightness_slider.setVisible(False)
-            self.brightness_label.setVisible(False)
-            # self.binary_section.setVisible(False) - Always visible in sidebar
-            self.project_image_button.setVisible(False)
-            self.exposure_button.setVisible(False)
-            self.stop_exposure_button.setVisible(False)
-            self.frequency_button.setVisible(False)
-            self.stop_frequency_button.setVisible(False)
-
-            # Ocultar campos de resolución proyectada al desactivar proyección
-            self._update_projection_resolution_fields(False)
-
-        self.update_projector_button()
-
+    def _stop_all_active_modes(self):
+        """Fuerza la detención de cualquier operación de proyección activa."""
+        if getattr(self, "exposure_active", False):
+            self.force_stop_exposure()
+        if getattr(self, "frequency_mode", False):
+            self.force_stop_frequency()
+        if getattr(self, "sequence_running", False):
+            self.stop_sequence()
+            self.log_to_console("⏹️ Secuencia detenida - Proyector desactivado", "INFO")
 
     def on_projection_closed(self):
-        """Se llama cuando se cierra la ventana de proyección."""
-        if self.exposure_active:
-            self.force_stop_exposure()
-
-        if self.frequency_mode:
-            self.force_stop_frequency()
-
+        """Callback cuando el usuario cierra la ventana secundaria manualmente."""
+        self._stop_all_active_modes()
         self.projector_active = False
         self.projection_window = None
-        self.brightness_slider.setVisible(False)
-        self.brightness_label.setVisible(False)
-        # self.binary_section.setVisible(False) - Always visible in sidebar
-        self.exposure_button.setVisible(False)
-        self.stop_exposure_button.setVisible(False)
-        self.frequency_button.setVisible(False)
-        self.stop_frequency_button.setVisible(False)
-
-        # Ocultar campos de resolución de proyección al cerrar
-        self._update_projection_resolution_fields(False)
-
+        self._set_projection_ui_visibility(False)
         self.update_projector_button()
 
-
     def update_projector_button(self):
-        # actualizar detección de segundo monitor
+        """Actualiza el estilo y texto del botón del proyector."""
+        if not hasattr(self, "projector_button"):
+            return
+
         self.has_second_monitor = self.check_second_monitor()
 
         if not self.has_second_monitor:
-            led = "🟠"
-            status = "DESCONECTADO"
-            self.projector_button.setStyleSheet("""
-                QPushButton {
-                    background-color: #FF8C00;
-                    color: #FFFFFF;
-                    font-weight: bold;
-                }
-                QPushButton:hover {
-                    background-color: #FFA500;
-                }
-            """)
-        elif self.projector_active:
-            led = "🟢"
-            status = "ACTIVO"
+            led, status = "🟠", "DESCONECTADO"
+            self.projector_button.setStyleSheet(STYLE_PROJECTOR_BTN_DISCONNECTED)
+        elif getattr(self, "projector_active", False):
+            led, status = "🟢", "ACTIVO"
             self.projector_button.setStyleSheet("")
         else:
-            led = "🔴"
-            status = "INACTIVO"
+            led, status = "🔴", "INACTIVO"
             self.projector_button.setStyleSheet("")
+            
         self.projector_button.setText(f"{led} Proyectar ({status})")
 
+    # ═══════════════════════════════════════════════════════════════════════════
+    # PROYECCIÓN MANUAL (IMAGEN COMPLETA)
+    # ═══════════════════════════════════════════════════════════════════════════
 
     def project_full_image(self):
-        """
-        Proyecta la imagen completa manualmente en el monitor secundario.
-        Actúa como un interruptor (toggle) que fuerza el brillo al 100% y luego lo restaura.
-        """
-        if not hasattr(self, "is_projecting_full_image"):
-            self.is_projecting_full_image = False
+        """Alterna la proyección manual de la imagen completa (brillo 100%)."""
+        self.is_projecting_full_image = getattr(self, "is_projecting_full_image", False)
 
-        if not self.projector_active:
-            QMessageBox.warning(
-                self,
-                "Proyector inactivo",
-                "Debe activar el proyector antes de proyectar la imagen.\n\n"
-                "Use el botón '🎬 Proyectar' primero.",
-            )
+        if not getattr(self, "projector_active", False):
+            self._show_warning(MSG_PROJECTOR_INACTIVE_TITLE, "Use el botón '🎬 Proyectar' primero.")
             return
 
-        if self.projection_window is None:
-            QMessageBox.warning(
-                self, "Error", "No hay ventana de proyección disponible."
-            )
+        if getattr(self, "projection_window", None) is None:
+            self._show_warning("Error", "No hay ventana de proyección disponible.")
             return
 
         if not self.is_projecting_full_image:
-            # Obtener imagen a proyectar
-            image_to_project = self._get_projection_image()
-
-            if image_to_project is None:
-                QMessageBox.warning(
-                    self,
-                    "Sin imagen",
-                    "No hay imagen disponible para proyectar.\n\n"
-                    "Cargue una imagen primero.",
-                )
-                return
-
-            # Guardar brillo actual y forzar al máximo (100%)
-            if hasattr(self, 'brightness'):
-                self._prev_brightness_for_full_img = self.brightness
-            self.projection_window.set_brightness(100.0)
-
-            # Proyectar imagen completa
-            self.projection_window.update_image(image_to_project)
-            self.is_projecting_full_image = True
-            
-            if hasattr(self, 'project_image_button'):
-                self.project_image_button.setText("⏹️ Detener Imagen Completa")
-                self.project_image_button.setStyleSheet("background-color: #f38ba8; color: #11111b; font-weight: bold;")
-
-            self.log_to_console(
-                "🖼️ Proyectando imagen completa en monitor secundario (Brillo 100%)", "SUCCESS"
-            )
+            self._start_full_image_projection()
         else:
-            # Detener proyección
-            import numpy as np
-            black_pattern = np.zeros((self.projection_window.screen_geometry.height(), self.projection_window.screen_geometry.width(), 3), dtype=np.uint8)
-            
-            # Restaurar brillo
-            if hasattr(self, '_prev_brightness_for_full_img'):
-                self.projection_window.set_brightness(self._prev_brightness_for_full_img)
-            else:
-                self.projection_window.set_brightness(100.0)
-                
-            self.projection_window.update_segment(black_pattern)
-            self.is_projecting_full_image = False
-            
-            if hasattr(self, 'project_image_button'):
-                self.project_image_button.setText("🖼️ Proyectar Imagen Completa")
-                self.project_image_button.setStyleSheet("")
-                
-            self.log_to_console("⬛ Proyección de imagen completa detenida.", "INFO")
+            self._stop_full_image_projection()
 
+    def _start_full_image_projection(self):
+        image_to_project = self._get_projection_image()
+        if image_to_project is None:
+            self._show_warning(MSG_NO_IMAGE_PROJ_TITLE, MSG_NO_IMAGE_PROJ_BODY)
+            return
+
+        # Guardar brillo y forzar 100%
+        self._prev_brightness_for_full_img = getattr(self, "brightness", 100.0)
+        self.projection_window.set_brightness(100.0)
+        
+        self.projection_window.update_image(image_to_project)
+        self.is_projecting_full_image = True
+        
+        if hasattr(self, "project_image_button"):
+            self.project_image_button.setText("⏹️ Detener Imagen Completa")
+            self.project_image_button.setStyleSheet(STYLE_BTN_ACTIVE_RED)
+
+        self.log_to_console("🖼️ Proyectando imagen completa en monitor secundario (Brillo 100%)", "SUCCESS")
+
+    def _stop_full_image_projection(self):
+        # Restaurar brillo original
+        prev_brightness = getattr(self, "_prev_brightness_for_full_img", 100.0)
+        self.projection_window.set_brightness(prev_brightness)
+        
+        self.projection_window.show_black_screen()
+        self.is_projecting_full_image = False
+        
+        if hasattr(self, "project_image_button"):
+            self.project_image_button.setText("🖼️ Proyectar Imagen Completa")
+            self.project_image_button.setStyleSheet("")
+            
+        self.log_to_console("⬛ Proyección de imagen completa detenida.", "INFO")
+
+    # ═══════════════════════════════════════════════════════════════════════════
+    # MODO EXPOSICIÓN TEMPORIZADA
+    # ═══════════════════════════════════════════════════════════════════════════
 
     def start_timed_exposure(self):
-        # Verificar conflictos con otros modos
-        if self.sequence_running:
-            QMessageBox.warning(
-                self,
-                "Conflicto",
-                "No se puede iniciar exposición mientras la secuencia de segmentos está activa.",
-            )
-            return
-        if self.frequency_mode:
-            QMessageBox.warning(
-                self,
-                "Conflicto",
-                "No se puede iniciar exposición mientras el modo frecuencia está activo.",
-            )
+        """Inicia el ciclo de exposición temporizada."""
+        if not self._can_start_operation("la exposición temporizada"):
             return
 
-        if not self.projector_active:
-            QMessageBox.warning(
-                self,
-                "Proyección inactiva",
-                "Debe activar la proyección antes de iniciar la exposición.",
-            )
-            return
-
-        # Desactivar proyección de imagen completa si está encendida
         if getattr(self, "is_projecting_full_image", False):
             self.project_full_image()
 
-        # Asegurar que se proyecta la imagen completa
-        image_to_project = self._get_projection_image()
-        if self.projection_window is not None and image_to_project is not None:
-            self.projection_window.update_image(image_to_project)
-            self.projection_window.set_inversion(self.invert_projection)
-            self.projection_window.set_binary_mode(self.binary_mode_enabled)
-            self.projection_window.set_binary_threshold(self.binary_threshold)
-
-        try:
-            # Precisión float para tiempos de exposición (microsegundos)
-            exposure_time = float(self.exposure_time_input.text())
-            if exposure_time <= 0:
-                raise ValueError("El tiempo debe ser mayor a 0")
-        except ValueError:
-            QMessageBox.warning(
-                self,
-                "Tiempo inválido",
-                "Por favor ingrese un tiempo de exposición válido (en segundos).\n\n"
-                "Ejemplo: 5, 10.5, 0.001 (1ms), 0.000001 (1μs)",
-            )
+        params = self._parse_exposure_parameters()
+        if not params:
             return
 
+        self._prepare_projection_for_operation()
+        self._initialize_exposure_state(params)
+        self._set_exposure_ui_state(active=True)
+        self._start_exposure_timers(params["time"])
+
+    def _can_start_operation(self, operation_name: str) -> bool:
+        """Verifica que no haya conflictos con otros modos."""
+        if getattr(self, "sequence_running", False):
+            self._show_warning(ERR_CONFLICT_TITLE, ERR_CONFLICT_SEQUENCE.format(operation_name))
+            return False
+        if getattr(self, "frequency_mode", False):
+            self._show_warning(ERR_CONFLICT_TITLE, ERR_CONFLICT_FREQUENCY.format(operation_name))
+            return False
+        if getattr(self, "exposure_active", False):
+            self._show_warning(ERR_CONFLICT_TITLE, ERR_CONFLICT_EXPOSURE.format(operation_name))
+            return False
+        if not getattr(self, "projector_active", False):
+            self._show_warning(MSG_PROJECTOR_INACTIVE_TITLE, MSG_PROJECTOR_INACTIVE_BODY)
+            return False
+        return True
+
+    def _parse_exposure_parameters(self) -> dict:
+        """Parsea y valida los parámetros de la UI para exposición."""
         try:
-            # Intensidad normalizada como float 0-100
+            exp_time = float(self.exposure_time_input.text())
+            if exp_time <= 0: raise ValueError()
+        except ValueError:
+            self._show_warning("Tiempo inválido", MSG_INVALID_EXPOSURE_TIME)
+            return {}
+
+        try:
             intensity = float(self.exposure_intensity_input.text())
-            if intensity < 0 or intensity > 100:
-                raise ValueError("La intensidad debe estar entre 0 y 100")
+            if not (0 <= intensity <= 100): raise ValueError()
         except ValueError:
-            QMessageBox.warning(
-                self,
-                "Intensidad inválida",
-                "Por favor ingrese una intensidad válida (0-100).\n\n"
-                "Ejemplo: 50, 80, 100, 75.5",
-            )
-            return
+            self._show_warning("Intensidad inválida", MSG_INVALID_INTENSITY)
+            return {}
 
         try:
             cycles = int(self.exposure_cycles_input.text())
-            if cycles <= 0:
-                raise ValueError("Los ciclos deben ser mayor a 0")
+            if cycles <= 0: raise ValueError()
         except ValueError:
-            QMessageBox.warning(
-                self,
-                "Ciclos inválidos",
-                "Por favor ingrese un número de ciclos válido (número entero positivo).\n\n"
-                "Ejemplo: 1, 3 o 5",
-            )
-            return
+            self._show_warning("Ciclos inválidos", MSG_INVALID_CYCLES)
+            return {}
 
-        # Almacenar con precisión float para litografía
-        self.exposure_duration = float(exposure_time)
-        self.exposure_cycles_total = cycles
+        return {"time": exp_time, "intensity": intensity, "cycles": cycles}
+
+    def _prepare_projection_for_operation(self):
+        """Asegura que la imagen base esté cargada en la ventana de proyección."""
+        image_to_project = self._get_projection_image()
+        if self.projection_window is not None and image_to_project is not None:
+            self.projection_window.update_image(image_to_project)
+            self.projection_window.set_inversion(getattr(self, "invert_projection", False))
+            self.projection_window.set_binary_mode(getattr(self, "binary_mode_enabled", False))
+            self.projection_window.set_binary_threshold(getattr(self, "binary_threshold", 127))
+
+    def _initialize_exposure_state(self, params: dict):
+        self.exposure_duration = params["time"]
+        self.exposure_target_brightness = params["intensity"]
+        self.exposure_cycles_total = params["cycles"]
         self.exposure_cycles_completed = 0
-        self.exposure_start_time = float(time.time())  # Timestamp con precisión μs
-        self.exposure_target_brightness = float(intensity)
+        self.exposure_start_time = float(time.time())
+        self.exposure_active = True
 
-        # QSlider requiere int, pero mantenemos precisión internamente
-        self.brightness_slider.setValue(int(round(intensity)))
+        self.brightness_slider.setValue(int(round(params["intensity"])))
         self.update_brightness()
 
-        self.exposure_active = True
-        self.exposure_button.setVisible(False)
-        self.stop_exposure_button.setVisible(True)
+    def _set_exposure_ui_state(self, active: bool):
+        self.exposure_button.setVisible(not active)
+        self.stop_exposure_button.setVisible(active)
+        
+        state = not active
+        self.exposure_time_input.setEnabled(state)
+        self.exposure_intensity_input.setEnabled(state)
+        self.exposure_cycles_input.setEnabled(state)
+        self.brightness_slider.setEnabled(state)
 
-        self.exposure_time_input.setEnabled(False)
-        self.exposure_intensity_input.setEnabled(False)
-        self.exposure_cycles_input.setEnabled(False)
-        self.brightness_slider.setEnabled(False)
-
-        # Timer requiere int (milisegundos)
-        self.exposure_timer.start(int(round(exposure_time * 1000)))
-        self.countdown_timer.start()
-
-        self.update_countdown()
-
+    def _start_exposure_timers(self, exposure_time: float):
+        if hasattr(self, "exposure_timer"):
+            self.exposure_timer.start(int(round(exposure_time * 1000)))
+            self.countdown_timer.start()
+            self.update_countdown()
 
     def update_countdown(self):
-        """
-        Actualiza el contador de tiempo de exposición.
-        Precisión de décimas de segundo para visualización (internamente μs).
-        """
-        if not self.exposure_active:
+        if not getattr(self, "exposure_active", False):
             return
 
-        # Cálculo con precisión float (microsegundos)
         elapsed = float(time.time()) - self.exposure_start_time
         remaining = max(0.0, self.exposure_duration - elapsed)
-
-        # Mostrar con 3 decimales para tiempos cortos (ms/μs)
+        
+        cycle_info = f"⏱️ Ciclo {self.exposure_cycles_completed + 1}/{self.exposure_cycles_total}"
         if remaining < 1.0:
-            self.exposure_status_label.setText(
-                f"⏱️ Ciclo {self.exposure_cycles_completed + 1}/{self.exposure_cycles_total} | "
-                f"Tiempo restante: {remaining*1000:.3f}ms"
-            )
+            self.exposure_status_label.setText(f"{cycle_info} | Tiempo restante: {remaining*1000:.3f}ms")
         else:
-            self.exposure_status_label.setText(
-                f"⏱️ Ciclo {self.exposure_cycles_completed + 1}/{self.exposure_cycles_total} | "
-                f"Tiempo restante: {remaining:.3f}s"
-            )
-
+            self.exposure_status_label.setText(f"{cycle_info} | Tiempo restante: {remaining:.3f}s")
 
     def stop_timed_exposure(self):
+        """Llamado por el timer cuando un ciclo de exposición finaliza."""
         self.countdown_timer.stop()
-
         self.exposure_cycles_completed += 1
 
         if self.exposure_cycles_completed < self.exposure_cycles_total:
-            self.brightness_slider.setValue(0)
-            self.update_brightness()
-
-            self.exposure_status_label.setText(
-                f"⏸️ Ciclo {self.exposure_cycles_completed}/{self.exposure_cycles_total} completado | "
-                f"Preparando siguiente ciclo..."
-            )
-
-            if self.inter_cycle_delay > 0:
-                self.inter_cycle_timer.start(self.inter_cycle_delay)
-            else:
-                self.resume_next_cycle()
+            self._prepare_next_exposure_cycle()
         else:
-            if self.final_brightness_mode == "zero":
-                self.brightness_slider.setValue(0)
-            else:
-                self.brightness_slider.setValue(100)
-            self.update_brightness()
-
             self.finish_exposure_sequence()
 
+    def _prepare_next_exposure_cycle(self):
+        self.brightness_slider.setValue(0)
+        self.update_brightness()
+        self.exposure_status_label.setText(
+            f"⏸️ Ciclo {self.exposure_cycles_completed}/{self.exposure_cycles_total} completado | Preparando siguiente ciclo..."
+        )
+        
+        inter_delay = getattr(self, "inter_cycle_delay", 0)
+        if inter_delay > 0 and hasattr(self, "inter_cycle_timer"):
+            self.inter_cycle_timer.start(inter_delay)
+        elif hasattr(self, "resume_next_cycle"):
+            self.resume_next_cycle()
 
     def finish_exposure_sequence(self):
-        self.exposure_timer.stop()
-        self.countdown_timer.stop()
-        self.inter_cycle_timer.stop()
-
+        self._stop_exposure_timers()
+        self._restore_brightness_after_exposure()
+        self._set_exposure_ui_state(active=False)
         self.exposure_active = False
-        self.exposure_button.setVisible(True)
-        self.stop_exposure_button.setVisible(False)
 
-        self.exposure_time_input.setEnabled(True)
-        self.exposure_intensity_input.setEnabled(True)
-        self.exposure_cycles_input.setEnabled(True)
-        self.brightness_slider.setEnabled(True)
-
-        brightness_text = "0%" if self.final_brightness_mode == "zero" else "100%"
+        b_mode = getattr(self, "final_brightness_mode", "zero")
         self.exposure_status_label.setText(
-            f"✅ Exposición completada: {self.exposure_cycles_completed} ciclo(s) | "
-            f"Brillo final: {brightness_text}"
+            f"✅ Exposición completada: {self.exposure_cycles_completed} ciclo(s) | Brillo final: {'0%' if b_mode == 'zero' else '100%'}"
         )
 
-
-    def toggle_exposure_mirror(self, checked):
-        """Activa o desactiva el espejo horizontal específicamente para la exposición."""
-        self.exposure_mirror_h = bool(checked)
-        self.log_to_console(f"🪞 Modo Espejo de Exposición: {'Activado' if checked else 'Desactivado'}", "INFO")
-        
-        # Si la proyección ya está mostrándose, actualizarla
-        if getattr(self, "is_projecting_full_image", False):
-            self.is_projecting_full_image = False
-            self.project_full_image()
-        elif hasattr(self, "current_projecting_segment") and self.current_projecting_segment is not None:
-            if hasattr(self, "sequence_paused") and self.sequence_paused:
-                segment_data = self.current_projecting_segment.get("segment_data")
-                if segment_data and self.projector_active and self.projection_window is not None:
-                    processed_segment = self._apply_effects_to_segment(
-                        segment_data["image"], 
-                        skip_binary_effects=segment_data.get("effects_applied", False)
-                    )
-                    self.projection_window.update_segment(processed_segment)
-
     def force_stop_exposure(self):
-        self.exposure_timer.stop()
-        self.countdown_timer.stop()
-        self.inter_cycle_timer.stop()
-
-        if self.final_brightness_mode == "zero":
-            self.brightness_slider.setValue(0)
-        else:
-            self.brightness_slider.setValue(100)
-        self.update_brightness()
-
+        self._stop_exposure_timers()
+        self._restore_brightness_after_exposure()
+        self._set_exposure_ui_state(active=False)
         self.exposure_active = False
-        self.exposure_button.setVisible(True)
-        self.stop_exposure_button.setVisible(False)
-
-        self.exposure_time_input.setEnabled(True)
-        self.exposure_intensity_input.setEnabled(True)
-        self.exposure_cycles_input.setEnabled(True)
-        self.brightness_slider.setEnabled(True)
 
         self.exposure_status_label.setText(
             f"⏹️ Exposición detenida: {self.exposure_cycles_completed}/{self.exposure_cycles_total} ciclo(s) completados"
         )
 
+    def _stop_exposure_timers(self):
+        if hasattr(self, "exposure_timer"):
+            self.exposure_timer.stop()
+            self.countdown_timer.stop()
+        if hasattr(self, "inter_cycle_timer"):
+            self.inter_cycle_timer.stop()
+
+    def _restore_brightness_after_exposure(self):
+        target = 0 if getattr(self, "final_brightness_mode", "zero") == "zero" else 100
+        self.brightness_slider.setValue(target)
+        self.update_brightness()
+
+    def toggle_exposure_mirror(self, checked):
+        self.exposure_mirror_h = bool(checked)
+        self.log_to_console(f"🪞 Modo Espejo de Exposición: {'Activado' if checked else 'Desactivado'}", "INFO")
+        
+        if getattr(self, "is_projecting_full_image", False):
+            self.is_projecting_full_image = False
+            self.project_full_image()
+        elif getattr(self, "current_projecting_segment", None):
+            self._update_paused_segment_projection()
+
+    def _update_paused_segment_projection(self):
+        if not getattr(self, "sequence_paused", False): return
+        
+        seg = self.current_projecting_segment.get("segment_data")
+        if seg and getattr(self, "projector_active", False) and self.projection_window:
+            processed = self._apply_effects_to_segment(seg["image"], skip_binary_effects=seg.get("effects_applied", False))
+            self.projection_window.update_segment(processed)
+
+    # ═══════════════════════════════════════════════════════════════════════════
+    # MODO FRECUENCIA
+    # ═══════════════════════════════════════════════════════════════════════════
 
     def start_frequency_mode(self):
-        # Verificar conflictos con otros modos
-        if self.sequence_running:
-            QMessageBox.warning(
-                self,
-                "Conflicto",
-                "No se puede iniciar frecuencia mientras la secuencia de segmentos está activa.",
-            )
-            return
-        if self.exposure_active:
-            QMessageBox.warning(
-                self,
-                "Conflicto",
-                "No se puede iniciar frecuencia mientras la exposición está activa.",
-            )
+        if not self._can_start_operation("el modo de frecuencia"):
             return
 
-        if not self.projector_active:
-            QMessageBox.warning(
-                self,
-                "Proyección inactiva",
-                "Debe activar la proyección antes de iniciar el modo de frecuencia.",
-            )
-            return
-
-        # Desactivar proyección de imagen completa si está encendida
         if getattr(self, "is_projecting_full_image", False):
             self.project_full_image()
 
-        # Asegurar que se proyecta la imagen completa
-        image_to_project = self._get_projection_image()
-        if self.projection_window is not None and image_to_project is not None:
-            self.projection_window.update_image(image_to_project)
-            self.projection_window.set_inversion(self.invert_projection)
-            self.projection_window.set_binary_mode(self.binary_mode_enabled)
-            self.projection_window.set_binary_threshold(self.binary_threshold)
-
-        try:
-            freq_value = float(self.frequency_value_input.text())
-            if freq_value <= 0:
-                raise ValueError("La frecuencia debe ser mayor a 0")
-        except ValueError:
-            QMessageBox.warning(
-                self,
-                "Frecuencia inválida",
-                "Por favor ingrese una frecuencia válida (mayor a 0).\n\n"
-                "Ejemplo: 1, 2.5 o 10",
-            )
+        params = self._parse_frequency_parameters()
+        if not params:
             return
 
-        unit = self.frequency_unit_combo.currentText()
-        if unit == "kHz":
-            freq_hz = freq_value * 1000
-        elif unit == "MHz":
-            freq_hz = freq_value * 1000000
-        else:  # Hz
-            freq_hz = freq_value
+        self._prepare_projection_for_operation()
+        
+        self.frequency_mode = True
+        self.frequency_period = params["period"]
+        self.frequency_duration = params["duration"]
+        self.exposure_target_brightness = params["intensity"]
+        self.frequency_start_time = time.time()
+        self.frequency_cycle_count = 0
 
+        self._set_frequency_ui_state(active=True)
+
+        if params["duration"] > 0 and hasattr(self, "frequency_timer"):
+            self.frequency_timer.start(int(params["duration"] * 1000))
+
+        self.start_frequency_cycle()
+
+    def _parse_frequency_parameters(self) -> dict:
+        try:
+            freq = float(self.frequency_value_input.text())
+            if freq <= 0: raise ValueError()
+        except ValueError:
+            self._show_warning("Frecuencia inválida", MSG_INVALID_FREQUENCY)
+            return {}
+
+        unit = self.frequency_unit_combo.currentText()
+        freq_hz = freq * 1000 if unit == "kHz" else (freq * 1000000 if unit == "MHz" else freq)
         period = 1.0 / freq_hz
 
         try:
             duration = float(self.frequency_duration_input.text())
-            if duration < 0:
-                raise ValueError("La duración debe ser 0 o mayor")
+            if duration < 0: raise ValueError()
         except ValueError:
-            QMessageBox.warning(
-                self,
-                "Duración inválida",
-                "Por favor ingrese una duración válida (0 para infinito).\n\n"
-                "Ejemplo: 0, 30 o 60",
-            )
-            return
+            self._show_warning("Duración inválida", MSG_INVALID_DURATION)
+            return {}
 
         try:
             intensity = int(self.exposure_intensity_input.text())
-            if intensity < 0 or intensity > 100:
-                raise ValueError("La intensidad debe estar entre 0 y 100")
+            if not (0 <= intensity <= 100): raise ValueError()
         except ValueError:
-            QMessageBox.warning(
-                self,
-                "Intensidad inválida",
-                "Por favor configure una intensidad válida en la sección de exposición (0-100).",
-            )
-            return
+            self._show_warning("Intensidad inválida", "Por favor configure una intensidad válida (0-100).")
+            return {}
 
-        self.frequency_mode = True
-        self.frequency_period = period
-        self.exposure_target_brightness = intensity
-        self.frequency_duration = duration
-        self.frequency_start_time = time.time()
+        return {"period": period, "duration": duration, "intensity": intensity}
 
-        self.frequency_button.setVisible(False)
-        self.stop_frequency_button.setVisible(True)
-        self.frequency_value_input.setEnabled(False)
-        self.frequency_unit_combo.setEnabled(False)
-        self.frequency_duration_input.setEnabled(False)
-        self.exposure_intensity_input.setEnabled(False)
-        self.brightness_slider.setEnabled(False)
-
-        if duration > 0:
-            self.frequency_timer.start(int(duration * 1000))
-
-        self.frequency_cycle_count = 0
-        self.start_frequency_cycle()
-
+    def _set_frequency_ui_state(self, active: bool):
+        self.frequency_button.setVisible(not active)
+        self.stop_frequency_button.setVisible(active)
+        
+        state = not active
+        self.frequency_value_input.setEnabled(state)
+        self.frequency_unit_combo.setEnabled(state)
+        self.frequency_duration_input.setEnabled(state)
+        self.exposure_intensity_input.setEnabled(state)
+        self.brightness_slider.setEnabled(state)
 
     def start_frequency_cycle(self):
-
-        if not self.frequency_mode:
+        if not getattr(self, "frequency_mode", False):
             return
 
-        # QSlider requiere int, redondear desde float interno
         self.brightness_slider.setValue(int(round(self.exposure_target_brightness)))
         self.update_brightness()
 
-        on_time = self.frequency_period / 2.0
-
         self.frequency_cycle_count += 1
+        self._update_frequency_status_label()
 
+        on_time_ms = int((self.frequency_period / 2.0) * 1000)
+        QTimer.singleShot(on_time_ms, self.frequency_off_phase)
+
+    def _update_frequency_status_label(self):
+        prefix = f"🌊 Ciclo #{self.frequency_cycle_count} | "
         if self.frequency_duration > 0:
             elapsed = time.time() - self.frequency_start_time
-            remaining = max(0, self.frequency_duration - elapsed)
-            self.frequency_status_label.setText(
-                f"🌊 Ciclo #{self.frequency_cycle_count} | "
-                f"Frecuencia activa | Tiempo restante: {remaining:.1f}s"
-            )
+            rem = max(0, self.frequency_duration - elapsed)
+            self.frequency_status_label.setText(f"{prefix}Frecuencia activa | Tiempo restante: {rem:.1f}s")
         else:
-            self.frequency_status_label.setText(
-                f"🌊 Ciclo #{self.frequency_cycle_count} | "
-                f"Frecuencia activa (infinito)"
-            )
-
-        QTimer.singleShot(int(on_time * 1000), self.frequency_off_phase)
-
+            self.frequency_status_label.setText(f"{prefix}Frecuencia activa (infinito)")
 
     def frequency_off_phase(self):
-
-        if not self.frequency_mode:
+        if not getattr(self, "frequency_mode", False):
             return
 
         self.brightness_slider.setValue(0)
         self.update_brightness()
 
-        off_time = self.frequency_period / 2.0
-
-        QTimer.singleShot(int(off_time * 1000), self.start_frequency_cycle)
-
+        off_time_ms = int((self.frequency_period / 2.0) * 1000)
+        QTimer.singleShot(off_time_ms, self.start_frequency_cycle)
 
     def stop_frequency_mode(self):
-
         self.force_stop_frequency()
-
-        if self.final_brightness_mode == "full":
-            final_brightness = 100
-            brightness_text = "Brillo final: 100%"
-        else:
-            final_brightness = 0
-            brightness_text = "Brillo final: 0%"
-
+        b_mode = getattr(self, "final_brightness_mode", "zero")
         self.frequency_status_label.setText(
-            f"✅ Modo de frecuencia completado: {self.frequency_cycle_count} ciclos - {brightness_text}"
+            f"✅ Modo de frecuencia completado: {self.frequency_cycle_count} ciclos - Brillo final: {'0%' if b_mode == 'zero' else '100%'}"
         )
-
 
     def force_stop_frequency(self):
         self.frequency_mode = False
-        self.frequency_timer.stop()
+        if hasattr(self, "frequency_timer"):
+            self.frequency_timer.stop()
 
-        if self.final_brightness_mode == "full":
-            final_brightness = 100
-            brightness_text = "Brillo final: 100%"
-        else:
-            final_brightness = 0
-            brightness_text = "Brillo final: 0%"
+        self._restore_brightness_after_exposure()
+        self._set_frequency_ui_state(active=False)
 
-        self.brightness_slider.setValue(final_brightness)
-        self.update_brightness()
-
-        self.frequency_button.setVisible(True)
-        self.stop_frequency_button.setVisible(False)
-        self.frequency_value_input.setEnabled(True)
-        self.frequency_unit_combo.setEnabled(True)
-        self.frequency_duration_input.setEnabled(True)
-        self.exposure_intensity_input.setEnabled(True)
-        self.brightness_slider.setEnabled(True)
-
-        if not hasattr(self, "frequency_cycle_count"):
-            self.frequency_cycle_count = 0
-
+        count = getattr(self, "frequency_cycle_count", 0)
+        b_mode = getattr(self, "final_brightness_mode", "zero")
         self.frequency_status_label.setText(
-            f"⏹️ Modo de frecuencia detenido: {self.frequency_cycle_count} ciclos completados - {brightness_text}"
+            f"⏹️ Modo de frecuencia detenido: {count} ciclos completados - Brillo final: {'0%' if b_mode == 'zero' else '100%'}"
         )
 
 
+    # ═══════════════════════════════════════════════════════════════════════════
+    # SECUENCIA DE SEGMENTOS LITOGRÁFICOS
+    # ═══════════════════════════════════════════════════════════════════════════
+
     def start_sequence(self):
-        """Inicia la secuencia de proyección con control de movimiento y segmentos de imagen."""
-        # Verificar conflictos con otros modos
-        if self.exposure_active:
-            QMessageBox.warning(
-                self,
-                "Conflicto",
-                "No se puede iniciar secuencia mientras la exposición está activa.",
-            )
-            return
-        if self.frequency_mode:
-            QMessageBox.warning(
-                self,
-                "Conflicto",
-                "No se puede iniciar secuencia mientras el modo frecuencia está activo.",
-            )
+        if getattr(self, "exposure_active", False) or getattr(self, "frequency_mode", False):
+            self._show_warning(ERR_CONFLICT_TITLE, "No se puede iniciar secuencia mientras otro modo está activo.")
             return
 
-        # Verificar que haya segmentos de imagen
-        if not hasattr(self, "image_segments") or not self.image_segments:
-            QMessageBox.warning(
-                self,
-                "Sin segmentos de imagen",
-                "Debe aplicar segmentación de imagen antes de iniciar una secuencia.\n\n"
-                "Pasos:\n"
-                "1. Cargue una imagen\n"
-                "2. Vaya a '✂️ SEGMENTACIÓN DE IMAGEN'\n"
-                "3. Configure el modo y número de segmentos\n"
-                "4. Presione 'Aplicar Segmentación'",
-            )
+        if not getattr(self, "image_segments", None):
+            self._show_warning(MSG_NO_SEGMENTS_TITLE, MSG_NO_SEGMENTS_BODY)
             return
 
-        # Verificar que el proyector esté activo
-        if not self.projector_active:
+        if not getattr(self, "projector_active", False):
             reply = QMessageBox.question(
-                self,
-                "Proyector inactivo",
-                "El proyector no está activo. ¿Desea activarlo ahora?",
-                QMessageBox.Yes | QMessageBox.No,
+                self, "Proyector inactivo", "El proyector no está activo. ¿Desea activarlo ahora?",
+                QMessageBox.Yes | QMessageBox.No
             )
             if reply == QMessageBox.Yes:
                 self.toggle_projector()
-                if not self.projector_active:
-                    return  # No se pudo activar
+                if not getattr(self, "projector_active", False): return
             else:
                 return
 
-        # Desactivar proyección de imagen completa si está encendida
         if getattr(self, "is_projecting_full_image", False):
             self.project_full_image()
 
-        # Calcular total de segmentos de imagen
+        self._initialize_sequence_state()
+        self._log_sequence_start()
+        
+        if not hasattr(self, "sequence_timer") or self.sequence_timer is None:
+            self.sequence_timer = QTimer()
+            self.sequence_timer.timeout.connect(self._process_next_segment)
+            
+        self._process_next_segment()
+
+    def _initialize_sequence_state(self):
         self.total_segments = len(self.image_segments)
         self.current_segment_index = 0
         self.sequence_running = True
         self.sequence_paused = False
 
-        # Actualizar UI
         self.sequence_status_label.setText("Estado: ▶️ En ejecución")
         self.sequence_start_button.setEnabled(False)
         self.sequence_pause_button.setEnabled(True)
         self.sequence_stop_button.setEnabled(True)
         self.segment_progress_bar.setMaximum(self.total_segments)
 
-        # ═══════════════════════════════════════════════════════════════════
-        # LOG INICIO: MOSTRAR ORDEN SECUENCIAL DE CHUNKS
-        # ═══════════════════════════════════════════════════════════════════
+    def _log_sequence_start(self):
+        exp_time = self.exposure_time_spin.value() if hasattr(self, "exposure_time_spin") else 0
+        mov_time = self.movement_time_spin.value() if hasattr(self, "movement_time_spin") else 0
         self.log_to_console(
             f"▶️ INICIANDO SECUENCIA DE PROYECCIÓN\n"
             f"  • Total de chunks: {self.total_segments}\n"
             f"  • Orden: Secuencial estricto (fila por fila)\n"
-            f"  • Tiempo por chunk: {self.exposure_time_spin.value()}s exposición + {self.movement_time_spin.value()}s movimiento",
+            f"  • Tiempo por chunk: {exp_time}s exposición + {mov_time}s movimiento",
             "SUCCESS",
         )
 
-        # Mostrar los primeros 5 chunks para verificación
-        if self.total_segments > 0:
-            preview_count = min(5, self.total_segments)
-            preview_chunks = []
-            for i in range(preview_count):
-                seg = self.image_segments[i]
-                preview_chunks.append(f"[{seg['row']},{seg['col']}]")
-            preview_str = " → ".join(preview_chunks)
-            if self.total_segments > 5:
-                preview_str += " → ..."
-            self.log_to_console(f"  • Orden chunks: {preview_str}", "INFO")
-
-        # Iniciar timer para procesar segmentos
-        if not hasattr(self, "sequence_timer") or self.sequence_timer is None:
-            self.sequence_timer = QTimer()
-            self.sequence_timer.timeout.connect(self._process_next_segment)
-
-        # Iniciar primer segmento
-        self._process_next_segment()
-
-
     def pause_sequence(self):
-        """Pausa/reanuda la secuencia de proyección."""
-        if not self.sequence_running:
-            return
+        if not getattr(self, "sequence_running", False): return
 
         self.sequence_paused = not self.sequence_paused
-
         if self.sequence_paused:
             self.sequence_status_label.setText("Estado: ⏸️ Pausado")
             self.sequence_pause_button.setText("▶️ Reanudar")
-            if self.sequence_timer:
-                self.sequence_timer.stop()
+            if self.sequence_timer: self.sequence_timer.stop()
         else:
             self.sequence_status_label.setText("Estado: ▶️ En ejecución")
             self.sequence_pause_button.setText("⏸️ Pausar")
-            # Continuar con siguiente segmento
             self._process_next_segment()
 
-
     def stop_sequence(self):
-        """Detiene la secuencia de proyección."""
         self.sequence_running = False
         self.sequence_paused = False
-
-        if self.sequence_timer:
-            self.sequence_timer.stop()
-
-        # Limpiar resaltado del chunk en proyección
+        if getattr(self, "sequence_timer", None): self.sequence_timer.stop()
+        
         self.current_projecting_segment = None
-
-        # Volver a pantalla negra al detener
-        if self.projector_active and self.projection_window is not None:
+        if getattr(self, "projector_active", False) and getattr(self, "projection_window", None):
             self.projection_window.show_black_screen()
             self.log_to_console("Secuencia detenida - Pantalla en negro", "INFO")
 
-        # Actualizar grid para quitar resaltado PRESERVANDO el zoom
-        if (
-            self.grid_view_active
-            and hasattr(self, "grid_generated")
-            and self.grid_generated
-        ):
-            if hasattr(self, "ax") and self.ax is not None:
-                # Guardar límites actuales del zoom
-                current_xlim = self.ax.get_xlim()
-                current_ylim = self.ax.get_ylim()
-
-                # Redibujar el grid completo
-                self.display_grid()
-
-                # Restaurar los límites del zoom
-                self.ax.set_xlim(current_xlim)
-                self.ax.set_ylim(current_ylim)
-                self.canvas.draw_idle()
-            else:
-                self.display_grid()
-
-        # Resetear UI
+        self._refresh_grid_preserving_zoom()
+        
         self.sequence_status_label.setText("Estado: ⏹️ Detenido")
         self.sequence_start_button.setEnabled(True)
         self.sequence_pause_button.setEnabled(False)
         self.sequence_pause_button.setText("⏸️ Pausar")
         self.sequence_stop_button.setEnabled(False)
-        self.current_segment_label.setText(
-            f"Segmento: {self.current_segment_index}/{self.total_segments}"
-        )
+        self.current_segment_label.setText(f"Segmento: {self.current_segment_index}/{getattr(self, 'total_segments', 0)}")
         self.segment_progress_bar.setValue(int(self.current_segment_index))
 
-
     def _process_next_segment(self):
-        """Procesa el siguiente segmento de la secuencia."""
-        if not self.sequence_running or self.sequence_paused:
-            return
+        if not getattr(self, "sequence_running", False) or getattr(self, "sequence_paused", False): return
 
-        # Verificar si hay segmentos de imagen disponibles
-        if not hasattr(self, "image_segments") or not self.image_segments:
-            QMessageBox.warning(
-                self,
-                "Sin segmentos",
-                "Debe aplicar segmentación de imagen antes de iniciar la secuencia.\n\n"
-                "Vaya a la sección '✂️ SEGMENTACIÓN DE IMAGEN' y aplique segmentación.",
-            )
+        if not getattr(self, "image_segments", None):
+            self._show_warning(MSG_NO_SEGMENTS_TITLE, MSG_NO_SEGMENTS_BODY)
             self.stop_sequence()
             return
 
         if self.current_segment_index >= len(self.image_segments):
-            # Secuencia completada
-            self.sequence_status_label.setText("Estado: ✅ Completado")
-
-            # Volver a pantalla negra
-            if self.projector_active and self.projection_window is not None:
-                self.projection_window.show_black_screen()
-                self.log_to_console(
-                    "Proyección finalizada - Pantalla en negro", "SUCCESS"
-                )
-
-            self.stop_sequence()
-            QMessageBox.information(
-                self,
-                "Secuencia Completada",
-                f"Se han proyectado todos los {len(self.image_segments)} segmentos de imagen.",
-            )
+            self._complete_sequence()
             return
 
-        # Obtener segmento actual
-        current_segment = self.image_segments[self.current_segment_index]
-        row = current_segment["row"]
-        col = current_segment["col"]
-        segment_image = current_segment["image"]
-        effects_already_applied = current_segment.get("effects_applied", False)
+        self._expose_current_segment()
 
-        # Actualizar UI
+    def _complete_sequence(self):
+        self.sequence_status_label.setText("Estado: ✅ Completado")
+        if getattr(self, "projector_active", False) and getattr(self, "projection_window", None):
+            self.projection_window.show_black_screen()
+            self.log_to_console("Proyección finalizada - Pantalla en negro", "SUCCESS")
+        
+        self.stop_sequence()
+        QMessageBox.information(self, "Secuencia Completada", f"Se han proyectado todos los {len(self.image_segments)} segmentos.")
+
+    def _expose_current_segment(self):
+        seg = self.image_segments[self.current_segment_index]
         self.current_segment_index += 1
-        self.current_segment_label.setText(
-            f"Segmento: {self.current_segment_index}/{len(self.image_segments)}"
-        )
+        
+        self.current_segment_label.setText(f"Segmento: {self.current_segment_index}/{len(self.image_segments)}")
         self.segment_progress_bar.setValue(int(self.current_segment_index))
+        self._log_segment_details(seg)
 
-        # Log del segmento con información detallada
+        if hasattr(self, "auto_shutter_checkbox") and self.auto_shutter_checkbox.isChecked():
+            exp_s = self.exposure_time_spin.value()
+            self.log_to_console(f"Exponiendo segmento {self.current_segment_index} durante {exp_s}s", "INFO")
+            
+            if getattr(self, "projector_active", False) and getattr(self, "projection_window", None):
+                processed = self._apply_effects_to_segment(seg["image"], skip_binary_effects=seg.get("effects_applied", False))
+                self.projection_window.update_segment(processed)
+                self._update_calibration_monitor_info(processed)
+
+            self._highlight_current_segment(seg["row"], seg["col"])
+            QTimer.singleShot(int(exp_s * 1000), lambda: self._start_movement_phase(seg["row"], seg["col"]))
+        else:
+            self._process_next_segment()
+
+    def _start_movement_phase(self, row, col):
+        if not getattr(self, "sequence_running", False) or getattr(self, "sequence_paused", False): return
+
+        mov_s = self.movement_time_spin.value() if hasattr(self, "movement_time_spin") else 0
+        self.current_projecting_segment = None
+
+        if getattr(self, "projector_active", False) and getattr(self, "projection_window", None):
+            self.projection_window.show_black_screen()
+            self.log_to_console("🖤 Pantalla en negro - Preparando movimiento", "INFO")
+
+        self._refresh_grid_preserving_zoom()
+
+        if hasattr(self, "auto_movement_checkbox") and self.auto_movement_checkbox.isChecked() and mov_s > 0:
+            self.log_to_console(f"🚀 Moviendo stage (tiempo estimado: {mov_s}s)", "INFO")
+
+        if mov_s > 0:
+            QTimer.singleShot(int(mov_s * 1000), self._process_next_segment)
+        else:
+            self._process_next_segment()
+
+    # ═══════════════════════════════════════════════════════════════════════════
+    # EFECTOS Y PROCESAMIENTO DE IMAGEN
+    # ═══════════════════════════════════════════════════════════════════════════
+
+    def _apply_effects_to_segment(self, segment, skip_binary_effects=False):
+        """Aplica el pipeline completo de efectos a un segmento."""
+        img = segment.copy()
+        
+        img = self._apply_sigma_effect(img)
+        img = self._apply_downscale_effect(img)
+        img = self._apply_brightness_effect(img)
+        
+        if not skip_binary_effects:
+            img = self._apply_binary_effect(img)
+            img = self._apply_invert_effect(img)
+            
+        img = self._apply_exposure_mirror(img)
+        img = self._apply_calibration_matrix(img)
+        
+        return img
+
+    def _apply_sigma_effect(self, img):
+        if getattr(self, "sigma", 0) > 0:
+            k = int(2 * np.ceil(3 * self.sigma) + 1)
+            if k > 0 and k % 2 == 1:
+                return cv2.GaussianBlur(img, (k, k), self.sigma)
+        return img
+
+    def _apply_downscale_effect(self, img):
+        factor = getattr(self, "downscale_factor", 1.0)
+        if factor != 1.0:
+            h, w = img.shape[:2]
+            nh, nw = max(1, int(h / factor)), max(1, int(w / factor))
+            interp = cv2.INTER_AREA if factor > 1.0 else cv2.INTER_LINEAR
+            return cv2.resize(img, (nw, nh), interpolation=interp)
+        return img
+
+    def _apply_brightness_effect(self, img):
+        b = getattr(self, "brightness", 100)
+        if b != 100:
+            return cv2.convertScaleAbs(img, alpha=b/100.0, beta=0)
+        return img
+
+    def _apply_binary_effect(self, img):
+        if getattr(self, "binary_mode_enabled", False):
+            norm = img.astype(np.float64)
+            if norm.max() > 0: norm = norm / norm.max()
+            norm = norm * 100.0
+            thresh = getattr(self, "binary_threshold", 50.0)
+            return np.where(norm >= thresh, 255, 0).astype(np.uint8)
+        return img
+
+    def _apply_invert_effect(self, img):
+        if getattr(self, "invert_projection", False):
+            return 255 - img if img.max() > 1 else 1.0 - img
+        return img
+
+    def _apply_exposure_mirror(self, img):
+        if getattr(self, "exposure_mirror_h", False):
+            return cv2.flip(img, 1)
+        return img
+
+    def _apply_calibration_matrix(self, img):
+        if not (getattr(self, "apply_attenuation_to_grid", False) and getattr(self, "attenuation_matrix", None) is not None):
+            return img
+
+        norm = (img.astype(np.float64) / 255.0) if img.max() > 1.0 else img.astype(np.float64)
+        calib_mat = self.get_calibration_matrix_with_flips()
+        
+        ch, cw = norm.shape[:2]
+        mh, mw = calib_mat.shape[:2]
+
+        if ch != mh or cw != mw:
+            from scipy.ndimage import zoom
+            calib_mat = zoom(calib_mat, (ch/mh, cw/mw), order=1)
+
+        strength = getattr(self, "attenuation_strength", 100) / 100.0
+        adj_mat = 1.0 + (calib_mat - 1.0) * strength
+        
+        calibrated = np.clip(norm * adj_mat, 0, 1.0)
+        return (calibrated * 255.0).astype(np.uint8) if img.max() > 1.0 else calibrated.astype(np.float64)
+
+    # ═══════════════════════════════════════════════════════════════════════════
+    # UI HELPERS Y OVERLAYS
+    # ═══════════════════════════════════════════════════════════════════════════
+
+    def _show_warning(self, title: str, message: str):
+        QMessageBox.warning(self, title, message)
+
+    def _refresh_grid_preserving_zoom(self):
+        if getattr(self, "grid_view_active", False) and getattr(self, "grid_generated", False) and getattr(self, "ax", None):
+            xlim, ylim = self.ax.get_xlim(), self.ax.get_ylim()
+            self.display_grid()
+            self.ax.set_xlim(xlim)
+            self.ax.set_ylim(ylim)
+            self.canvas.draw_idle()
+
+    def _log_segment_details(self, seg: dict):
         self.log_to_console(
             f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-            f"📦 CHUNK {self.current_segment_index}/{len(self.image_segments)}\n"
-            f"  • ID: S{current_segment['id']}\n"
-            f"  • Posición grid: Fila {row}, Columna {col}\n"
-            f"  • Tamaño: {current_segment['width']}×{current_segment['height']} px\n"
+            f"📦 CHUNK {self.current_segment_index}/{self.total_segments}\n"
+            f"  • ID: S{seg['id']}\n"
+            f"  • Posición grid: Fila {seg['row']}, Columna {seg['col']}\n"
+            f"  • Tamaño: {seg['width']}×{seg['height']} px\n"
             f"  • Orden: Secuencial estricto",
             "SEGMENTATION",
         )
 
-        # ═══════════════════════════════════════════════════════════════════════════
-        # SECUENCIA TEMPORAL PARA LITOGRAFÍA:
-        # 1. Mostrar segmento (EXPOSICIÓN) → Tiempo de exposición
-        # 2. Pantalla negra + Movimiento → Tiempo de movimiento
-        # 3. Siguiente segmento
-        # ═══════════════════════════════════════════════════════════════════════════
-
-        # FASE 1: EXPOSICIÓN - Mostrar segmento durante tiempo de exposición
-        if self.auto_shutter_checkbox.isChecked():
-            exposure_time_s = self.exposure_time_spin.value()
-            self.log_to_console(
-                f"Exponiendo segmento {self.current_segment_index}/{len(self.image_segments)} durante {exposure_time_s}s",
-                "INFO",
-            )
-
-            # PROYECTAR SEGMENTO
-            if self.projector_active and self.projection_window is not None:
-                # Aplicar TODOS los efectos al segmento antes de proyectar
-                processed_segment = self._apply_effects_to_segment(
-                    segment_image, skip_binary_effects=effects_already_applied
-                )
-
-                # DEBUG: Log detallado de coordenadas del chunk
-                self.log_to_console(
-                    f"🔍 DEBUG Chunk {current_segment['id']} [fila={row}, col={col}]:\n"
-                    f"  • Coordenadas en imagen: ({current_segment['x_start']}, {current_segment['y_start']}) → "
-                    f"({current_segment['x_end']}, {current_segment['y_end']})\n"
-                    f"  • Tamaño chunk: {current_segment['width']}×{current_segment['height']} px\n"
-                    f"  • Tamaño procesado: {processed_segment.shape[1]}×{processed_segment.shape[0]} px\n"
-                    f"  • Valores: min={processed_segment.min():.2f}, max={processed_segment.max():.2f}, mean={processed_segment.mean():.2f}",
-                    "INFO",
-                )
-
-                # Proyectar el segmento procesado en la pantalla secundaria
-                # Durante una secuencia, SIEMPRE se proyecta (no depende de show_projection_image)
-                self.projection_window.update_segment(processed_segment)
-                self.log_to_console(
-                    f"✓ Segmento {current_segment['id']} PROYECTADO: {processed_segment.shape[1]}x{processed_segment.shape[0]} px",
-                    "SUCCESS",
-                )
-
-                # Actualizar monitor de calibración con info de última proyección
-                if hasattr(self, "last_projection_size_label"):
-                    self.last_projection_size_label.setText(
-                        f"• Tamaño: {processed_segment.shape[1]}×{processed_segment.shape[0]} px"
-                    )
-                if hasattr(self, "last_projection_values_label"):
-                    self.last_projection_values_label.setText(
-                        f"• Valores: min={processed_segment.min():.2f}, max={processed_segment.max():.2f}, μ={processed_segment.mean():.2f}"
-                    )
-
-                # Actualizar todo el monitor
-                self.update_calibration_monitor()
-
-            # Resaltar segmento actual en el grid principal
-            self._highlight_current_segment(row, col)
-
-            # Después del tiempo de exposición, pasar a fase de movimiento
-            exposure_time_ms = int(exposure_time_s * 1000)
-            QTimer.singleShot(
-                exposure_time_ms, lambda: self._start_movement_phase(row, col)
-            )
-        else:
-            # Si no hay proyección automática, ir directo al siguiente
-            self._process_next_segment()
-
-
-    def _start_movement_phase(self, row, col):
-        """
-        Fase de movimiento: Apaga proyección (negro) y simula movimiento del stage.
-        """
-        if not self.sequence_running or self.sequence_paused:
-            return
-
-        movement_time_s = self.movement_time_spin.value()
-
-        # Limpiar resaltado durante fase de movimiento (ya no se proyecta)
-        self.current_projecting_segment = None
-
-        # FASE 2: MOVIMIENTO - Pantalla negra durante movimiento
-        if self.projector_active and self.projection_window is not None:
-            self.projection_window.show_black_screen()
-            self.log_to_console("🖤 Pantalla en negro - Preparando movimiento", "INFO")
-
-        # Actualizar grid para quitar resaltado durante movimiento PRESERVANDO el zoom
-        if (
-            self.grid_view_active
-            and hasattr(self, "grid_generated")
-            and self.grid_generated
-        ):
-            if hasattr(self, "ax") and self.ax is not None:
-                # Guardar límites actuales del zoom
-                current_xlim = self.ax.get_xlim()
-                current_ylim = self.ax.get_ylim()
-
-                # Redibujar el grid completo
-                self.display_grid()
-
-                # Restaurar los límites del zoom
-                self.ax.set_xlim(current_xlim)
-                self.ax.set_ylim(current_ylim)
-                self.canvas.draw_idle()
-            else:
-                self.display_grid()
-
-        # Simular movimiento de stage si está activo
-        if self.auto_movement_checkbox.isChecked() and movement_time_s > 0:
-            self.log_to_console(
-                f"🚀 Moviendo stage (tiempo estimado: {movement_time_s}s)", "INFO"
-            )
-
-        # Después del tiempo de movimiento, procesar siguiente segmento
-        if movement_time_s > 0:
-            movement_time_ms = int(movement_time_s * 1000)
-            QTimer.singleShot(movement_time_ms, self._process_next_segment)
-        else:
-            # Sin tiempo de movimiento, procesar inmediatamente
-            self._process_next_segment()
-
+    def _update_calibration_monitor_info(self, processed):
+        if hasattr(self, "last_projection_size_label"):
+            self.last_projection_size_label.setText(f"• Tamaño: {processed.shape[1]}×{processed.shape[0]} px")
+        if hasattr(self, "last_projection_values_label"):
+            self.last_projection_values_label.setText(f"• Valores: min={processed.min():.2f}, max={processed.max():.2f}, μ={processed.mean():.2f}")
+        if hasattr(self, "update_calibration_monitor"):
+            self.update_calibration_monitor()
 
     def _highlight_current_segment(self, row, col):
-        """
-        Resalta visualmente el segmento actual en el grid.
-        Guarda información del segmento en proyección y actualiza la visualización.
-        Registra información detallada en consola.
-        """
-        # Buscar el segmento actual en la lista
-        current_segment_data = None
-        for seg in self.image_segments:
-            if seg["row"] == row and seg["col"] == col:
-                current_segment_data = seg
-                break
-
-        # Registrar información completa en CONSOLA
-        if current_segment_data:
-            # Calcular posición en unidades del grid
-            pixel_size = (
-                self.grid_cell_size / self.grid_pixels_per_cell
-                if hasattr(self, "grid_cell_size")
-                else 1.0
-            )
-            x_grid = (
-                (self.image_position[0] + current_segment_data["x_start"]) * pixel_size
-                if hasattr(self, "image_position")
-                else 0
-            )
-            y_grid = (
-                (self.image_position[1] + current_segment_data["y_start"]) * pixel_size
-                if hasattr(self, "image_position")
-                else 0
-            )
-
-            self.log_to_console(
-                f"▶ PROYECTANDO CHUNK\n"
-                f"  • ID: S{current_segment_data['id']}\n"
-                f"  • Posición en grid: [{row}, {col}]\n"
-                f"  • Coordenadas imagen (px): [{current_segment_data['x_start']}, {current_segment_data['y_start']}]\n"
-                f"  • Tamaño (px): {current_segment_data['width']}×{current_segment_data['height']}\n"
-                f"  • Posición en grid ({self.grid_unit if hasattr(self, 'grid_unit') else 'units'}): ({x_grid:.2f}, {y_grid:.2f})",
-                "PROJECTION",
-            )
-
-        # Guardar información del segmento en proyección
-        self.current_projecting_segment = {
-            "row": row,
-            "col": col,
-            "segment_data": current_segment_data,
-        }
-
-        # Actualizar visualización del grid con resaltado PRESERVANDO el zoom
-        if (
-            self.grid_view_active
-            and hasattr(self, "grid_generated")
-            and self.grid_generated
-        ):
-            if hasattr(self, "ax") and self.ax is not None:
-                # Guardar límites actuales del zoom
-                current_xlim = self.ax.get_xlim()
-                current_ylim = self.ax.get_ylim()
-
-                # Redibujar el grid completo con resaltado
-                self.display_grid()
-
-                # Restaurar los límites del zoom
-                self.ax.set_xlim(current_xlim)
-                self.ax.set_ylim(current_ylim)
-                self.canvas.draw_idle()
-            else:
-                self.display_grid()
-
-
-    def _apply_effects_to_segment(self, segment, skip_binary_effects=False):
-        """
-        Aplica TODOS los efectos configurados a un segmento individual.
-        Incluye: Sigma, Downscaling, Brillo, Binario, Inversión
-
-        Args:
-            segment: Imagen del segmento (numpy array)
-            skip_binary_effects: Si es True, salta los pasos de binario e inversión (útil si ya están aplicados)
-
-        Returns:
-            Segmento procesado con todos los efectos aplicados
-        """
-        import numpy as np
-
-        processed = segment.copy()
-
-        # 1. SIGMA (Gaussian Blur) - si está activo en los ajustes
-        if hasattr(self, "sigma") and self.sigma > 0:
-            sigma = self.sigma
-            # Calcular kernel size apropiado para el sigma
-            kernel_size = int(2 * np.ceil(3 * sigma) + 1)
-            if kernel_size > 0 and kernel_size % 2 == 1:  # Debe ser impar
-                processed = cv2.GaussianBlur(
-                    processed, (kernel_size, kernel_size), sigma
-                )
-
-        # 2. DOWNSCALING / UPSCALING
-        if hasattr(self, "downscale_factor") and self.downscale_factor != 1.0:
-            factor = self.downscale_factor  # Usar como float, no convertir a int
-
-            # Calcular nuevas dimensiones
-            original_height, original_width = processed.shape[:2]
-            new_height = max(1, int(original_height / factor))
-            new_width = max(1, int(original_width / factor))
-
-            # Aplicar redimensionamiento PERMANENTE
-            # NO volver al tamaño original - el downscaling debe reducir la resolución
-            if factor > 1.0:
-                # Downscale (reducir): usar INTER_AREA para mejor calidad
-                processed = cv2.resize(
-                    processed, (new_width, new_height), interpolation=cv2.INTER_AREA
-                )
-                self.log_to_console(
-                    f"  🔽 Downscaling aplicado: {original_width}×{original_height} → {new_width}×{new_height} px "
-                    f"(factor {factor:.2f}×)",
-                    "INFO",
-                )
-            else:
-                # Upscale (aumentar): usar INTER_LINEAR
-                processed = cv2.resize(
-                    processed, (new_width, new_height), interpolation=cv2.INTER_LINEAR
-                )
-                self.log_to_console(
-                    f"  🔼 Upscaling aplicado: {original_width}×{original_height} → {new_width}×{new_height} px "
-                    f"(factor {factor:.2f}×)",
-                    "INFO",
-                )
-
-        # 3. BRILLO (Brightness adjustment)
-        if hasattr(self, "brightness") and self.brightness != 100:
-            factor = self.brightness / 100.0
-            processed = cv2.convertScaleAbs(processed, alpha=factor, beta=0)
-
-        # 4. CONVERSIÓN A BINARIO
-        if (
-            not skip_binary_effects
-            and hasattr(self, "binary_mode_enabled")
-            and self.binary_mode_enabled
-        ):
-            # Normalizar a 0-100
-            normalized = processed.astype(np.float64)
-            if normalized.max() > 0:
-                normalized = normalized / normalized.max()
-            normalized = normalized * 100.0
-
-            # Aplicar threshold
-            threshold = (
-                self.binary_threshold if hasattr(self, "binary_threshold") else 50.0
-            )
-            processed = np.where(normalized >= threshold, 255, 0).astype(np.uint8)
-
-        # 5. INVERSIÓN DE IMAGEN
-        if (
-            not skip_binary_effects
-            and hasattr(self, "invert_projection")
-            and self.invert_projection
-        ):
-            processed = 255 - processed if processed.max() > 1 else 1.0 - processed
-
-        # 5.5 ESPEJO DE EXPOSICIÓN
-        if getattr(self, "exposure_mirror_h", False):
-            import cv2
-            processed = cv2.flip(processed, 1)
-
-        # 6. CALIBRACIÓN (MATRIZ DE ATENUACIÓN)
-        # Aplicar matriz de compensación de uniformidad si está activa
-        if (
-            hasattr(self, "apply_attenuation_to_grid")
-            and self.apply_attenuation_to_grid
-            and hasattr(self, "attenuation_matrix")
-            and self.attenuation_matrix is not None
-        ):
-
-            # Normalizar la imagen procesada a rango 0-1 para aplicar calibración
-            if processed.max() > 1.0:
-                processed_normalized = processed.astype(np.float64) / 255.0
-            else:
-                processed_normalized = processed.astype(np.float64)
-
-            # Obtener matriz con flips aplicados (si están configurados)
-            calibration_matrix = self.get_calibration_matrix_with_flips()
-
-            # Redimensionar matriz de calibración al tamaño del chunk si es necesario
-            chunk_height, chunk_width = processed_normalized.shape[:2]
-            matrix_height, matrix_width = calibration_matrix.shape[:2]
-
-            if (chunk_height != matrix_height) or (chunk_width != matrix_width):
-                # Necesitamos redimensionar la matriz de calibración
-                from scipy.ndimage import zoom
-
-                zoom_factors = (
-                    chunk_height / matrix_height,
-                    chunk_width / matrix_width,
-                )
-                attenuation_resized = zoom(calibration_matrix, zoom_factors, order=1)
-            else:
-                attenuation_resized = calibration_matrix
-
-            # Aplicar intensidad de calibración
-            if hasattr(self, "attenuation_strength"):
-                strength_factor = self.attenuation_strength / 100.0
-            else:
-                strength_factor = 1.0
-
-            # Interpolar entre sin corrección (1.0) y corrección completa
-            adjusted_matrix = 1.0 + (attenuation_resized - 1.0) * strength_factor
-
-            # Aplicar matriz al chunk
-            processed_calibrated = np.clip(
-                processed_normalized * adjusted_matrix, 0, 1.0
-            )
-
-            # Volver a escala 0-255 si era necesario
-            if processed.max() > 1.0:
-                processed = (processed_calibrated * 255.0).astype(np.uint8)
-            else:
-                processed = processed_calibrated.astype(np.float64)
-
-            self.log_to_console(
-                f"  ✨ Calibración aplicada: strength={strength_factor*100:.0f}%, "
-                f"matriz {matrix_width}×{matrix_height} → chunk {chunk_width}×{chunk_height}",
-                "INFO",
-            )
-
-        return processed
-
-    # ═══════════════════════════════════════════════════════════════════════════
-    # FUNCIONES DE TRANSFORMACIÓN DE IMAGEN (ROTACIÓN, ESPEJO)
-    # ═══════════════════════════════════════════════════════════════════════════
-
+        seg_data = next((s for s in getattr(self, "image_segments", []) if s["row"] == row and s["col"] == col), None)
+        self.current_projecting_segment = {"row": row, "col": col, "segment_data": seg_data}
+        self._refresh_grid_preserving_zoom()
 
     def draw_segments_overlay(self):
-        """
-        Dibuja el overlay de segmentos en el grid.
-        Muestra rectángulos con líneas discontinuas sobre cada segmento de imagen.
-        """
-        if not self.show_segments_overlay or not self.image_segments:
-            return
+        if not getattr(self, "show_segments_overlay", False) or not getattr(self, "image_segments", None) or getattr(self, "ax", None) is None: return
 
-        if not hasattr(self, "ax") or self.ax is None:
-            return
-
-        if not hasattr(self, "image_on_grid") or self.image_on_grid is None:
-            return
-
-        # Convertir píxeles a unidades del grid
-        pixel_size = self.grid_cell_size / self.grid_pixels_per_cell
-
-        # Dibujar rectángulos de segmentos
-        for segment in self.image_segments:
-            # Coordenadas en píxeles de la imagen
-            x_start_px = segment["x_start"]
-            y_start_px = segment["y_start"]
-            width_px = segment["width"]
-            height_px = segment["height"]
-
-            # Convertir a coordenadas del grid (unidades del grid)
-            # Sumar la posición de la imagen en el grid
-            x_start_grid = (self.image_position[0] + x_start_px) * pixel_size
-            y_start_grid = (self.image_position[1] + y_start_px) * pixel_size
-            width_grid = width_px * pixel_size
-            height_grid = height_px * pixel_size
-
-            # Dibujar rectángulo del segmento
-            from matplotlib.patches import Rectangle
-
-            rect = Rectangle(
-                (x_start_grid, y_start_grid),
-                width_grid,
-                height_grid,
-                linewidth=2,
-                edgecolor="cyan",
-                facecolor="none",
-                linestyle="--",
-                alpha=0.8,
-            )
-            self.ax.add_patch(rect)
-
-            # Añadir etiqueta del segmento en el centro
-            center_x = x_start_grid + width_grid / 2
-            center_y = y_start_grid + height_grid / 2
-            self.ax.text(
-                center_x,
-                center_y,
-                f"S{segment['id']}",
-                ha="center",
-                va="center",
-                fontsize=10,
-                color="cyan",
-                weight="bold",
-                bbox=dict(
-                    boxstyle="round,pad=0.5",
-                    facecolor="black",
-                    alpha=0.7,
-                    edgecolor="cyan",
-                    linewidth=1.5,
-                ),
-            )
-
+        px_sz = getattr(self, "grid_cell_size", 1) / getattr(self, "grid_pixels_per_cell", 1)
+        ox, oy = getattr(self, "image_position", [0, 0])
+        
+        from matplotlib.patches import Rectangle
+        for s in self.image_segments:
+            xg, yg = (ox + s["x_start"]) * px_sz, (oy + s["y_start"]) * px_sz
+            wg, hg = s["width"] * px_sz, s["height"] * px_sz
+            self.ax.add_patch(Rectangle((xg, yg), wg, hg, linewidth=2, edgecolor="cyan", facecolor="none", linestyle="--", alpha=0.8))
+            self.ax.text(xg + wg/2, yg + hg/2, f"S{s['id']}", ha="center", va="center", fontsize=10, color="cyan", weight="bold", bbox=dict(boxstyle="round,pad=0.5", facecolor="black", alpha=0.7, edgecolor="cyan"))
 
     def draw_projecting_segment_highlight(self):
-        """
-        Resalta con color rojo tenue el chunk que se está proyectando actualmente.
-        Solo relleno visual, sin texto ni etiquetas (info va a consola).
-        """
-        if not self.current_projecting_segment:
-            return
+        cps = getattr(self, "current_projecting_segment", None)
+        seg = cps.get("segment_data") if cps else None
+        if not seg or getattr(self, "ax", None) is None: return
 
-        if not hasattr(self, "ax") or self.ax is None:
-            return
-
-        if not hasattr(self, "image_on_grid") or self.image_on_grid is None:
-            return
-
-        segment_data = self.current_projecting_segment.get("segment_data")
-        if not segment_data:
-            return
-
-        # Convertir píxeles a unidades del grid
-        pixel_size = self.grid_cell_size / self.grid_pixels_per_cell
-
-        # Coordenadas en píxeles de la imagen
-        x_start_px = segment_data["x_start"]
-        y_start_px = segment_data["y_start"]
-        width_px = segment_data["width"]
-        height_px = segment_data["height"]
-
-        # Convertir a coordenadas del grid (unidades del grid)
-        x_start_grid = (self.image_position[0] + x_start_px) * pixel_size
-        y_start_grid = (self.image_position[1] + y_start_px) * pixel_size
-        width_grid = width_px * pixel_size
-        height_grid = height_px * pixel_size
-
-        # Dibujar SOLO rectángulo con relleno rojo tenue (sin texto)
+        px_sz = getattr(self, "grid_cell_size", 1) / getattr(self, "grid_pixels_per_cell", 1)
+        ox, oy = getattr(self, "image_position", [0, 0])
+        xg, yg = (ox + seg["x_start"]) * px_sz, (oy + seg["y_start"]) * px_sz
+        wg, hg = seg["width"] * px_sz, seg["height"] * px_sz
+        
         from matplotlib.patches import Rectangle
-
-        # Rectángulo con relleno rojo semi-transparente
-        rect_highlight = Rectangle(
-            (x_start_grid, y_start_grid),
-            width_grid,
-            height_grid,
-            linewidth=0,
-            edgecolor="none",
-            facecolor="red",
-            alpha=0.4,
-            zorder=98,
-        )
-        self.ax.add_patch(rect_highlight)
+        self.ax.add_patch(Rectangle((xg, yg), wg, hg, linewidth=0, facecolor="red", alpha=0.4, zorder=98))
 
     def project_white_calibration_pattern(self):
-        """Proyecta un patrón completamente blanco al 100% de brillo como toggle."""
-        from PyQt5.QtWidgets import QMessageBox
-        import numpy as np
+        self.is_projecting_white_pattern = getattr(self, "is_projecting_white_pattern", False)
 
-        if not hasattr(self, "is_projecting_white_pattern"):
-            self.is_projecting_white_pattern = False
-
-        if not self.projector_active:
-            QMessageBox.warning(
-                self, 
-                "Proyector Inactivo", 
-                "Debe encender el proyector (botón '🎬 Proyectar') antes de calibrar."
-            )
+        if not getattr(self, "projector_active", False):
+            self._show_warning("Proyector Inactivo", "Debe encender el proyector antes de calibrar.")
             return
 
-        if self.projection_window is not None:
+        if getattr(self, "projection_window", None):
             if not self.is_projecting_white_pattern:
-                w = self.projection_window.screen_geometry.width()
-                h = self.projection_window.screen_geometry.height()
-                
-                white_pattern = np.ones((h, w, 3), dtype=np.uint8) * 255
-                
-                # Forzar brillo al máximo en la ventana
-                if hasattr(self, 'brightness'):
-                    self._prev_brightness_for_calib = self.brightness
+                self._prev_brightness_for_calib = getattr(self, "brightness", 100.0)
                 self.projection_window.set_brightness(100.0)
-                
-                self.projection_window.update_segment(white_pattern)
-                self.log_to_console("⬜ Patrón de Calibración Blanco proyectado al máximo brillo.", "SUCCESS")
-                
+                h, w = self.projection_window.screen_geometry.height(), self.projection_window.screen_geometry.width()
+                self.projection_window.update_segment(np.ones((h, w, 3), dtype=np.uint8) * 255)
                 self.is_projecting_white_pattern = True
-                
-                if hasattr(self, 'btn_calib_white'):
+                if hasattr(self, "btn_calib_white"):
                     self.btn_calib_white.setText("⏹️ Detener Proyección Blanca")
-                    self.btn_calib_white.setStyleSheet("background-color: #f38ba8; color: #11111b; font-weight: bold;")
-                    
+                    self.btn_calib_white.setStyleSheet(STYLE_BTN_ACTIVE_RED)
             else:
-                # Restaurar brillo original
-                if hasattr(self, '_prev_brightness_for_calib'):
-                    self.projection_window.set_brightness(self._prev_brightness_for_calib)
-                else:
-                    self.projection_window.set_brightness(100.0)
-                
-                self.log_to_console("⬛ Proyección blanca detenida.", "INFO")
-                
+                self.projection_window.set_brightness(getattr(self, "_prev_brightness_for_calib", 100.0))
                 self.is_projecting_white_pattern = False
-                
-                if hasattr(self, 'btn_calib_white'):
+                if hasattr(self, "btn_calib_white"):
                     self.btn_calib_white.setText("⬜ Proyectar Patrón Blanco (Medir)")
                     self.btn_calib_white.setStyleSheet("")
-                    
-                # Volver a proyectar el estado normal (la máscara o pantalla negra)
-                if hasattr(self, 'update_projection'):
-                    self.update_projection()
-                else:
-                    black_pattern = np.zeros((self.projection_window.screen_geometry.height(), self.projection_window.screen_geometry.width(), 3), dtype=np.uint8)
-                    self.projection_window.update_segment(black_pattern)
+                
+                if hasattr(self, "update_projection"): self.update_projection()
+                else: self.projection_window.show_black_screen()
 
     def save_physical_dimensions(self):
-        """Guarda las dimensiones físicas del segmento en el estado de memoria."""
-        if hasattr(self, 'phys_width_spin') and hasattr(self, 'phys_height_spin'):
+        if hasattr(self, "phys_width_spin") and hasattr(self, "phys_height_spin"):
             self.physical_segment_width = self.phys_width_spin.value()
             self.physical_segment_height = self.phys_height_spin.value()
-            self.log_to_console(
-                f"📏 Dimensiones físicas actualizadas: {self.physical_segment_width} mm x {self.physical_segment_height} mm", 
-                "INFO"
-            )
+            self.log_to_console(f"📏 Dimensiones físicas actualizadas: {self.physical_segment_width} mm x {self.physical_segment_height} mm", "INFO")
