@@ -1,0 +1,14 @@
+{
+  "width": 10,
+  "height": 10,
+  "cell_size": 1,
+  "pixels_per_cell": 100,
+  "unit": "mm",
+  "color": "#00FF00",
+  "pixel_grid_color": "#FF00FF",
+  "show_pixel_grid": false,
+  "apply_effects_to_grid": false,
+  "binary_mode_enabled": true,
+  "binary_threshold": 50.0,
+  "invert_projection": false
+}
