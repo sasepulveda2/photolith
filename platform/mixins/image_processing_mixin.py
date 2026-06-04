@@ -296,13 +296,19 @@ class ImageProcessingMixin:
             rotation_matrix[0, 2] += (new_w / 2) - center[0]
             rotation_matrix[1, 2] += (new_h / 2) - center[1]
 
-            # Aplicar rotación con fondo negro
+            # Detectar el color de fondo usando el píxel de la esquina superior izquierda
+            if len(transformed.shape) == 2:
+                bg_color = float(transformed[0, 0])
+            else:
+                bg_color = tuple(float(c) for c in transformed[0, 0])
+
+            # Aplicar rotación con fondo coincidente
             transformed = cv2.warpAffine(
                 transformed,
                 rotation_matrix,
                 (new_w, new_h),
                 borderMode=cv2.BORDER_CONSTANT,
-                borderValue=0,
+                borderValue=bg_color,
             )
 
         # 2. Aplicar espejo horizontal (flip left-right)
@@ -447,9 +453,12 @@ class ImageProcessingMixin:
         # Esto mantiene la segmentación alineada con el grid
 
         # Aplicar espejo de exposición si está activo
-        if image is not None and getattr(self, "exposure_mirror_h", False):
+        if image is not None:
             import cv2
-            image = cv2.flip(image, 1)
+            if getattr(self, "exposure_mirror_h", False):
+                image = cv2.flip(image, 1)
+            if getattr(self, "exposure_mirror_v", False):
+                image = cv2.flip(image, 0)
 
         return image
 
