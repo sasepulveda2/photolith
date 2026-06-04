@@ -20,15 +20,33 @@ class SpatialCalibrationMixin:
 
     def toggle_spatial_calibration_mode(self):
         """Abre la ventana dedicada de calibración espacial."""
-        if not hasattr(self, "image_on_grid") or self.image_on_grid is None:
-            self.log_to_console("debe cargar una imagen primero.", "warning")
-            return
-            
-        from UI.dialogs.spatial_calibration_dialog import SpatialCalibrationDialog
-        
         # Le pasamos la imagen original o la que está en grid
-        img_to_calib = getattr(self, "image_original", self.image_on_grid)
+        img_to_calib = getattr(self, "image_original", getattr(self, "image_on_grid", None))
         
+        if img_to_calib is None:
+            import cv2
+            import os
+            from PyQt5.QtWidgets import QFileDialog
+            file_path, _ = QFileDialog.getOpenFileName(
+                self, "Seleccionar imagen de referencia para calibrar", "", "Imágenes y Vectores (*.png *.jpg *.bmp *.tiff *.svg *.dxf)"
+            )
+            if file_path:
+                ext = os.path.splitext(file_path)[1].lower()
+                if ext in ['.svg', '.dxf'] and hasattr(self, "_load_vector_as_raster"):
+                    img_to_calib = self._load_vector_as_raster(file_path)
+                else:
+                    img_to_calib = cv2.imread(file_path, cv2.IMREAD_GRAYSCALE)
+                    if img_to_calib is not None:
+                        img_to_calib = img_to_calib / 255.0
+                        
+                if img_to_calib is None:
+                    self.log_to_console("No se pudo cargar la imagen de referencia.", "error")
+                    return
+            else:
+                self.log_to_console("debe cargar una imagen de referencia para calibrar.", "warning")
+                return
+        
+        from UI.dialogs.spatial_calibration_dialog import SpatialCalibrationDialog
         dialog = SpatialCalibrationDialog(self, img_to_calib)
         if dialog.exec_() == QDialog.Accepted:
             if dialog.mm_per_pixel is not None:
