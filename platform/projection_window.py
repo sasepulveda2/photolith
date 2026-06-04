@@ -234,6 +234,10 @@ class ProjectionWindow(QWidget):
         if not self.parent_simulator or not self.screen_geometry:
             return pixmap
 
+        # La regla de escala ya se genera del tamaño exacto del monitor, no debe escalarse
+        if getattr(self.parent_simulator, "_ruler_scale_view_active", False):
+            return pixmap
+
         scale_mode = self.parent_simulator.scale_mode
         scale_percentage = self.parent_simulator.scale_percentage
 

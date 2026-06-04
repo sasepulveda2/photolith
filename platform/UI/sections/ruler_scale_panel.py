@@ -10,7 +10,7 @@ Métodos:
 """
 from PyQt5.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QLineEdit, QSpinBox,
-    QWidget,
+    QWidget, QComboBox,
 )
 from PyQt5.QtCore import Qt
 from UI.widget_helpers import create_stat_label
@@ -33,11 +33,13 @@ class RulerScalePanelBuilder:
         # ── Panel informativo ────────────────────────────────────────────
         self.ruler_info_resolution = create_stat_label("Resolución: -")
         self.ruler_info_scale = create_stat_label("Escala: -")
+        self.ruler_info_pixel_size = create_stat_label("Tamaño Píxel: -")
         self.ruler_info_dim_mm = create_stat_label("Dimensión: -")
         self.ruler_info_dim_um = create_stat_label("Dimensión: -")
 
         layout.addWidget(self.ruler_info_resolution)
         layout.addWidget(self.ruler_info_scale)
+        layout.addWidget(self.ruler_info_pixel_size)
         layout.addWidget(self.ruler_info_dim_mm)
         layout.addWidget(self.ruler_info_dim_um)
 
@@ -58,7 +60,7 @@ class RulerScalePanelBuilder:
         sub_row = QHBoxLayout()
         sub_row.addWidget(QLabel("Subdivisiones:"))
         self.ruler_subdivisions_spin = QSpinBox()
-        self.ruler_subdivisions_spin.setRange(1, 20)
+        self.ruler_subdivisions_spin.setRange(0, 20)
         self.ruler_subdivisions_spin.setValue(cfg.get("subdivisions", 5))
         self.ruler_subdivisions_spin.setMaximumWidth(60)
         self.ruler_subdivisions_spin.valueChanged.connect(self._on_ruler_param_changed)
@@ -101,6 +103,40 @@ class RulerScalePanelBuilder:
         ht_row.addWidget(self.ruler_height_pct_spin)
         ht_row.addStretch()
         layout.addLayout(ht_row)
+
+        # ── Alineación ───────────────────────────────────────────────────
+        align_row = QHBoxLayout()
+        align_row.addWidget(QLabel("Alineación:"))
+        self.ruler_alignment_combo = QComboBox()
+        self.ruler_alignment_combo.addItems(["Centro", "Abajo", "Arriba"])
+        self.ruler_alignment_combo.setCurrentText(cfg.get("alignment", "Centro"))
+        self.ruler_alignment_combo.currentTextChanged.connect(self._on_ruler_param_changed)
+        align_row.addWidget(self.ruler_alignment_combo)
+        align_row.addStretch()
+        layout.addLayout(align_row)
+
+        # ── Margen Origen ────────────────────────────────────────────────
+        offset_row = QHBoxLayout()
+        offset_row.addWidget(QLabel("Margen Origen (px):"))
+        self.ruler_offset_spin = QSpinBox()
+        self.ruler_offset_spin.setRange(0, 500)
+        self.ruler_offset_spin.setValue(cfg.get("offset_x", 0))
+        self.ruler_offset_spin.setMaximumWidth(60)
+        self.ruler_offset_spin.valueChanged.connect(self._on_ruler_param_changed)
+        offset_row.addWidget(self.ruler_offset_spin)
+        offset_row.addStretch()
+        layout.addLayout(offset_row)
+
+        # ── Paso del Motor ───────────────────────────────────────────────
+        step_row = QHBoxLayout()
+        step_row.addWidget(QLabel("Paso del Motor:"))
+        self.ruler_step_mode_combo = QComboBox()
+        self.ruler_step_mode_combo.addItems(["Pantalla Completa", "Solapar última línea"])
+        self.ruler_step_mode_combo.setCurrentText(cfg.get("step_mode", "Pantalla Completa"))
+        self.ruler_step_mode_combo.currentTextChanged.connect(self._on_ruler_param_changed)
+        step_row.addWidget(self.ruler_step_mode_combo)
+        step_row.addStretch()
+        layout.addLayout(step_row)
 
         # ── Tiempo de exposición ─────────────────────────────────────────
         exp_row = QHBoxLayout()

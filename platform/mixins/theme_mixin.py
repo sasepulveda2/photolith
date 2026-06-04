@@ -196,6 +196,9 @@ class ThemeMixin:
             if hasattr(self, "calibration_button"):
                 self.calibration_button.setText("🎯 Calibración")
 
+        if getattr(self, "_ruler_scale_view_active", False):
+            self.toggle_ruler_scale_view()
+
         if hasattr(self, "toggle_view_button"):
             self.toggle_view_button.setText("🖼️ Vista Imagen")
         
@@ -245,6 +248,9 @@ class ThemeMixin:
 
     def _deactivate_grid_view(self) -> None:
         """Desactiva el modo grid y restaura la vista normal."""
+        if getattr(self, "_ruler_scale_view_active", False):
+            self.toggle_ruler_scale_view()
+
         if hasattr(self, "toggle_view_button"):
             self.toggle_view_button.setText("📏 Vista Grid")
         
@@ -274,6 +280,8 @@ class ThemeMixin:
         if self.calibration_view_active:
             if getattr(self, "grid_view_active", False):
                 self.toggle_grid_view()
+            if getattr(self, "_ruler_scale_view_active", False):
+                self.toggle_ruler_scale_view()
 
             if hasattr(self, "calibration_button"):
                 self.calibration_button.setText("🖼️ Vista Normal")
