@@ -232,10 +232,11 @@ class FileManagementMixin:
                 self._refresh_invert_button_state()
 
 
-    def load_pattern(self):
-        file_path, _ = QFileDialog.getOpenFileName(
-            self, "Seleccionar patrón", "", "Imágenes (*.png *.jpg *.bmp *.tiff *.svg)"
-        )
+    def load_pattern(self, file_path=None):
+        if not file_path:
+            file_path, _ = QFileDialog.getOpenFileName(
+                self, "Seleccionar patrón", "", "Imágenes y Vectores (*.png *.jpg *.bmp *.tiff *.svg *.dxf)"
+            )
         if file_path:
             if self.pattern is not None:
                 reply = QMessageBox.question(
@@ -248,7 +249,19 @@ class FileManagementMixin:
                 if reply == QMessageBox.No:
                     return
 
-            image = cv2.imread(file_path, cv2.IMREAD_GRAYSCALE)
+            ext = os.path.splitext(file_path)[1].lower()
+            if ext in ['.svg', '.dxf']:
+                image = self._load_vector_as_raster(file_path)
+                if image is None:
+                    self.log_to_console(f"Error al cargar archivo vectorial: {file_path}", "error")
+                    return
+            else:
+                image = cv2.imread(file_path, cv2.IMREAD_GRAYSCALE)
+                
+            if image is None:
+                self.log_to_console(f"No se pudo cargar la imagen: {file_path}", "error")
+                return
+                
             self.pattern = image / 255.0
 
             # Asignar ID único a la imagen para cache determinista
@@ -269,6 +282,70 @@ class FileManagementMixin:
             
             if hasattr(self, "update_spatial_labels"):
                 self.update_spatial_labels()
+
+    def _load_vector_as_raster(self, file_path):
+        """Convierte SVG y DXF a numpy array (escala de grises) con resolución alta."""
+        ext = os.path.splitext(file_path)[1].lower()
+        
+        if ext == '.svg':
+            try:
+                import fitz
+                doc = fitz.open(file_path)
+                page = doc.load_page(0)
+                # Escalar para tener una buena resolución (aprox 4000px max)
+                rect = page.rect
+                max_dim = max(rect.width, rect.height)
+                zoom = 4000.0 / max_dim if max_dim > 0 else 10.0
+                mat = fitz.Matrix(zoom, zoom)
+                
+                pix = page.get_pixmap(matrix=mat, alpha=False, colorspace="gray")
+                img = np.frombuffer(pix.samples, dtype=np.uint8).reshape(pix.height, pix.width)
+                # Invertir la imagen porque SVG usualmente es negro sobre transparente/blanco
+                # Queremos que la geometría proyectada sea blanca sobre negro por defecto
+                img = 255 - img
+                return img
+            except Exception as e:
+                self.log_to_console(f"Error parseando SVG: {e}", "error")
+                return None
+                
+        elif ext == '.dxf':
+            try:
+                import ezdxf
+                from ezdxf.addons.drawing import matplotlib as dxf_matplotlib
+                import matplotlib.pyplot as plt
+                
+                doc = ezdxf.readfile(file_path)
+                msp = doc.modelspace()
+                
+                fig = plt.figure(figsize=(10, 10), dpi=400) # 4000x4000 px approx
+                ax = fig.add_axes([0, 0, 1, 1])
+                ax.set_facecolor('black')
+                ax.axis('off')
+                
+                ctx = dxf_matplotlib.RenderContext(doc)
+                
+                # Configurar colores para que las líneas se rendericen blancas
+                class WhiteTheme(dxf_matplotlib.RenderContext):
+                    def resolve_color(self, entity):
+                        return '#FFFFFF'
+                        
+                out = dxf_matplotlib.MatplotlibBackend(ax)
+                dxf_matplotlib.Frontend(WhiteTheme(doc), out).draw_layout(msp, finalize=True)
+                
+                fig.canvas.draw()
+                # Extraer array RGBA de la figura
+                w, h = fig.canvas.get_width_height()
+                buf = fig.canvas.tostring_rgb()
+                img_rgb = np.frombuffer(buf, dtype=np.uint8).reshape(h, w, 3)
+                plt.close(fig)
+                
+                # Convertir a escala de grises
+                img_gray = cv2.cvtColor(img_rgb, cv2.COLOR_RGB2GRAY)
+                return img_gray
+            except Exception as e:
+                self.log_to_console(f"Error parseando DXF: {e}", "error")
+                return None
+        return None
 
 
     def save_image(self):
