@@ -10,6 +10,7 @@ from mixins.preferences_mixin import PreferencesMixin
 from mixins.theme_mixin import ThemeMixin
 from mixins.ui_setup_mixin import UISetupMixin
 from mixins.spatial_calibration_mixin import SpatialCalibrationMixin
+from mixins.ruler_scale_mixin import RulerScaleMixin
 
 __all__ = [
     "CalibrationUIMixin",
@@ -24,4 +25,5 @@ __all__ = [
     "ThemeMixin",
     "UISetupMixin",
     "SpatialCalibrationMixin",
+    "RulerScaleMixin",
 ]

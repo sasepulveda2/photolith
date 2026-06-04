@@ -54,6 +54,12 @@ class ToolbarCanvasBuilder:
         self.projector_button.clicked.connect(self.toggle_projector)
         self.projector_button.setVisible(False)
 
+        self.ruler_scale_button = QPushButton("📏 Regla de Escala")
+        self.ruler_scale_button.clicked.connect(self.toggle_ruler_scale_view)
+        self.ruler_scale_button.setToolTip(
+            "Genera y proyecta líneas de escala calibradas con desplazamiento motorizado"
+        )
+
         # ── Sigma (desenfoque óptico) — oculto hasta que hay imagen ──────────
         self.sigma_label = QLabel(f"Sigma (Desenfoque): {self.sigma:.1f}")
         self.sigma_slider = QSlider(Qt.Horizontal)
@@ -84,7 +90,7 @@ class ToolbarCanvasBuilder:
         # ── Ensamblar ─────────────────────────────────────────────────────────
         for widget in (
             self.load_button, self.toggle_view_button, self.spatial_calib_button, self.calibration_button,
-            self.preferences_button, self.motors_button, self.projector_button,
+            self.ruler_scale_button, self.preferences_button, self.motors_button, self.projector_button,
             self.sigma_label, self.sigma_slider,
             self.brightness_label, self.brightness_slider,
             self.save_button,

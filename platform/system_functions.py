@@ -47,6 +47,7 @@ from mixins import (
     ThemeMixin,
     UISetupMixin,
     SpatialCalibrationMixin,
+    RulerScaleMixin,
 )
 
 
@@ -63,6 +64,7 @@ class LithographySimulator(
     PreferencesMixin,
     ThemeMixin,
     SpatialCalibrationMixin,
+    RulerScaleMixin,
     QWidget,
 ):
     """
@@ -77,6 +79,7 @@ class LithographySimulator(
         super().__init__()
         self._init_state()
         self._init_spatial_calibration()
+        self._init_ruler_scale()
         self._build_ui()
 
     def _init_state(self):

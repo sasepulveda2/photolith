@@ -45,6 +45,7 @@ from UI.sections import (
     ProjectionPanelBuilder,
     CalibrationPanelBuilder,
     FileConsolePanelBuilder,
+    RulerScalePanelBuilder,
 )
 from constants import (
     SIDEBAR_MIN_WIDTH, SIDEBAR_MAX_WIDTH, SIDEBAR_SPACING,
@@ -63,6 +64,7 @@ class UISetupMixin(
     ProjectionPanelBuilder,
     CalibrationPanelBuilder,
     FileConsolePanelBuilder,
+    RulerScalePanelBuilder,
 ):
     """
     Mixin: construye la interfaz gráfica completa del simulador.
@@ -87,6 +89,8 @@ class UISetupMixin(
         control_layout  = self._build_toolbar()
         self._build_canvas()
         sidebar         = self._build_sidebar()
+        self._main_sidebar = sidebar
+        self._build_ruler_scale_section()
         console_section = self._build_console_section()
 
         self._connect_screen_signals()
@@ -94,6 +98,7 @@ class UISetupMixin(
         canvas_layout = QHBoxLayout()
         canvas_layout.addLayout(self.canvas_with_toolbar, stretch=3)
         canvas_layout.addWidget(sidebar, stretch=1)
+        canvas_layout.addWidget(self.ruler_panel_widget, stretch=1)
 
         canvas_widget = QWidget()
         canvas_widget.setLayout(canvas_layout)

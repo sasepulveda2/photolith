@@ -16,6 +16,7 @@ from UI.sections.exposure_panel import ExposurePanelBuilder
 from UI.sections.projection_panel import ProjectionPanelBuilder
 from UI.sections.calibration_panel import CalibrationPanelBuilder
 from UI.sections.file_console import FileConsolePanelBuilder
+from UI.sections.ruler_scale_panel import RulerScalePanelBuilder
 
 __all__ = [
     "ToolbarCanvasBuilder",
@@ -28,4 +29,5 @@ __all__ = [
     "ProjectionPanelBuilder",
     "CalibrationPanelBuilder",
     "FileConsolePanelBuilder",
+    "RulerScalePanelBuilder",
 ]
