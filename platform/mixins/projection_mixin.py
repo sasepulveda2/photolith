@@ -388,7 +388,17 @@ class ProjectionMixin:
 
     def toggle_exposure_mirror(self, checked):
         self.exposure_mirror_h = bool(checked)
-        self.log_to_console(f"🪞 Modo Espejo de Exposición: {'Activado' if checked else 'Desactivado'}", "INFO")
+        self.log_to_console(f"🪞 Modo Espejo X de Exposición: {'Activado' if checked else 'Desactivado'}", "INFO")
+        
+        if getattr(self, "is_projecting_full_image", False):
+            self.is_projecting_full_image = False
+            self.project_full_image()
+        elif getattr(self, "current_projecting_segment", None):
+            self._update_paused_segment_projection()
+
+    def toggle_exposure_mirror_y(self, checked):
+        self.exposure_mirror_v = bool(checked)
+        self.log_to_console(f"🪞 Modo Espejo Y de Exposición: {'Activado' if checked else 'Desactivado'}", "INFO")
         
         if getattr(self, "is_projecting_full_image", False):
             self.is_projecting_full_image = False
@@ -743,8 +753,11 @@ class ProjectionMixin:
         return img
 
     def _apply_exposure_mirror(self, img):
+        import cv2
         if getattr(self, "exposure_mirror_h", False):
-            return cv2.flip(img, 1)
+            img = cv2.flip(img, 1)
+        if getattr(self, "exposure_mirror_v", False):
+            img = cv2.flip(img, 0)
         return img
 
     def _apply_calibration_matrix(self, img):
