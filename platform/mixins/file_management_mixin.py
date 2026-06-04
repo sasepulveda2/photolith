@@ -277,9 +277,8 @@ class FileManagementMixin:
 
             self.simulate_optics()
             self.projector_button.setVisible(True)
-            self.update_projector_button()
-            self._refresh_invert_button_state()
-            
+            if hasattr(self, "update_projector_button"):
+                self.update_projector_button()
             if hasattr(self, "update_spatial_labels"):
                 self.update_spatial_labels()
 
@@ -311,42 +310,41 @@ class FileManagementMixin:
         elif ext == '.dxf':
             try:
                 import ezdxf
-                from ezdxf.addons.drawing import matplotlib as dxf_matplotlib
-                import matplotlib.pyplot as plt
+                from ezdxf.addons.drawing.matplotlib import qsave
+                from ezdxf.addons.drawing.config import Configuration, ColorPolicy, BackgroundPolicy
+                import tempfile
                 
                 doc = ezdxf.readfile(file_path)
                 msp = doc.modelspace()
                 
-                fig = plt.figure(figsize=(10, 10), dpi=400) # 4000x4000 px approx
-                ax = fig.add_axes([0, 0, 1, 1])
-                ax.set_facecolor('black')
-                ax.axis('off')
+                # Configurar para que las líneas sean blancas y el fondo negro
+                # Usamos COLOR para que el fondo negro persista, o BLACK si todo es negro, 
+                # Pero MONOCHROME_DARK_BG dibujará líneas blancas con fondo negro correctamente.
+                cfg = Configuration(
+                    color_policy=ColorPolicy.MONOCHROME_DARK_BG,
+                    background_policy=BackgroundPolicy.CUSTOM,
+                    lineweight_scaling=2.0
+                )
                 
-                ctx = dxf_matplotlib.RenderContext(doc)
+                # Guardar en un archivo temporal de alta resolución
+                with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as tmp:
+                    tmp_path = tmp.name
+                    
+                try:
+                    # dpi=400 da buena resolución sin exceder la memoria
+                    qsave(msp, tmp_path, bg='#000000', fg='#FFFFFF', dpi=400, config=cfg)
+                    # Cargar con OpenCV
+                    img_color = cv2.imread(tmp_path)
+                    img_gray = cv2.cvtColor(img_color, cv2.COLOR_BGR2GRAY)
+                finally:
+                    if os.path.exists(tmp_path):
+                        os.remove(tmp_path)
                 
-                # Configurar colores para que las líneas se rendericen blancas
-                class WhiteTheme(dxf_matplotlib.RenderContext):
-                    def resolve_color(self, entity):
-                        return '#FFFFFF'
-                        
-                out = dxf_matplotlib.MatplotlibBackend(ax)
-                dxf_matplotlib.Frontend(WhiteTheme(doc), out).draw_layout(msp, finalize=True)
-                
-                fig.canvas.draw()
-                # Extraer array RGBA de la figura
-                w, h = fig.canvas.get_width_height()
-                buf = fig.canvas.tostring_rgb()
-                img_rgb = np.frombuffer(buf, dtype=np.uint8).reshape(h, w, 3)
-                plt.close(fig)
-                
-                # Convertir a escala de grises
-                img_gray = cv2.cvtColor(img_rgb, cv2.COLOR_RGB2GRAY)
                 return img_gray
             except Exception as e:
                 self.log_to_console(f"Error parseando DXF: {e}", "error")
                 return None
         return None
-
 
     def save_image(self):
         if not hasattr(self, "last_intensity"):

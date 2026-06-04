@@ -25,23 +25,13 @@ class SpatialCalibrationMixin:
         
         if img_to_calib is None:
             import cv2
-            import os
             from PyQt5.QtWidgets import QFileDialog
             file_path, _ = QFileDialog.getOpenFileName(
-                self, "Seleccionar imagen de referencia para calibrar", "", "Imágenes y Vectores (*.png *.jpg *.bmp *.tiff *.svg *.dxf)"
+                self, "Seleccionar imagen de referencia para calibrar", "", "Imágenes (*.png *.jpg *.bmp *.tiff *.svg)"
             )
             if file_path:
-                ext = os.path.splitext(file_path)[1].lower()
-                if ext in ['.svg', '.dxf'] and hasattr(self, "_load_vector_as_raster"):
-                    img_to_calib = self._load_vector_as_raster(file_path)
-                else:
-                    img_to_calib = cv2.imread(file_path, cv2.IMREAD_GRAYSCALE)
-                    if img_to_calib is not None:
-                        img_to_calib = img_to_calib / 255.0
-                        
-                if img_to_calib is None:
-                    self.log_to_console("No se pudo cargar la imagen de referencia.", "error")
-                    return
+                img_to_calib = cv2.imread(file_path, cv2.IMREAD_GRAYSCALE)
+                img_to_calib = img_to_calib / 255.0
             else:
                 self.log_to_console("debe cargar una imagen de referencia para calibrar.", "warning")
                 return
