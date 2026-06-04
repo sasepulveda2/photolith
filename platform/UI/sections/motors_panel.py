@@ -30,7 +30,7 @@ class MotorsPanelBuilder:
     def _build_motors_section(self) -> None:
         """⚙️ CONTROL DE MOTORES — conexión, parámetros de pulso y pad XY+Z."""
         self.motors_sidebar_section = CollapsibleSection(
-            "⚙️ CONTROL DE MOTORES", self, expanded=False
+            "⚙️ MOTORES (X, Y, Z)", self, expanded=False, section_id="motors"
         )
         content, layout = create_section_content(spacing=SECTION_CONTENT_SPACING_WIDE)
 

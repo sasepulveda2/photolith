@@ -34,7 +34,7 @@ class ProjectionPanelBuilder:
     def _build_projection_section(self) -> None:
         """🎬 CONTROL DE PROYECCIÓN — factor de downscaling y consola de secuencias."""
         self.projection_control_section = CollapsibleSection(
-            "🎬 CONTROL DE PROYECCIÓN", self, expanded=False
+            "🎬 CONTROL DE PROYECCIÓN", self, expanded=False, section_id="projection"
         )
         content, layout = create_section_content(spacing=SECTION_CONTENT_SPACING_WIDE)
 

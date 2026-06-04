@@ -3,8 +3,21 @@ from PyQt5.QtWidgets import QFrame, QSizePolicy, QToolButton, QVBoxLayout, QWidg
 
 
 class CollapsibleSection(QWidget):
-    def __init__(self, title: str, parent=None, expanded: bool = True):
+    def __init__(self, title: str, parent=None, expanded: bool = True, section_id: str = None):
         super().__init__(parent)
+        self.section_id = section_id
+
+        # Intentar encontrar el simulador principal para acceder a config
+        self._simulator = None
+        p = self.parent()
+        while p is not None:
+            if hasattr(p, "config") and hasattr(p, "save_config"):
+                self._simulator = p
+                break
+            p = p.parent()
+
+        if self._simulator and self.section_id:
+            expanded = self._simulator.config.get(f"section_expanded_{self.section_id}", expanded)
 
         self.toggle_button = QToolButton(text=title)
         self.toggle_button.setCheckable(True)
@@ -35,6 +48,9 @@ class CollapsibleSection(QWidget):
     def _on_toggled(self, checked: bool) -> None:
         self.toggle_button.setArrowType(Qt.DownArrow if checked else Qt.RightArrow)
         self.content_area.setVisible(checked)
+        if self._simulator and self.section_id:
+            self._simulator.config[f"section_expanded_{self.section_id}"] = checked
+            self._simulator.save_config()
 
     def setContentWidget(self, widget: QWidget) -> None:
         while self.content_layout.count():

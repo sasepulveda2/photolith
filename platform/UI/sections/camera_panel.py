@@ -28,7 +28,7 @@ class CameraPanelBuilder:
     def _build_basler_section(self) -> None:
         """🎥 CÁMARA BASLER — controles de exposición, ganancia, gamma y nivel de negro."""
         self.basler_sidebar_section = CollapsibleSection(
-            "🎥 CÁMARA BASLER", self, expanded=True
+            "📷 CÁMARA BASLER", self, expanded=False, section_id="camera"
         )
         content, layout = create_section_content(spacing=SECTION_CONTENT_SPACING_EXTRA)
 

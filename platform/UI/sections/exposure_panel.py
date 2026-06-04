@@ -43,7 +43,7 @@ class ExposurePanelBuilder:
     def _build_exposure_section(self) -> None:
         """⏱️ EXPOSICIÓN — tiempo, intensidad, ciclos y controles de start/stop."""
         self.exposure_section = CollapsibleSection(
-            "⏱️ EXPOSICIÓN", self, expanded=True
+            "⏱️ EXPOSICIÓN", self, expanded=True, section_id="exposure"
         )
         content, layout = create_section_content()
 
@@ -61,11 +61,16 @@ class ExposurePanelBuilder:
         layout.addLayout(row_intensity)
         layout.addLayout(row_cycles)
 
-        # Espejo de exposición
-        self.mirror_exposure_checkbox = QCheckBox("🪞 Espejo (Invertir Proyección)")
+        # Espejo de exposición (Horizontal y Vertical)
+        self.mirror_exposure_checkbox = QCheckBox("🪞 Espejo X (Invertir Horizontal)")
         self.mirror_exposure_checkbox.setChecked(False)
         self.mirror_exposure_checkbox.toggled.connect(self.toggle_exposure_mirror)
         layout.addWidget(self.mirror_exposure_checkbox)
+
+        self.mirror_y_exposure_checkbox = QCheckBox("🪞 Espejo Y (Invertir Vertical)")
+        self.mirror_y_exposure_checkbox.setChecked(False)
+        self.mirror_y_exposure_checkbox.toggled.connect(self.toggle_exposure_mirror_y)
+        layout.addWidget(self.mirror_y_exposure_checkbox)
 
         # Proyectar imagen completa manualmente (toggle)
         self.project_image_button = QPushButton("🖼️ Proyectar Imagen Completa")
@@ -96,7 +101,7 @@ class ExposurePanelBuilder:
     def _build_frequency_section(self) -> None:
         """〜 FRECUENCIA — valor, unidad, duración y controles de start/stop."""
         self.frequency_section = CollapsibleSection(
-            " FRECUENCIA", self, expanded=False
+            " FRECUENCIA", self, expanded=False, section_id="frequency"
         )
         content, layout = create_section_content()
 

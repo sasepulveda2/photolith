@@ -30,7 +30,7 @@ class CalibrationPanelBuilder:
     def _build_calibration_monitor(self) -> None:
         """🔍 MONITOREO DE CALIBRACIÓN — estado en tiempo real de efectos y preview."""
         self.calibration_monitor_section = CollapsibleSection(
-            "🔍 MONITOREO DE CALIBRACIÓN", self, expanded=True
+            "📐 CALIBRACIÓN DE MONITOR", self, expanded=False, section_id="calib_monitor"
         )
         content, layout = create_section_content()
 

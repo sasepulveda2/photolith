@@ -25,7 +25,7 @@ class GridPanelsBuilder:
     def _build_image_coords_section(self) -> None:
         """🖼️ IMAGEN EN GRID — posición, modo de arrastre y grabación de movimientos."""
         self.image_coords_section = CollapsibleSection(
-            "🖼️ IMAGEN EN GRID", self, expanded=False
+            "📐 COORDENADAS ORIGINALES", self, expanded=True, section_id="image_coords"
         )
         content, layout = create_section_content()
 
@@ -69,7 +69,7 @@ class GridPanelsBuilder:
     def _build_grid_config_section(self) -> None:
         """📏 CONFIGURACIÓN GRID — dimensiones, píxeles por celda, unidad y generación."""
         self.grid_config_section = CollapsibleSection(
-            "📏 CONFIGURACIÓN GRID", self, expanded=False
+            "🎛️ CONFIGURACIÓN DE GRID", self, expanded=True, section_id="grid_config"
         )
         content, layout = create_section_content()
 

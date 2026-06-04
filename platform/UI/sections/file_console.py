@@ -21,10 +21,12 @@ class FileConsolePanelBuilder:
 
     def _build_file_tree(self) -> None:
         """📁 ARCHIVOS — árbol de navegación de archivos del proyecto."""
-        files_title = QLabel("📁 ARCHIVOS")
-        files_title.setObjectName("sectionTitle")
-        self.info_layout.addWidget(files_title)
-
+        self.files_section = CollapsibleSection("📁 ARCHIVOS", self, expanded=True, section_id="files")
+        
+        container = QWidget()
+        layout = QVBoxLayout(container)
+        layout.setContentsMargins(0, 0, 0, 0)
+        
         self.file_tree = QTreeWidget()
         self.file_tree.setHeaderLabel("")
         self.file_tree.setHeaderHidden(True)
@@ -37,7 +39,9 @@ class FileConsolePanelBuilder:
         self.file_tree.setObjectName("fileTree")
         self.update_file_tree()
 
-        self.info_layout.addWidget(self.file_tree, stretch=1)
+        layout.addWidget(self.file_tree)
+        self.files_section.setContentWidget(container)
+        self.info_layout.addWidget(self.files_section, stretch=1)
 
     def _build_console_section(self) -> QWidget:
         """📋 Consola del Sistema — log de mensajes en el pie de la ventana."""
