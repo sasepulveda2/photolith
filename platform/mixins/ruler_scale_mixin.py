@@ -24,6 +24,9 @@ RULER_DEFAULTS = {
     "line_width_large_px": 2,
     "line_width_small_px": 1,
     "line_height_pct": 100,
+    "alignment": "Centro",
+    "offset_x": 0,
+    "step_mode": "Pantalla Completa",
     "exposure_time_s": 10.0,
     "num_projections": 1,
 }
@@ -193,37 +196,55 @@ class RulerScaleMixin:
             )
             return None
 
-        subdivisions = max(1, cfg["subdivisions"])
+        subdivisions = max(0, cfg["subdivisions"])
         w_large = max(1, cfg["line_width_large_px"])
         w_small = max(1, cfg["line_width_small_px"])
         height_pct = max(10, min(100, cfg["line_height_pct"]))
+        alignment = cfg.get("alignment", "Centro")
 
         h_large = int(screen_h * height_pct / 100.0)
         h_small = h_large // 2
 
-        # Centrar verticalmente
-        y_center = screen_h // 2
-        y_top_large = y_center - h_large // 2
-        y_bot_large = y_top_large + h_large
-        y_top_small = y_center - h_small // 2
-        y_bot_small = y_top_small + h_small
+        if alignment == "Abajo":
+            y_bot_large = screen_h
+            y_top_large = screen_h - h_large
+            y_bot_small = screen_h
+            y_top_small = screen_h - h_small
+        elif alignment == "Arriba":
+            y_top_large = 0
+            y_bot_large = h_large
+            y_top_small = 0
+            y_bot_small = h_small
+        else:  # Centro
+            y_center = screen_h // 2
+            y_top_large = y_center - h_large // 2
+            y_bot_large = y_top_large + h_large
+            y_top_small = y_center - h_small // 2
+            y_bot_small = y_top_small + h_small
 
+        # Fondo
         canvas = np.zeros((screen_h, screen_w), dtype=np.uint8)
+
+        # Margen inicial configurable
+        x_offset = cfg.get("offset_x", 0)
 
         # Dibujar líneas grandes y subdivisiones
         x = 0.0
-        while x < screen_w:
-            x_int = int(round(x))
+        last_drawn_x = 0.0
+        while (x + x_offset) < screen_w:
+            last_drawn_x = x
+            x_pos = x + x_offset
+            x_int = int(round(x_pos))
             x_start = max(0, x_int - w_large // 2)
             x_end = min(screen_w, x_start + w_large)
             canvas[y_top_large:y_bot_large, x_start:x_end] = 255
 
             # Subdivisiones entre esta línea grande y la siguiente
             next_x = x + separation_px
-            if next_x < screen_w:
+            if (next_x + x_offset) < screen_w and subdivisions > 0:
                 step = separation_px / (subdivisions + 1)
                 for s in range(1, subdivisions + 1):
-                    sx = x + step * s
+                    sx = x + step * s + x_offset
                     sx_int = int(round(sx))
                     if sx_int >= screen_w:
                         break
@@ -233,6 +254,7 @@ class RulerScaleMixin:
 
             x = next_x
 
+        self._ruler_last_line_distance_px = last_drawn_x
         return canvas
 
     # ═══════════════════════════════════════════════════════════════════════
@@ -337,6 +359,7 @@ class RulerScaleMixin:
         )
 
         self.projection_window.set_brightness(100.0)
+        self.projection_window.set_inversion(False) # Asegurar líneas blancas en fondo negro
         self.projection_window.update_image(self._ruler_image.astype(np.float64) / 255.0)
 
         self._ruler_exposure_timer.start(self._ruler_exposure_time_ms)
@@ -374,32 +397,41 @@ class RulerScaleMixin:
             self._ruler_stabilize_timer.start(100)
             return
 
-        mm_per_px = self.mm_per_pixel
+        mm_per_px = self._get_calibration_factor()
         dims = self._get_screen_dimensions()
-        if dims is None:
-            self._ruler_stabilize_timer.start(100)
+        if mm_per_px is None or dims is None:
+            self._ruler_update_status("Error: Sin calibración o monitor.")
             return
 
-        screen_w_px = dims[0]
-        screen_w_mm = screen_w_px * mm_per_px
-        steps_per_mm = 1.0 / controller.step_size
-        steps_to_move = int(round(screen_w_mm * steps_per_mm))
-
-        if steps_to_move <= 0:
-            self._ruler_stabilize_timer.start(100)
-            return
+        screen_w, _ = dims
+        
+        step_mode = self._ruler_config.get("step_mode", "Pantalla Completa")
+        if step_mode == "Solapar última línea" and hasattr(self, "_ruler_last_line_distance_px"):
+            move_distance_mm = self._ruler_last_line_distance_px * mm_per_px
+            if move_distance_mm <= 0:
+                move_distance_mm = screen_w * mm_per_px # Fallback
+        else:
+            move_distance_mm = screen_w * mm_per_px
+            
+        steps_to_move = controller.mm_to_steps("X", move_distance_mm)
 
         self._ruler_update_status("Moviendo motor X...")
+
+        self.log_to_console(
+            f"⏳ Iniciando movimiento del Motor X: +{steps_to_move} pasos ({move_distance_mm:.3f} mm, Modo: {step_mode})...",
+            "INFO"
+        )
+        self.log_to_console("  (La proyección se mantendrá apagada durante el movimiento)", "INFO")
 
         try:
             controller.step_move("X", 1, steps_to_move)
             self._ruler_motor_steps_moved += steps_to_move
             self.log_to_console(
-                f"Motor X: +{steps_to_move} steps ({screen_w_mm:.3f} mm)",
-                "INFO",
+                f"✅ Movimiento completado (+{steps_to_move} pasos). Esperando estabilización...",
+                "SUCCESS",
             )
         except Exception as e:
-            self.log_to_console(f"Error moviendo motor: {e}", "ERROR")
+            self.log_to_console(f"❌ Error moviendo motor: {e}", "ERROR")
 
         # Esperar estabilización antes de la siguiente exposición
         self._ruler_stabilize_timer.start(500)
@@ -410,11 +442,12 @@ class RulerScaleMixin:
 
         if controller is not None and controller.ser is not None and self._ruler_motor_steps_moved > 0:
             self._ruler_update_status("Regresando motor a posición inicial...")
+            self.log_to_console(f"⏪ Devolviendo Motor X al origen (-{self._ruler_motor_steps_moved} pasos)...", "INFO")
             try:
                 controller.step_move("X", -1, self._ruler_motor_steps_moved)
                 self.log_to_console(
-                    f"Motor X regresado: -{self._ruler_motor_steps_moved} steps",
-                    "INFO",
+                    f"✅ Motor X regresado correctamente al origen.",
+                    "SUCCESS",
                 )
             except Exception as e:
                 self.log_to_console(f"Error regresando motor: {e}", "ERROR")
@@ -440,11 +473,12 @@ class RulerScaleMixin:
         # Regresar motor
         controller = getattr(self, "motor_controller_instance", None)
         if controller is not None and controller.ser is not None and self._ruler_motor_steps_moved > 0:
+            self.log_to_console(f"⏪ Devolviendo Motor X al origen (-{self._ruler_motor_steps_moved} pasos)...", "INFO")
             try:
                 controller.step_move("X", -1, self._ruler_motor_steps_moved)
                 self.log_to_console(
-                    f"Motor X regresado: -{self._ruler_motor_steps_moved} steps",
-                    "INFO",
+                    f"✅ Motor X regresado correctamente al origen.",
+                    "SUCCESS",
                 )
             except Exception as e:
                 self.log_to_console(f"Error regresando motor: {e}", "ERROR")
@@ -482,6 +516,8 @@ class RulerScaleMixin:
         if dims is None:
             self.ruler_info_resolution.setText("Resolución: Sin monitor")
             self.ruler_info_scale.setText("Escala: -")
+            if hasattr(self, "ruler_info_pixel_size"):
+                self.ruler_info_pixel_size.setText("Tamaño Píxel: -")
             self.ruler_info_dim_mm.setText("Dimensión: -")
             self.ruler_info_dim_um.setText("Dimensión: -")
             return
@@ -491,11 +527,16 @@ class RulerScaleMixin:
 
         if mm_per_px is None:
             self.ruler_info_scale.setText("Escala: Sin calibrar")
+            if hasattr(self, "ruler_info_pixel_size"):
+                self.ruler_info_pixel_size.setText("Tamaño Píxel: Sin calibrar")
             self.ruler_info_dim_mm.setText("Dimensión: -")
             self.ruler_info_dim_um.setText("Dimensión: -")
             return
 
         self.ruler_info_scale.setText(f"Escala: {mm_per_px:.5f} mm/px")
+        if hasattr(self, "ruler_info_pixel_size"):
+            self.ruler_info_pixel_size.setText(f"Tamaño Píxel: {mm_per_px * 1000.0:.2f} µm/px")
+
         w_mm = w * mm_per_px
         h_mm = h * mm_per_px
         self.ruler_info_dim_mm.setText(f"Dimensión: {w_mm:.3f} × {h_mm:.3f} mm")
@@ -542,10 +583,17 @@ class RulerScaleMixin:
             ("ruler_line_small_spin", "line_width_small_px"),
             ("ruler_height_pct_spin", "line_height_pct"),
             ("ruler_num_proj_spin", "num_projections"),
+            ("ruler_offset_spin", "offset_x"),
         ]:
             widget = getattr(self, attr, None)
             if widget is not None:
                 self._ruler_config[key] = widget.value()
+
+        if hasattr(self, "ruler_alignment_combo"):
+            self._ruler_config["alignment"] = self.ruler_alignment_combo.currentText()
+            
+        if hasattr(self, "ruler_step_mode_combo"):
+            self._ruler_config["step_mode"] = self.ruler_step_mode_combo.currentText()
 
         try:
             self._ruler_config["exposure_time_s"] = float(
