@@ -34,14 +34,17 @@ class PatternCalibPanelBuilder:
         btn_layout = QHBoxLayout()
         self.btn_mode_spatial = QPushButton("📏 Tamaño")
         self.btn_mode_exposure = QPushButton("⏱️ Exposición")
+        self.btn_mode_cd = QPushButton("🔍 Test CD")
         
         # Estilos para indicar cual está activo (opcional, por ahora simples)
         self.btn_mode_spatial.setCheckable(True)
         self.btn_mode_exposure.setCheckable(True)
+        self.btn_mode_cd.setCheckable(True)
         self.btn_mode_spatial.setChecked(True)
 
         btn_layout.addWidget(self.btn_mode_spatial)
         btn_layout.addWidget(self.btn_mode_exposure)
+        btn_layout.addWidget(self.btn_mode_cd)
         main_layout.addLayout(btn_layout)
 
         # Stacked widget para intercambiar el contenido
@@ -162,28 +165,99 @@ class PatternCalibPanelBuilder:
         
         exposure_layout.addStretch()
 
-        btn_exp_layout = QHBoxLayout()
-        self.btn_start_exposure = QPushButton("▶ Iniciar")
-        self.btn_start_exposure.clicked.connect(self.start_exposure_matrix)
-        self.btn_stop_exposure = QPushButton("⏹ Detener")
-        self.btn_stop_exposure.clicked.connect(self.stop_exposure_matrix)
-        
-        btn_exp_layout.addWidget(self.btn_start_exposure)
-        btn_exp_layout.addWidget(self.btn_stop_exposure)
-        exposure_layout.addLayout(btn_exp_layout)
+        self.btn_start_exp_matrix = QPushButton("▶ Iniciar Secuencia de Exposición")
+        self.btn_start_exp_matrix.setStyleSheet("font-weight: bold; background-color: #00BFA5; color: black;")
+        self.btn_start_exp_matrix.clicked.connect(self.start_exposure_matrix)
+        exposure_layout.addWidget(self.btn_start_exp_matrix)
+
+        self.btn_stop_exp_matrix = QPushButton("⏹ Detener")
+        self.btn_stop_exp_matrix.clicked.connect(self.stop_exposure_matrix)
+        exposure_layout.addWidget(self.btn_stop_exp_matrix)
 
         self.pattern_calib_stacked.addWidget(exposure_view)
+
+        # --- VIEW 3: TEST CD ---
+        cd_view = QWidget()
+        cd_layout = QVBoxLayout(cd_view)
+        cd_layout.setSpacing(10)
+        
+        cd_help = QLabel("Proyecta un patrón progresivo para test de dimensión crítica (CD).")
+        cd_help.setWordWrap(True)
+        cd_help.setStyleSheet("color: #888888; font-style: italic;")
+        cd_layout.addWidget(cd_help)
+
+        cd_form = QFormLayout()
+        
+        self.combo_cd_orient = QComboBox()
+        self.combo_cd_orient.addItems(["Vertical", "Horizontal"])
+        self.combo_cd_orient.setCurrentText(config.get('cd_orient', "Vertical"))
+        cd_form.addRow("Orientación:", self.combo_cd_orient)
+
+        self.input_cd_limit = QSpinBox()
+        self.input_cd_limit.setRange(1, 500)
+        self.input_cd_limit.setValue(config.get('cd_limit', 20))
+        cd_form.addRow("Límite (px):", self.input_cd_limit)
+
+        self.input_cd_spacing = QSpinBox()
+        self.input_cd_spacing.setRange(1, 500)
+        self.input_cd_spacing.setValue(config.get('cd_spacing', 10))
+        cd_form.addRow("Separación (px):", self.input_cd_spacing)
+
+        self.input_cd_exp_time = QDoubleSpinBox()
+        self.input_cd_exp_time.setRange(0.1, 3600.0)
+        self.input_cd_exp_time.setValue(config.get('cd_exp_time', 10.0))
+        self.input_cd_exp_time.setSingleStep(0.5)
+        cd_form.addRow("Tiempo Exp. (s):", self.input_cd_exp_time)
+
+        cd_layout.addLayout(cd_form)
+        
+        self.chk_cd_invert = QCheckBox("Invertir Figura y Fondo")
+        self.chk_cd_invert.setChecked(config.get('cd_invert', False))
+        cd_layout.addWidget(self.chk_cd_invert)
+        
+        self.btn_save_cd_image = QPushButton("💾 Guardar Patrón como Imagen")
+        self.btn_save_cd_image.clicked.connect(self.save_cd_image)
+        cd_layout.addWidget(self.btn_save_cd_image)
+        
+        cd_layout.addStretch()
+
+        cd_btn_layout = QHBoxLayout()
+        self.btn_preview_cd = QPushButton(" Previsualizar")
+        self.btn_preview_cd.clicked.connect(self.preview_cd_test)
+        cd_btn_layout.addWidget(self.btn_preview_cd)
+
+        self.btn_expose_cd = QPushButton("▶ Iniciar Exposición")
+        self.btn_expose_cd.setStyleSheet("font-weight: bold; background-color: #00BFA5; color: black;")
+        self.btn_expose_cd.clicked.connect(self.expose_cd_test)
+        cd_btn_layout.addWidget(self.btn_expose_cd)
+        
+        self.btn_stop_cd_expose = QPushButton("⏹ Detener")
+        self.btn_stop_cd_expose.clicked.connect(self.stop_cd_exposure)
+        cd_btn_layout.addWidget(self.btn_stop_cd_expose)
+        
+        cd_layout.addLayout(cd_btn_layout)
+        
+        self.combo_cd_orient.currentIndexChanged.connect(on_param_changed)
+        self.input_cd_limit.valueChanged.connect(on_param_changed)
+        self.input_cd_spacing.valueChanged.connect(on_param_changed)
+        self.input_cd_exp_time.valueChanged.connect(on_param_changed)
+        self.chk_cd_invert.stateChanged.connect(on_param_changed)
+
+        self.pattern_calib_stacked.addWidget(cd_view)
 
         main_layout.addWidget(self.pattern_calib_stacked)
 
         # Conectar botones
         self.btn_mode_spatial.clicked.connect(lambda: self._switch_pattern_calib_mode(0))
         self.btn_mode_exposure.clicked.connect(lambda: self._switch_pattern_calib_mode(1))
+        self.btn_mode_cd.clicked.connect(lambda: self._switch_pattern_calib_mode(2))
 
     def _switch_pattern_calib_mode(self, index):
         """Cambia entre la vista de Tamaño Espacial y Tiempo de Exposición."""
         self.pattern_calib_stacked.setCurrentIndex(index)
         self.btn_mode_spatial.setChecked(index == 0)
         self.btn_mode_exposure.setChecked(index == 1)
+        if hasattr(self, "btn_mode_cd"):
+            self.btn_mode_cd.setChecked(index == 2)
         if hasattr(self, "_update_pattern_calib_canvas"):
             self._update_pattern_calib_canvas(index)

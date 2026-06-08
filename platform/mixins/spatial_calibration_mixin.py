@@ -134,14 +134,20 @@ class SpatialCalibrationMixin:
             if self._spatial_cursor:
                 self._spatial_cursor.set_active(True)
                 
-        else:
+        elif index == 1:
             # Vista de Exposición
             self.ax.set_facecolor("#1E1E1E")
-            self.ax.text(0.5, 0.5, "Controles de exposición", 
-                         transform=self.ax.transAxes, ha="center", va="center", color="#888888", fontsize=14)
+            self.ax.text(0.5, 0.5, "Controles de Exposición", 
+                         transform=self.ax.transAxes, ha="center", va="center", color="#888888")
             self.ax.axis('off')
-            
-            # Deshabilitamos el cursor cruzado en Exposición
+            if self._spatial_cursor:
+                self._spatial_cursor.set_active(False)
+        else:
+            # Vista de Test CD
+            self.ax.set_facecolor("#1E1E1E")
+            self.ax.text(0.5, 0.5, "Presiona Previsualizar para ver el Patrón CD aquí", 
+                         transform=self.ax.transAxes, ha="center", va="center", color="#888888")
+            self.ax.axis('off')
             if self._spatial_cursor:
                 self._spatial_cursor.set_active(False)
                 
@@ -455,6 +461,16 @@ class SpatialCalibrationMixin:
         config['exp_mode'] = self.combo_exp_mode.currentText()
         if hasattr(self, "chk_exp_invert"):
             config['exp_invert'] = self.chk_exp_invert.isChecked()
+            
+        if hasattr(self, "input_cd_limit"):
+            config['cd_limit'] = self.input_cd_limit.value()
+            config['cd_spacing'] = self.input_cd_spacing.value()
+            config['cd_orient'] = self.combo_cd_orient.currentText()
+            if hasattr(self, "chk_cd_invert"):
+                config['cd_invert'] = self.chk_cd_invert.isChecked()
+            if hasattr(self, "input_cd_exp_time"):
+                config['cd_exp_time'] = self.input_cd_exp_time.value()
+            
         try:
             with open(CONFIG_FILE, 'w', encoding='utf-8') as f:
                 json.dump(config, f, indent=4)
@@ -638,3 +654,134 @@ class SpatialCalibrationMixin:
         proj = getattr(self, "projection_window", None)
         if proj:
             proj.show_black_screen()
+
+    # ═══════════════════════════════════════════════════════════════════════
+    # LOGICA DE TEST DE DIMENSION CRITICA (CD)
+    # ═══════════════════════════════════════════════════════════════════════
+
+    def _generate_cd_matrix(self):
+        """genera la matriz para el test cd leyendo la ui. devuelve (matrix, orientacion, limite, separacion) o None."""
+        proj = getattr(self, "projection_window", None)
+        if not proj:
+            return None
+            
+        try:
+            limite = self.input_cd_limit.value()
+            separacion = self.input_cd_spacing.value()
+            orientacion = self.combo_cd_orient.currentText()
+            invertir_cd = self.chk_cd_invert.isChecked() if hasattr(self, "chk_cd_invert") else False
+        except AttributeError:
+            return None
+
+        h, w = proj.screen_geometry.height(), proj.screen_geometry.width()
+        import numpy as np
+        matrix = np.zeros((h, w), dtype=np.uint8)
+
+        # calcular tamano total de las lineas + los espacios
+        # las lineas van de 1 a limite. la suma de 1 a N es N*(N+1)/2
+        suma_grosores = (limite * (limite + 1)) // 2
+        # la cantidad de espacios es limite - 1
+        suma_espacios = separacion * (limite - 1)
+        tamano_total = suma_grosores + suma_espacios
+
+        # calcular punto de inicio para centrar todo el bloque
+        if orientacion == "Horizontal":
+            # lineas horizontales se dibujan en el eje y (altura)
+            inicio = (h - tamano_total) // 2
+        else:
+            # lineas verticales se dibujan en el eje x (ancho)
+            inicio = (w - tamano_total) // 2
+
+        # bucle para iterar sobre los pixeles del limite
+        for grosor_actual in range(1, limite + 1):
+            if orientacion == "Horizontal":
+                # validar que no nos salimos de la pantalla
+                if inicio >= 0 and inicio + grosor_actual <= h:
+                    matrix[inicio : inicio + grosor_actual, :] = 255
+            else:
+                # validar que no nos salimos de la pantalla
+                if inicio >= 0 and inicio + grosor_actual <= w:
+                    matrix[:, inicio : inicio + grosor_actual] = 255
+            
+            # mover el punto de inicio para la siguiente linea
+            # sumamos el grosor que acabamos de pintar mas el espaciado
+            inicio += grosor_actual + separacion
+
+        # si se requiere, se invierten colores localmente
+        if invertir_cd:
+            matrix = 255 - matrix
+
+        # si se requiere, se invierten colores de forma global
+        if getattr(self, "invert_projection", False):
+            matrix = 255 - matrix
+
+        return matrix, orientacion, limite, separacion
+
+    def preview_cd_test(self):
+        """previsualiza el test cd en el panel principal (ax)."""
+        res = self._generate_cd_matrix()
+        if not res: return
+        matrix, orient, lim, sep = res
+        
+        if hasattr(self, "ax") and self.ax is not None:
+            self.ax.clear()
+            self.ax.imshow(matrix, cmap='gray')
+            self.ax.axis('off')
+            if hasattr(self, "canvas"):
+                self.canvas.draw()
+        
+        if hasattr(self, "log_to_console"):
+            self.log_to_console(f"exito: previsualizando test cd en panel principal ({orient}, limite: {lim}px, sep: {sep}px).", "success")
+
+    def expose_cd_test(self):
+        """inicia la exposicion controlada por tiempo del test cd."""
+        if not getattr(self, "projector_active", False):
+            if hasattr(self, "log_to_console"):
+                self.log_to_console("error: el proyector no esta activo. activalo primero.", "error")
+            return
+            
+        res = self._generate_cd_matrix()
+        if not res: return
+        matrix, orient, lim, sep = res
+        
+        try:
+            exp_time = self.input_cd_exp_time.value()
+        except AttributeError:
+            exp_time = 10.0
+            
+        self.projection_window.update_segment(matrix)
+        
+        # iniciar timer
+        from PyQt5.QtCore import QTimer
+        self._cd_timer = QTimer(self)
+        self._cd_timer.setSingleShot(True)
+        self._cd_timer.timeout.connect(self.stop_cd_exposure)
+        self._cd_timer.start(int(exp_time * 1000))
+        
+        if hasattr(self, "log_to_console"):
+            self.log_to_console(f"exito: iniciando test cd por {exp_time}s ({orient}, limite: {lim}px).", "success")
+
+    def stop_cd_exposure(self):
+        """detiene la exposicion del test cd y pone la pantalla en negro."""
+        if hasattr(self, "_cd_timer") and self._cd_timer.isActive():
+            self._cd_timer.stop()
+            
+        proj = getattr(self, "projection_window", None)
+        if proj:
+            proj.show_black_screen()
+        if hasattr(self, "log_to_console"):
+            self.log_to_console("estado: exposicion de test cd completada o detenida.", "info")
+
+    def save_cd_image(self):
+        """guarda el patron del test cd generado actualmente como imagen .png."""
+        res = self._generate_cd_matrix()
+        if not res: return
+        matrix, orient, lim, sep = res
+        
+        from PyQt5.QtWidgets import QFileDialog
+        filename, _ = QFileDialog.getSaveFileName(self, "Guardar Patrón CD", f"patron_cd_{orient}_{lim}px.png", "Images (*.png)")
+        if filename:
+            import cv2
+            cv2.imwrite(filename, matrix)
+            if hasattr(self, "log_to_console"):
+                self.log_to_console(f"exito: patron cd guardado en {filename}.", "success")
