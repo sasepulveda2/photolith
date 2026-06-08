@@ -142,11 +142,17 @@ class SpatialCalibrationMixin:
             self.ax.axis('off')
             if self._spatial_cursor:
                 self._spatial_cursor.set_active(False)
-        else:
+        elif index == 2:
             # Vista de Test CD
             self.ax.set_facecolor("#1E1E1E")
             self.ax.text(0.5, 0.5, "Presiona Previsualizar para ver el Patrón CD aquí", 
                          transform=self.ax.transAxes, ha="center", va="center", color="#888888")
+            self.ax.axis('off')
+            if self._spatial_cursor:
+                self._spatial_cursor.set_active(False)
+        elif index == 3:
+            # Vista de Calibracion con Motores
+            self.ax.set_facecolor("black")
             self.ax.axis('off')
             if self._spatial_cursor:
                 self._spatial_cursor.set_active(False)
@@ -785,3 +791,110 @@ class SpatialCalibrationMixin:
             cv2.imwrite(filename, matrix)
             if hasattr(self, "log_to_console"):
                 self.log_to_console(f"exito: patron cd guardado en {filename}.", "success")
+
+    # ═══════════════════════════════════════════════════════════════════════
+    # LOGICA DE CALIBRACION CON MOTORES (SOLAPAMIENTO)
+    # ═══════════════════════════════════════════════════════════════════════
+
+    def render_motor_calib_pattern(self):
+        """genera y proyecta dos lineas separadas por distancia u (en pixeles)."""
+        proj = getattr(self, "projection_window", None)
+        if not proj: return
+        
+        try:
+            u_dist = self.input_motor_u.value()
+            axis_text = self.combo_motor_axis.currentText()
+        except AttributeError:
+            return
+            
+        h, w = proj.screen_geometry.height(), proj.screen_geometry.width()
+        import numpy as np
+        matrix = np.zeros((h, w), dtype=np.uint8)
+        
+        # determinar centros
+        cy, cx = h // 2, w // 2
+        offset = u_dist // 2
+        
+        # dibujar las lineas de 1 pixel de grosor
+        if "X" in axis_text:
+            # calibrar eje x = lineas verticales separadas horizontalmente
+            if cx - offset >= 0:
+                matrix[:, cx - offset] = 255
+            if cx + offset < w:
+                matrix[:, cx + offset] = 255
+        else:
+            # calibrar eje y = lineas horizontales separadas verticalmente
+            if cy - offset >= 0:
+                matrix[cy - offset, :] = 255
+            if cy + offset < h:
+                matrix[cy + offset, :] = 255
+                
+        # inversion global
+        if getattr(self, "invert_projection", False):
+            matrix = 255 - matrix
+            
+        # previsualizar en main ui
+        if hasattr(self, "ax") and self.ax is not None and self.pattern_calib_stacked.currentIndex() == 3:
+            self.ax.clear()
+            self.ax.imshow(matrix, cmap='gray')
+            self.ax.axis('off')
+            if hasattr(self, "canvas"):
+                self.canvas.draw()
+                
+        # proyectar si esta activo
+        if getattr(self, "projector_active", False):
+            proj.update_segment(matrix)
+
+    def move_motor_calib(self, direction):
+        """mueve el motor fisico exactamente 1 mm (80 steps) en la direccion dada."""
+        if not hasattr(self, "motor_controller_instance") or not self.motor_controller_instance:
+            if hasattr(self, "log_to_console"):
+                self.log_to_console("error: los motores no estan conectados.", "error")
+            return
+            
+        try:
+            axis_text = self.combo_motor_axis.currentText()
+            axis = "X" if "X" in axis_text else "Y"
+        except AttributeError:
+            return
+            
+        # 80 pasos = 1 mm fisico. si direction es -1, vuelve
+        steps = 80 * direction
+        
+        try:
+            self.motor_controller_instance.step_move(axis, steps)
+            if hasattr(self, "log_to_console"):
+                accion = "avanzando" if direction > 0 else "retrocediendo"
+                self.log_to_console(f"motor: {accion} {axis} 1 mm ({steps} pasos).", "info")
+        except Exception as e:
+            if hasattr(self, "log_to_console"):
+                self.log_to_console(f"error al mover motor: {e}", "error")
+
+    def save_motor_calib(self):
+        """guarda la distancia u actual como el factor global de conversion px/mm."""
+        try:
+            u_dist = self.input_motor_u.value()
+        except AttributeError:
+            return
+            
+        import os, json
+        from constants import CONFIG_FILE
+        config = {}
+        if os.path.exists(CONFIG_FILE):
+            try:
+                with open(CONFIG_FILE, 'r', encoding='utf-8') as f:
+                    config = json.load(f)
+            except:
+                pass
+                
+        config['motor_px_per_mm'] = u_dist
+        config['motor_calib_axis'] = self.combo_motor_axis.currentText()
+        
+        try:
+            with open(CONFIG_FILE, 'w', encoding='utf-8') as f:
+                json.dump(config, f, indent=4)
+            if hasattr(self, "log_to_console"):
+                self.log_to_console(f"exito: factor de calibracion guardado ({u_dist} px/mm).", "success")
+        except Exception as e:
+            if hasattr(self, "log_to_console"):
+                self.log_to_console(f"error al guardar factor: {e}", "error")
