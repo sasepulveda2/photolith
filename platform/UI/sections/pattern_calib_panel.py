@@ -55,35 +55,142 @@ class PatternCalibPanelBuilder:
         spatial_layout = QVBoxLayout(spatial_view)
         spatial_layout.setSpacing(15)
 
+        self.btn_toggle_motor_calib = QPushButton("⚙️ Calibración por Solapamiento (Motores)")
+        self.btn_toggle_motor_calib.setCheckable(True)
+        spatial_layout.addWidget(self.btn_toggle_motor_calib)
+        
+        # Contenedor de motor calib (oculto por defecto)
+        self.motor_container = QWidget()
+        self.motor_container.setVisible(False)
+        motor_layout = QVBoxLayout(self.motor_container)
+        motor_layout.setContentsMargins(0,0,0,0)
+        motor_layout.setSpacing(5)
+        
+        motor_form = QFormLayout()
+        
+        self.combo_motor_axis = QComboBox()
+        self.combo_motor_axis.addItems(["Eje X (Líneas Verticales)", "Eje Y (Líneas Horizontales)"])
+        import os, json
+        from constants import CONFIG_FILE
+        config = {}
+        if os.path.exists(CONFIG_FILE):
+            try:
+                with open(CONFIG_FILE, 'r', encoding='utf-8') as f:
+                    config = json.load(f)
+            except:
+                pass
+        self.combo_motor_axis.setCurrentText(config.get('motor_calib_axis', "Eje X (Líneas Verticales)"))
+        motor_form.addRow("Eje:", self.combo_motor_axis)
+        
+        self.input_motor_dist_mm = QDoubleSpinBox()
+        self.input_motor_dist_mm.setRange(0.01, 1000.0)
+        self.input_motor_dist_mm.setSingleStep(1.0)
+        self.input_motor_dist_mm.setValue(config.get('motor_calib_dist_mm', 1.0))
+        motor_form.addRow("Distancia Motor (mm):", self.input_motor_dist_mm)
+        
+        self.input_motor_exp_time = QDoubleSpinBox()
+        self.input_motor_exp_time.setRange(0.1, 3600.0)
+        self.input_motor_exp_time.setValue(config.get('motor_exp_time', 10.0))
+        self.input_motor_exp_time.setSingleStep(0.5)
+        motor_form.addRow("Tiempo Exp. (s):", self.input_motor_exp_time)
+        
+        self.input_motor_line_width = QSpinBox()
+        self.input_motor_line_width.setRange(1, 100)
+        self.input_motor_line_width.setValue(config.get('motor_calib_line_width', 1))
+        motor_form.addRow("Grosor de Línea (px):", self.input_motor_line_width)
+        
+        motor_layout.addLayout(motor_form)
+        
+        u_layout = QHBoxLayout()
+        u_layout.addWidget(QLabel("Distancia U (px):"))
+        self.btn_motor_u_minus = QPushButton("➖")
+        self.btn_motor_u_minus.setFixedWidth(30)
+        u_layout.addWidget(self.btn_motor_u_minus)
+        
+        self.input_motor_u = QSpinBox()
+        self.input_motor_u.setRange(1, 5000)
+        self.input_motor_u.setValue(config.get('motor_px_per_mm', 150))
+        u_layout.addWidget(self.input_motor_u)
+        
+        self.btn_motor_u_plus = QPushButton("➕")
+        self.btn_motor_u_plus.setFixedWidth(30)
+        u_layout.addWidget(self.btn_motor_u_plus)
+        motor_layout.addLayout(u_layout)
+        
+        mot_ctrl_layout = QHBoxLayout()
+        self.btn_motor_move_mm = QPushButton("↔️ Mover Motor")
+        self.btn_motor_move_mm.setStyleSheet("font-weight: bold; background-color: #00BFA5; color: black;")
+        mot_ctrl_layout.addWidget(self.btn_motor_move_mm)
+        
+        self.btn_motor_return = QPushButton("🔄 Volver al Origen")
+        mot_ctrl_layout.addWidget(self.btn_motor_return)
+        motor_layout.addLayout(mot_ctrl_layout)
+        
+        proj_btn_layout = QHBoxLayout()
+        self.btn_preview_motor = QPushButton("Proyectar")
+        proj_btn_layout.addWidget(self.btn_preview_motor)
+        
+        self.btn_expose_motor = QPushButton("▶ Iniciar Exposición")
+        self.btn_expose_motor.setStyleSheet("font-weight: bold; background-color: #00BFA5; color: black;")
+        proj_btn_layout.addWidget(self.btn_expose_motor)
+        
+        self.btn_stop_motor_expose = QPushButton("⏹ Detener")
+        proj_btn_layout.addWidget(self.btn_stop_motor_expose)
+        motor_layout.addLayout(proj_btn_layout)
+        
+        self.btn_save_motor_calib = QPushButton("💾 Guardar Factor (Solapamiento)")
+        self.btn_save_motor_calib.setStyleSheet("font-weight: bold; color: #FFD700;")
+        motor_layout.addWidget(self.btn_save_motor_calib)
+        
+        spatial_layout.addWidget(self.motor_container)
+        spatial_layout.addSpacing(10)
+
+        # Contenedor de calib manual (por defecto visible)
+        self.manual_calib_container = QWidget()
+        manual_layout = QVBoxLayout(self.manual_calib_container)
+        manual_layout.setContentsMargins(0,0,0,0)
+        
         help_label = QLabel("Dibuja una línea en la imagen y establece su tamaño real.")
         help_label.setWordWrap(True)
         help_label.setStyleSheet("color: #888888; font-style: italic;")
-        spatial_layout.addWidget(help_label)
-
+        manual_layout.addWidget(help_label)
+        
         self.btn_load_pattern_calib = QPushButton("📂 Cargar Patrón de Calibración")
         self.btn_load_pattern_calib.clicked.connect(self.load_calibration_pattern)
-        spatial_layout.addWidget(self.btn_load_pattern_calib)
-
-        spatial_layout.addSpacing(10)
+        manual_layout.addWidget(self.btn_load_pattern_calib)
+        
+        manual_layout.addSpacing(10)
+        
         self.lbl_pixels_calib = QLabel("Distancia en Píxeles: 0.00")
         self.lbl_pixels_calib.setStyleSheet("font-weight: bold;")
-        spatial_layout.addWidget(self.lbl_pixels_calib)
-
-        spatial_layout.addWidget(QLabel("Medida real (mm):"))
+        manual_layout.addWidget(self.lbl_pixels_calib)
+        
+        manual_layout.addWidget(QLabel("Medida real (mm):"))
         self.input_mm_calib = QLineEdit()
         self.input_mm_calib.setPlaceholderText("Ej. 10.5")
         self.input_mm_calib.textChanged.connect(self.calculate_spatial_scale)
-        spatial_layout.addWidget(self.input_mm_calib)
-
+        manual_layout.addWidget(self.input_mm_calib)
+        
         self.lbl_result_calib = QLabel("Escala: -")
         self.lbl_result_calib.setStyleSheet("font-weight: bold; color: #00BFA5; font-size: 13px;")
-        spatial_layout.addWidget(self.lbl_result_calib)
-
-        spatial_layout.addStretch()
-
+        manual_layout.addWidget(self.lbl_result_calib)
+        
+        manual_layout.addStretch()
+        
         self.btn_save_spatial_calib = QPushButton("💾 Guardar Calibración")
         self.btn_save_spatial_calib.clicked.connect(self.save_spatial_scale_from_ui)
-        spatial_layout.addWidget(self.btn_save_spatial_calib)
+        manual_layout.addWidget(self.btn_save_spatial_calib)
+        
+        spatial_layout.addWidget(self.manual_calib_container)
+        
+        def toggle_calib_mode(checked):
+            self.motor_container.setVisible(checked)
+            self.manual_calib_container.setVisible(not checked)
+            if hasattr(self, "_spatial_cursor") and self._spatial_cursor:
+                self._spatial_cursor.set_active(not checked)
+                self.canvas.draw_idle()
+            
+        self.btn_toggle_motor_calib.toggled.connect(toggle_calib_mode)
 
         self.pattern_calib_stacked.addWidget(spatial_view)
 
@@ -96,17 +203,6 @@ class PatternCalibPanelBuilder:
         exp_help.setWordWrap(True)
         exp_help.setStyleSheet("color: #888888; font-style: italic;")
         exposure_layout.addWidget(exp_help)
-
-        # --- CARGAR CONFIGURACION PREVIA ---
-        import os, json
-        from constants import CONFIG_FILE
-        config = {}
-        if os.path.exists(CONFIG_FILE):
-            try:
-                with open(CONFIG_FILE, 'r', encoding='utf-8') as f:
-                    config = json.load(f)
-            except:
-                pass
 
         form_layout = QFormLayout()
         
@@ -252,8 +348,28 @@ class PatternCalibPanelBuilder:
         self.btn_mode_exposure.clicked.connect(lambda: self._switch_pattern_calib_mode(1))
         self.btn_mode_cd.clicked.connect(lambda: self._switch_pattern_calib_mode(2))
 
+        # Conectar eventos de motor
+        self.btn_motor_u_minus.clicked.connect(lambda: self.input_motor_u.setValue(self.input_motor_u.value() - 1))
+        self.btn_motor_u_plus.clicked.connect(lambda: self.input_motor_u.setValue(self.input_motor_u.value() + 1))
+        self.input_motor_u.valueChanged.connect(self.render_motor_calib_pattern)
+        self.combo_motor_axis.currentIndexChanged.connect(self.render_motor_calib_pattern)
+        self.input_motor_line_width.valueChanged.connect(self.render_motor_calib_pattern)
+        self.btn_toggle_motor_calib.toggled.connect(lambda state: self.render_motor_calib_pattern() if state else (self._update_pattern_calib_canvas(0) if hasattr(self, '_update_pattern_calib_canvas') else None))
+        
+        self.btn_motor_move_mm.clicked.connect(lambda: self.move_motor_calib(1))
+        self.btn_motor_return.clicked.connect(lambda: self.move_motor_calib(-1))
+        self.btn_save_motor_calib.clicked.connect(self.save_motor_calib)
+        
+        # Conectar preview y exposicion de motor calib
+        self.btn_preview_motor.clicked.connect(self.preview_motor_calib)
+        self.btn_expose_motor.clicked.connect(self.expose_motor_calib)
+        self.btn_stop_motor_expose.clicked.connect(self.stop_motor_exposure)
+
     def _switch_pattern_calib_mode(self, index):
         """Cambia entre la vista de Tamaño Espacial y Tiempo de Exposición."""
+        if hasattr(self, "btn_toggle_motor_calib"):
+            self.btn_toggle_motor_calib.setChecked(False)
+            
         self.pattern_calib_stacked.setCurrentIndex(index)
         self.btn_mode_spatial.setChecked(index == 0)
         self.btn_mode_exposure.setChecked(index == 1)

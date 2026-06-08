@@ -150,12 +150,6 @@ class SpatialCalibrationMixin:
             self.ax.axis('off')
             if self._spatial_cursor:
                 self._spatial_cursor.set_active(False)
-        elif index == 3:
-            # Vista de Calibracion con Motores
-            self.ax.set_facecolor("black")
-            self.ax.axis('off')
-            if self._spatial_cursor:
-                self._spatial_cursor.set_active(False)
                 
         self.canvas.draw_idle()
 
@@ -181,7 +175,10 @@ class SpatialCalibrationMixin:
             self._spatial_cursor = None
 
         if self._spatial_line_artist:
-            self._spatial_line_artist.remove()
+            try:
+                self._spatial_line_artist.remove()
+            except Exception:
+                pass
             self._spatial_line_artist = None
 
         self._spatial_line_start = None
@@ -238,6 +235,8 @@ class SpatialCalibrationMixin:
     def _spatial_on_mouse_scroll(self, event):
         if getattr(self, "pattern_calib_stacked", None) is not None and self.pattern_calib_stacked.currentIndex() != 0:
             return
+        if getattr(self, "btn_toggle_motor_calib", None) and self.btn_toggle_motor_calib.isChecked():
+            return
         if event.inaxes != self.ax:
             return
             
@@ -267,10 +266,15 @@ class SpatialCalibrationMixin:
     def _spatial_on_mouse_press(self, event):
         if getattr(self, "pattern_calib_stacked", None) is not None and self.pattern_calib_stacked.currentIndex() != 0:
             return
+        if getattr(self, "btn_toggle_motor_calib", None) and self.btn_toggle_motor_calib.isChecked():
+            return
         if event.button == 1 and event.inaxes == self.ax:
             self._spatial_line_start = (event.xdata, event.ydata)
             if self._spatial_line_artist:
-                self._spatial_line_artist.remove()
+                try:
+                    self._spatial_line_artist.remove()
+                except Exception:
+                    pass
                 
             self._spatial_line_artist = Line2D(
                 [event.xdata, event.xdata], 
@@ -290,6 +294,8 @@ class SpatialCalibrationMixin:
 
     def _spatial_on_mouse_move(self, event):
         if getattr(self, "pattern_calib_stacked", None) is not None and self.pattern_calib_stacked.currentIndex() != 0:
+            return
+        if getattr(self, "btn_toggle_motor_calib", None) and self.btn_toggle_motor_calib.isChecked():
             return
         if self._pan_start_x is not None and self._pan_start_y is not None:
             # Efectuar paneo
@@ -328,6 +334,8 @@ class SpatialCalibrationMixin:
 
     def _spatial_on_mouse_release(self, event):
         if getattr(self, "pattern_calib_stacked", None) is not None and self.pattern_calib_stacked.currentIndex() != 0:
+            return
+        if getattr(self, "btn_toggle_motor_calib", None) and self.btn_toggle_motor_calib.isChecked():
             return
         if event.button == 2:
             self._pan_start_x = None
@@ -796,16 +804,17 @@ class SpatialCalibrationMixin:
     # LOGICA DE CALIBRACION CON MOTORES (SOLAPAMIENTO)
     # ═══════════════════════════════════════════════════════════════════════
 
-    def render_motor_calib_pattern(self):
-        """genera y proyecta dos lineas separadas por distancia u (en pixeles)."""
+    def render_motor_calib_pattern(self, preview_only=True):
+        """genera y devuelve dos lineas separadas por distancia u (en pixeles)."""
         proj = getattr(self, "projection_window", None)
-        if not proj: return
+        if not proj: return None
         
         try:
             u_dist = self.input_motor_u.value()
             axis_text = self.combo_motor_axis.currentText()
+            line_w = self.input_motor_line_width.value()
         except AttributeError:
-            return
+            return None
             
         h, w = proj.screen_geometry.height(), proj.screen_geometry.width()
         import numpy as np
@@ -815,38 +824,88 @@ class SpatialCalibrationMixin:
         cy, cx = h // 2, w // 2
         offset = u_dist // 2
         
-        # dibujar las lineas de 1 pixel de grosor
+        # mitad del grosor para distribuir uniformemente (grosor impar/par)
+        w_start = -(line_w // 2)
+        w_end = w_start + line_w
+        
+        # dibujar las lineas con el grosor indicado (siempre blancas sobre negro)
         if "X" in axis_text:
             # calibrar eje x = lineas verticales separadas horizontalmente
-            if cx - offset >= 0:
-                matrix[:, cx - offset] = 255
-            if cx + offset < w:
-                matrix[:, cx + offset] = 255
+            for lw in range(w_start, w_end):
+                if cx - offset + lw >= 0 and cx - offset + lw < w:
+                    matrix[:, cx - offset + lw] = 255
+                if cx + offset + lw >= 0 and cx + offset + lw < w:
+                    matrix[:, cx + offset + lw] = 255
         else:
             # calibrar eje y = lineas horizontales separadas verticalmente
-            if cy - offset >= 0:
-                matrix[cy - offset, :] = 255
-            if cy + offset < h:
-                matrix[cy + offset, :] = 255
+            for lw in range(w_start, w_end):
+                if cy - offset + lw >= 0 and cy - offset + lw < h:
+                    matrix[cy - offset + lw, :] = 255
+                if cy + offset + lw >= 0 and cy + offset + lw < h:
+                    matrix[cy + offset + lw, :] = 255
                 
-        # inversion global
-        if getattr(self, "invert_projection", False):
-            matrix = 255 - matrix
-            
         # previsualizar en main ui
-        if hasattr(self, "ax") and self.ax is not None and self.pattern_calib_stacked.currentIndex() == 3:
+        if preview_only and hasattr(self, "ax") and self.ax is not None and self.pattern_calib_stacked.currentIndex() == 0:
             self.ax.clear()
             self.ax.imshow(matrix, cmap='gray')
             self.ax.axis('off')
             if hasattr(self, "canvas"):
                 self.canvas.draw()
                 
-        # proyectar si esta activo
-        if getattr(self, "projector_active", False):
-            proj.update_segment(matrix)
+        return matrix
+
+    def preview_motor_calib(self):
+        """previsualiza en el proyector la matriz actual de motores."""
+        if not getattr(self, "projector_active", False):
+            if hasattr(self, "log_to_console"):
+                self.log_to_console("error: el proyector no esta activo.", "error")
+            return
+            
+        matrix = self.render_motor_calib_pattern(preview_only=False)
+        if matrix is not None:
+            self.projection_window.update_segment(matrix)
+            if hasattr(self, "log_to_console"):
+                self.log_to_console("exito: previsualizando lineas de motor.", "success")
+                
+    def expose_motor_calib(self):
+        """inicia la exposicion cronometrada de las lineas de calibracion."""
+        if not getattr(self, "projector_active", False):
+            if hasattr(self, "log_to_console"):
+                self.log_to_console("error: enciende el proyector primero.", "error")
+            return
+            
+        matrix = self.render_motor_calib_pattern(preview_only=False)
+        if matrix is None: return
+        
+        from PyQt5.QtCore import QTimer
+        self.projection_window.update_segment(matrix)
+        
+        try:
+            t = self.input_motor_exp_time.value()
+        except:
+            t = 10.0
+            
+        if hasattr(self, "log_to_console"):
+            self.log_to_console(f"estado: iniciando exposicion de motor ({t}s).", "info")
+            
+        self._motor_timer = QTimer(self)
+        self._motor_timer.setSingleShot(True)
+        self._motor_timer.timeout.connect(self.stop_motor_exposure)
+        self._motor_timer.start(int(t * 1000))
+
+    def stop_motor_exposure(self):
+        """detiene la exposicion del patron de motores."""
+        if hasattr(self, "_motor_timer") and self._motor_timer.isActive():
+            self._motor_timer.stop()
+            
+        proj = getattr(self, "projection_window", None)
+        if proj:
+            proj.show_black_screen()
+        if hasattr(self, "log_to_console"):
+            self.log_to_console("estado: exposicion de motores detenida.", "info")
 
     def move_motor_calib(self, direction):
-        """mueve el motor fisico exactamente 1 mm (80 steps) en la direccion dada."""
+        """mueve el motor fisico la distancia configurada."""
         if not hasattr(self, "motor_controller_instance") or not self.motor_controller_instance:
             if hasattr(self, "log_to_console"):
                 self.log_to_console("error: los motores no estan conectados.", "error")
@@ -858,14 +917,19 @@ class SpatialCalibrationMixin:
         except AttributeError:
             return
             
+        try:
+            mm = self.input_motor_dist_mm.value()
+        except:
+            mm = 1.0
+            
         # 80 pasos = 1 mm fisico. si direction es -1, vuelve
-        steps = 80 * direction
+        steps = int(80 * mm) * direction
         
         try:
             self.motor_controller_instance.step_move(axis, steps)
             if hasattr(self, "log_to_console"):
                 accion = "avanzando" if direction > 0 else "retrocediendo"
-                self.log_to_console(f"motor: {accion} {axis} 1 mm ({steps} pasos).", "info")
+                self.log_to_console(f"motor: {accion} {axis} {mm} mm ({steps} pasos).", "info")
         except Exception as e:
             if hasattr(self, "log_to_console"):
                 self.log_to_console(f"error al mover motor: {e}", "error")
@@ -889,6 +953,9 @@ class SpatialCalibrationMixin:
                 
         config['motor_px_per_mm'] = u_dist
         config['motor_calib_axis'] = self.combo_motor_axis.currentText()
+        config['motor_calib_dist_mm'] = self.input_motor_dist_mm.value()
+        config['motor_exp_time'] = self.input_motor_exp_time.value()
+        config['motor_calib_line_width'] = self.input_motor_line_width.value()
         
         try:
             with open(CONFIG_FILE, 'w', encoding='utf-8') as f:

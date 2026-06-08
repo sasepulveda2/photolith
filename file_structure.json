@@ -6,7 +6,7 @@
     "exp_direction": "C\u00edrculo Central",
     "exp_mode": "Decremento",
     "exp_invert": false,
-    "cd_limit": 5,
+    "cd_limit": 1,
     "cd_spacing": 2,
     "cd_orient": "Vertical",
     "cd_invert": true,
