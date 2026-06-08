@@ -21,7 +21,7 @@ class SpatialCalibrationMixin:
     def toggle_spatial_calibration_mode(self):
         """Abre la ventana dedicada de calibración espacial."""
         # Le pasamos la imagen original o la que está en grid
-        img_to_calib = getattr(self, "image_original", getattr(self, "image_on_grid", None))
+        img_to_calib = getattr(self, "pattern", getattr(self, "image_on_grid", None))
         
         if img_to_calib is None:
             import cv2

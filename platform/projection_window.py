@@ -138,8 +138,7 @@ class ProjectionWindow(QWidget):
             segment_scaled
         )
 
-        # CRITICAL: flip vertically to correct Qt's top-down coordinate system
-        canvas = np.flipud(canvas)
+        # CRITICAL: DO NOT flip vertically, this was causing images to appear inverted.
         canvas = np.ascontiguousarray(canvas)
 
         self.image_label.setPixmap(QPixmap.fromImage(self._numpy_to_qimage(canvas)))
@@ -223,7 +222,7 @@ class ProjectionWindow(QWidget):
             # Grayscale mode (not recommended for lithography)
             pixel_data = (adjusted * 255.0).round().astype(np.uint8)
 
-        pixmap = self._numpy_to_pixmap(pixel_data, flip=True)
+        pixmap = self._numpy_to_pixmap(pixel_data, flip=False)
 
         if self.parent_simulator:
             self.image_label.setPixmap(self._apply_scale(pixmap))

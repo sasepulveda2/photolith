@@ -395,6 +395,10 @@ class ProjectionMixin:
             self.project_full_image()
         elif getattr(self, "current_projecting_segment", None):
             self._update_paused_segment_projection()
+            
+        if getattr(self, "pattern", None) is not None and not getattr(self, "grid_view_active", False):
+            if hasattr(self, "simulate_optics"):
+                self.simulate_optics()
 
     def toggle_exposure_mirror_y(self, checked):
         self.exposure_mirror_v = bool(checked)
@@ -405,6 +409,10 @@ class ProjectionMixin:
             self.project_full_image()
         elif getattr(self, "current_projecting_segment", None):
             self._update_paused_segment_projection()
+            
+        if getattr(self, "pattern", None) is not None and not getattr(self, "grid_view_active", False):
+            if hasattr(self, "simulate_optics"):
+                self.simulate_optics()
 
     def _update_paused_segment_projection(self):
         if not getattr(self, "sequence_paused", False): return

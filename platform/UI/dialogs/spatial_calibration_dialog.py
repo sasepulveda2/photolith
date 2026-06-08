@@ -3,19 +3,17 @@ diálogo dedicado para la calibración espacial de la óptica.
 """
 from PyQt5.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, 
-    QLineEdit, QPushButton, QMessageBox
+    QLineEdit, QPushButton, QMessageBox, QApplication
 )
 from PyQt5.QtCore import Qt
 import math
 
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas,
-    NavigationToolbar2QT as NavigationToolbar,
 )
 from matplotlib.figure import Figure
 from matplotlib.lines import Line2D
 from matplotlib.widgets import Cursor
-from PyQt5.QtWidgets import QApplication
 from constants import DARK_BG_PRIMARY
 
 class SpatialCalibrationDialog(QDialog):
@@ -32,6 +30,12 @@ class SpatialCalibrationDialog(QDialog):
         self.pixel_distance = 0.0
         self.mm_per_pixel = None
         
+        # Variables para paneo (mover imagen con botón central)
+        self.pan_start_x = None
+        self.pan_start_y = None
+        self.pan_start_xlim = None
+        self.pan_start_ylim = None
+        
         self._build_ui()
         self._plot_image()
         
@@ -44,17 +48,15 @@ class SpatialCalibrationDialog(QDialog):
         self.ax = self.figure.add_subplot(111)
         self.figure.tight_layout()
         
-        self.toolbar = NavigationToolbar(self.canvas, self)
-        
         # eventos
         self.canvas.mpl_connect("button_press_event", self.on_mouse_press)
         self.canvas.mpl_connect("button_release_event", self.on_mouse_release)
         self.canvas.mpl_connect("motion_notify_event", self.on_mouse_move)
+        self.canvas.mpl_connect("scroll_event", self.on_mouse_scroll)
         
         # cursor cruz (crosshair)
         self.cursor = Cursor(self.ax, useblit=True, color='cyan', linewidth=1)
         
-        layout.addWidget(self.toolbar)
         layout.addWidget(self.canvas, stretch=1)
         
         # ── panel inferior ──────────────────────────────────────────────────
@@ -92,11 +94,34 @@ class SpatialCalibrationDialog(QDialog):
             self.ax.axis('off')
             self.canvas.draw()
             
-    def on_mouse_press(self, event):
-        # solo procesar si no está en modo pan o zoom
-        if self.toolbar.mode != "":
+    def on_mouse_scroll(self, event):
+        if event.inaxes != self.ax:
             return
             
+        base_scale = 1.1
+        if event.button == 'up':
+            scale_factor = 1 / base_scale
+        elif event.button == 'down':
+            scale_factor = base_scale
+        else:
+            scale_factor = 1
+            
+        xlim = self.ax.get_xlim()
+        ylim = self.ax.get_ylim()
+        
+        xdata = event.xdata
+        ydata = event.ydata
+        
+        new_xlim = [xdata - (xdata - xlim[0]) * scale_factor,
+                    xdata + (xlim[1] - xdata) * scale_factor]
+        new_ylim = [ydata - (ydata - ylim[0]) * scale_factor,
+                    ydata + (ylim[1] - ydata) * scale_factor]
+                    
+        self.ax.set_xlim(new_xlim)
+        self.ax.set_ylim(new_ylim)
+        self.canvas.draw_idle()
+            
+    def on_mouse_press(self, event):
         if event.button == 1 and event.inaxes == self.ax:
             self.spatial_line_start = (event.xdata, event.ydata)
             if self.spatial_line_artist:
@@ -109,11 +134,28 @@ class SpatialCalibrationDialog(QDialog):
             )
             self.ax.add_line(self.spatial_line_artist)
             self.canvas.draw_idle()
+        elif event.button == 2 and event.inaxes == self.ax:
+            # Iniciar pan con la rueda del mouse (botón 2)
+            self.pan_start_x = event.x
+            self.pan_start_y = event.y
+            self.pan_start_xlim = self.ax.get_xlim()
+            self.pan_start_ylim = self.ax.get_ylim()
+            QApplication.setOverrideCursor(Qt.ClosedHandCursor)
 
     def on_mouse_move(self, event):
-        if self.toolbar.mode != "":
-            return
+        if self.pan_start_x is not None and self.pan_start_y is not None:
+            # Paneo
+            x0, y0 = self.ax.transData.inverted().transform((self.pan_start_x, self.pan_start_y))
+            x1, y1 = self.ax.transData.inverted().transform((event.x, event.y))
             
+            shift_x = x1 - x0
+            shift_y = y1 - y0
+            
+            self.ax.set_xlim(self.pan_start_xlim[0] - shift_x, self.pan_start_xlim[1] - shift_x)
+            self.ax.set_ylim(self.pan_start_ylim[0] - shift_y, self.pan_start_ylim[1] - shift_y)
+            self.canvas.draw_idle()
+            return
+
         if self.spatial_line_start and self.spatial_line_artist and event.inaxes == self.ax:
             x1, y1 = self.spatial_line_start
             x2, y2 = event.xdata, event.ydata
@@ -136,9 +178,14 @@ class SpatialCalibrationDialog(QDialog):
             self.lbl_pixels.setText(f"Distancia (px): {dist:.2f}")
 
     def on_mouse_release(self, event):
-        if self.toolbar.mode != "":
+        if event.button == 2:
+            self.pan_start_x = None
+            self.pan_start_y = None
+            self.pan_start_xlim = None
+            self.pan_start_ylim = None
+            QApplication.restoreOverrideCursor()
             return
-            
+
         if event.button == 1 and self.spatial_line_start:
             x1, y1 = self.spatial_line_start
             x2, y2 = event.xdata, event.ydata

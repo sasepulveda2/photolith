@@ -15,8 +15,21 @@ class ImageProcessingMixin:
     """Mixin: ImageProcessing functionality."""
 
     def simulate_optics(self):
+        # 1. Obtener patrón con transformaciones aplicadas
+        working_pattern = self.pattern.copy()
+        
+        if hasattr(self, "apply_image_transforms"):
+            working_pattern = self.apply_image_transforms(working_pattern)
+            
+        if getattr(self, "exposure_mirror_h", False):
+            import cv2
+            working_pattern = cv2.flip(working_pattern, 1)
+        if getattr(self, "exposure_mirror_v", False):
+            import cv2
+            working_pattern = cv2.flip(working_pattern, 0)
+
         # Aplicar desenfoque gaussiano (para mapa de calor)
-        psf_result = gaussian_filter(self.pattern, sigma=self.sigma)
+        psf_result = gaussian_filter(working_pattern, sigma=self.sigma)
 
         # Calcular intensidad en porcentaje para mapa de calor (derecha)
         intensity_percentage = (
@@ -26,7 +39,7 @@ class ImageProcessingMixin:
         )
 
         # Preparar imagen original para visualización (izquierda)
-        display_pattern = self.pattern.copy().astype(np.float64)
+        display_pattern = working_pattern.astype(np.float64)
 
         # Normalizar a 0-1
         if display_pattern.max() > 0:
@@ -350,6 +363,8 @@ class ImageProcessingMixin:
                 self.ax.set_xlim(current_xlim)
                 self.ax.set_ylim(current_ylim)
                 self.canvas.draw_idle()
+        elif self.pattern is not None and not self.grid_view_active:
+            self.simulate_optics()
 
         # Actualizar proyección si está activa
         if self.projector_active and self.projection_window is not None:
@@ -441,24 +456,33 @@ class ImageProcessingMixin:
 
         if self.grid_view_active and self.image_on_grid is not None:
             image = self.image_on_grid
-        elif hasattr(self, "last_intensity") and self.last_intensity is not None:
-            image = self.last_intensity
+            # Aplicar transformaciones geométricas (rotación, espejos)
+            if image is not None:
+                image = self.apply_image_transforms(image)
 
-        # Aplicar transformaciones geométricas (rotación, espejos)
-        if image is not None:
-            image = self.apply_image_transforms(image)
+            # Aplicar espejo de exposición si está activo
+            if image is not None:
+                import cv2
+                if getattr(self, "exposure_mirror_h", False):
+                    image = cv2.flip(image, 1)
+                if getattr(self, "exposure_mirror_v", False):
+                    image = cv2.flip(image, 0)
+        elif hasattr(self, "pattern") and self.pattern is not None:
+            image = self.pattern.copy()
+            # Aplicar transformaciones geométricas (rotación, espejos)
+            if hasattr(self, "apply_image_transforms"):
+                image = self.apply_image_transforms(image)
 
-        # NOTA: El downscaling NO se aplica aquí a la imagen completa
-        # Se aplica individualmente a cada CHUNK en _apply_effects_to_segment()
-        # Esto mantiene la segmentación alineada con el grid
-
-        # Aplicar espejo de exposición si está activo
-        if image is not None:
+            # Aplicar espejo de exposición si está activo
             import cv2
             if getattr(self, "exposure_mirror_h", False):
                 image = cv2.flip(image, 1)
             if getattr(self, "exposure_mirror_v", False):
                 image = cv2.flip(image, 0)
+
+        # NOTA: El downscaling NO se aplica aquí a la imagen completa
+        # Se aplica individualmente a cada CHUNK en _apply_effects_to_segment()
+        # Esto mantiene la segmentación alineada con el grid
 
         return image
 
