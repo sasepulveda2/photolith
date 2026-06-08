@@ -43,14 +43,19 @@ class CameraMixin:
 
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            for i in range(3):  # Reducido a 3 para evitar búsquedas innecesarias
+            for i in range(5):  # Buscar hasta 5 índices
                 try:
-                    # Usar DirectShow en Windows para evitar errores de obsensor
-                    cap = cv2.VideoCapture(i, cv2.CAP_DSHOW)
+                    # Usar backend por defecto en lugar de forzar CAP_DSHOW
+                    cap = cv2.VideoCapture(i)
                     if cap.isOpened():
-                        # Verificar que realmente puede leer frames
-                        ret, _ = cap.read()
-                        if ret:
+                        # Leer hasta 3 frames para dar tiempo a inicializar
+                        success = False
+                        for _ in range(3):
+                            ret, _ = cap.read()
+                            if ret:
+                                success = True
+                                break
+                        if success:
                             available_cameras.append(i)
                     cap.release()
                 except Exception:

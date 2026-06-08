@@ -66,7 +66,10 @@ class ProjectionMixin:
     def _activate_projector(self):
         """Inicializa la ventana de proyección con pantalla negra."""
         image_to_project = self._get_projection_image()
-        if image_to_project is None and not getattr(self, "_ruler_scale_view_active", False):
+        is_ruler = getattr(self, "_ruler_scale_view_active", False)
+        is_pattern_calib = getattr(self, "_pattern_calib_view_active", False)
+        
+        if image_to_project is None and not is_ruler and not is_pattern_calib:
             self._show_warning(MSG_NO_IMAGE_PROJ_TITLE, MSG_NO_IMAGE_PROJ_BODY)
             self.projector_active = False
             return

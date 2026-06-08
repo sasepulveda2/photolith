@@ -44,51 +44,7 @@ class CalibrationUIMixin:
             title.setAlignment(Qt.AlignCenter)
             calib_layout.addWidget(title)
 
-            # --- TIPO DE CALIBRACIÓN ---
-            type_layout = QHBoxLayout()
-            type_label = QLabel("Modo de Calibración:")
-            type_label.setStyleSheet("font-weight: bold; color: #03DAC6;")
-            self.calibration_mode_combo = QComboBox()
-            self.calibration_mode_combo.addItems(["Calibración de Cámara", "Calibración Manual"])
-            self.calibration_mode_combo.currentIndexChanged.connect(self.on_calibration_mode_changed)
-            type_layout.addWidget(type_label)
-            type_layout.addWidget(self.calibration_mode_combo)
-            type_layout.addStretch()
-            calib_layout.addLayout(type_layout)
-
-            # -----------------------------------------------------------------
-            # CONTENEDOR PARA CALIBRACIÓN MANUAL
-            # -----------------------------------------------------------------
-            self.manual_calib_widget = QWidget()
-            manual_layout = QVBoxLayout(self.manual_calib_widget)
-            manual_layout.setContentsMargins(20, 20, 20, 20)
-            manual_layout.setSpacing(15)
-            
-            manual_title = QLabel("🔧 Calibración Manual")
-            manual_title.setStyleSheet("font-size: 14px; font-weight: bold; color: #03DAC6;")
-            manual_layout.addWidget(manual_title)
-
-            self.manual_calib_white_btn = QPushButton("⬜ Proyectar Patrón Blanco (Medir)")
-            self.manual_calib_white_btn.clicked.connect(self.project_white_calibration_pattern)
-            manual_layout.addWidget(self.manual_calib_white_btn)
-
-            from PyQt5.QtWidgets import QDoubleSpinBox
-            manual_exp_layout = QHBoxLayout()
-            manual_exp_layout.addWidget(QLabel("Tiempo Exposición (s):"))
-            self.manual_calib_time_spin = QDoubleSpinBox()
-            self.manual_calib_time_spin.setRange(0.1, 1000.0)
-            self.manual_calib_time_spin.setValue(10.0)
-            manual_exp_layout.addWidget(self.manual_calib_time_spin)
-            manual_exp_layout.addStretch()
-            manual_layout.addLayout(manual_exp_layout)
-
-            self.manual_calib_expose_btn = QPushButton("▶️ Iniciar Exposición")
-            self.manual_calib_expose_btn.clicked.connect(self.start_manual_calib_exposure)
-            manual_layout.addWidget(self.manual_calib_expose_btn)
-            manual_layout.addStretch()
-            
-            self.manual_calib_widget.setVisible(False)
-            calib_layout.addWidget(self.manual_calib_widget)
+            # Se ha eliminado el selector de modo manual
 
             # Pestañas (Calibración Cámara)
             self.calibration_tabs = QTabWidget()
@@ -394,7 +350,7 @@ class CalibrationUIMixin:
                 facecolor="#121212" if self.dark_mode else "#FFFFFF"
             )
             self.calib_preview_canvas = FigureCanvas(self.calib_preview_figure)
-            self.calib_preview_canvas.setMinimumHeight(300)
+            self.calib_preview_canvas.setMinimumHeight(150)
             self.calib_preview_ax = self.calib_preview_figure.add_subplot(111)
             self.calib_preview_ax.set_facecolor(
                 "#1E1E1E" if self.dark_mode else "#F5F5F5"
@@ -498,7 +454,7 @@ class CalibrationUIMixin:
                 facecolor="#121212" if self.dark_mode else "#FFFFFF"
             )
             self.gray_preview_canvas = FigureCanvas(self.gray_preview_figure)
-            self.gray_preview_canvas.setMinimumHeight(250)
+            self.gray_preview_canvas.setMinimumHeight(150)
             self.gray_preview_ax = self.gray_preview_figure.add_subplot(111)
             self.gray_preview_ax.set_facecolor(
                 "#1E1E1E" if self.dark_mode else "#F5F5F5"
@@ -597,7 +553,7 @@ class CalibrationUIMixin:
                 facecolor="#121212" if self.dark_mode else "#FFFFFF"
             )
             self.intensity_map_canvas = FigureCanvas(self.intensity_map_figure)
-            self.intensity_map_canvas.setMinimumHeight(300)
+            self.intensity_map_canvas.setMinimumHeight(150)
             self.intensity_map_ax = self.intensity_map_figure.add_subplot(111)
             self.intensity_map_ax.set_facecolor(
                 "#1E1E1E" if self.dark_mode else "#F5F5F5"
@@ -768,7 +724,7 @@ class CalibrationUIMixin:
                 facecolor="#121212" if self.dark_mode else "#FFFFFF"
             )
             self.threshold_preview_canvas = FigureCanvas(self.threshold_preview_figure)
-            self.threshold_preview_canvas.setMinimumHeight(250)
+            self.threshold_preview_canvas.setMinimumHeight(150)
             self.threshold_preview_ax = self.threshold_preview_figure.add_subplot(111)
             self.threshold_preview_ax.set_facecolor(
                 "#1E1E1E" if self.dark_mode else "#F5F5F5"
@@ -927,7 +883,7 @@ class CalibrationUIMixin:
                 facecolor="#121212" if self.dark_mode else "#FFFFFF"
             )
             self.attenuation_canvas = FigureCanvas(self.attenuation_figure)
-            self.attenuation_canvas.setMinimumHeight(300)
+            self.attenuation_canvas.setMinimumHeight(150)
             self.attenuation_ax = self.attenuation_figure.add_subplot(111)
             self.attenuation_ax.set_facecolor(
                 "#1E1E1E" if self.dark_mode else "#F5F5F5"
@@ -974,7 +930,7 @@ class CalibrationUIMixin:
 
             # Establecer tamaño mínimo cómodo para el área de calibración
             calibration_scroll.setMinimumWidth(800)
-            calibration_scroll.setMinimumHeight(600)
+            calibration_scroll.setMinimumHeight(400)
 
             calib_layout.addWidget(calibration_scroll)
 
@@ -1051,25 +1007,4 @@ class CalibrationUIMixin:
                 self.start_basler_button.setEnabled(False)
             self.load_calib_image_button.setEnabled(True)
 
-    def on_calibration_mode_changed(self, index):
-        """Maneja el cambio entre Calibración de Cámara y Calibración Manual."""
-        if index == 0:
-            # Calibración de Cámara
-            if hasattr(self, "calibration_tabs"):
-                self.calibration_tabs.setVisible(True)
-            if hasattr(self, "manual_calib_widget"):
-                self.manual_calib_widget.setVisible(False)
-        else:
-            # Calibración Manual
-            if hasattr(self, "calibration_tabs"):
-                self.calibration_tabs.setVisible(False)
-            if hasattr(self, "manual_calib_widget"):
-                self.manual_calib_widget.setVisible(True)
-
-    def start_manual_calib_exposure(self):
-        """Inicia una exposición con el tiempo definido en calibración manual."""
-        time_s = self.manual_calib_time_spin.value()
-        if hasattr(self, "time_input"):
-            self.time_input.setText(str(time_s))
-        if hasattr(self, "start_exposure"):
-            self.start_exposure()
+ 
