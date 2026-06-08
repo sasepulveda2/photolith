@@ -4,6 +4,7 @@ Mixin de analisis de intensidad.
 Carga de imagenes de calibracion, analisis de brillo por zonas/pixeles,
 estadisticas de uniformidad y previsualizacion de umbrales binarios.
 """
+from matplotlib.backends.backend_qtagg import FigureCanvas
 import os
 
 import cv2

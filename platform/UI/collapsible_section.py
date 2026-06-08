@@ -19,6 +19,7 @@ class CollapsibleSection(QWidget):
         if self._simulator and self.section_id:
             expanded = self._simulator.config.get(f"section_expanded_{self.section_id}", expanded)
 
+        # pyrefly: ignore [unexpected-keyword]
         self.toggle_button = QToolButton(text=title)
         self.toggle_button.setCheckable(True)
         self.toggle_button.setChecked(expanded)

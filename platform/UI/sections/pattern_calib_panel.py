@@ -215,7 +215,7 @@ class PatternCalibPanelBuilder:
         self.chk_cd_invert.setChecked(config.get('cd_invert', False))
         cd_layout.addWidget(self.chk_cd_invert)
         
-        self.btn_save_cd_image = QPushButton("💾 Guardar Patrón como Imagen")
+        self.btn_save_cd_image = QPushButton("💾 Guardar patrón como imagen")
         self.btn_save_cd_image.clicked.connect(self.save_cd_image)
         cd_layout.addWidget(self.btn_save_cd_image)
         
