@@ -1,3 +1,9 @@
 {
-    "mm_per_pixel": 0.007235230665691731
+    "mm_per_pixel": 0.007344656384290256,
+    "exp_base_time": 0.0,
+    "exp_step_time": 1.0,
+    "exp_stripes": 20,
+    "exp_direction": "C\u00edrculo Central",
+    "exp_mode": "Incremento de \u00c1rea Blanca",
+    "exp_invert": false
 }
