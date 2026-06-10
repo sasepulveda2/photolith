@@ -52,7 +52,6 @@ class ToolbarCanvasBuilder:
 
         self.projector_button = QPushButton("🎬 Proyectar")
         self.projector_button.clicked.connect(self.toggle_projector)
-        self.projector_button.setVisible(False)
 
         self.ruler_scale_button = QPushButton("📏 Regla de Escala")
         self.ruler_scale_button.clicked.connect(self.toggle_ruler_scale_view)

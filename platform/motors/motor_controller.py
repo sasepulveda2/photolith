@@ -84,7 +84,7 @@ class CrealityController:
         degrees = total_steps * 1.8
 
         # Comando G-Code dirigido al motor físico mapeado
-        self._write(f"G1 {physical_motor.upper()}{physical_distance:.4f} F600\n")
+        self._write(f"G1 {physical_motor.upper()}{physical_distance:.4f} F150\n")
 
         print(
             f"Lógico: {axis} ➔ Físico: {physical_motor} | Steps: {total_steps} | Dist: {distance:.4f}mm | Deg: {degrees}° | Multi: x{multiplier}",

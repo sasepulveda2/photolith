@@ -79,6 +79,8 @@ class PatternCalibPanelBuilder:
                     config = json.load(f)
             except:
                 pass
+        if not isinstance(config, dict):
+            config = {}
         self.combo_motor_axis.setCurrentText(config.get('motor_calib_axis', "Eje X (Líneas Verticales)"))
         motor_form.addRow("Eje:", self.combo_motor_axis)
         
@@ -224,7 +226,7 @@ class PatternCalibPanelBuilder:
         form_layout.addRow("Franjas:", self.input_exp_stripes)
         
         self.combo_exp_dir = QComboBox()
-        self.combo_exp_dir.addItems(["Horizontal", "Vertical", "Rectángulo Central", "Círculo Central", "Triángulo Central"])
+        self.combo_exp_dir.addItems(["Horizontal", "Vertical", "Rectángulo Central", "Círculo Central", "Triángulo Central", "Líneas Múltiples (Horizontal)", "Líneas Múltiples (Vertical)"])
         self.combo_exp_dir.setCurrentText(config.get('exp_direction', "Horizontal"))
         form_layout.addRow("Dirección:", self.combo_exp_dir)
 
@@ -232,8 +234,46 @@ class PatternCalibPanelBuilder:
         self.combo_exp_mode.addItems(["Decremento", "Incremento"])
         self.combo_exp_mode.setCurrentText(config.get('exp_mode', "Decremento"))
         form_layout.addRow("Modo:", self.combo_exp_mode)
-
+        
         exposure_layout.addLayout(form_layout)
+        
+        # --- Parámetros de Rejilla (Ocultos por defecto) ---
+        self.grating_container = QWidget()
+        grating_form = QFormLayout(self.grating_container)
+        grating_form.setContentsMargins(0, 0, 0, 0)
+        
+        self.input_grating_lines = QSpinBox()
+        self.input_grating_lines.setRange(2, 500)
+        self.input_grating_lines.setValue(config.get('grating_lines', 10))
+        grating_form.addRow("Cant. Líneas:", self.input_grating_lines)
+        
+        self.input_grating_width = QSpinBox()
+        self.input_grating_width.setRange(1, 1000)
+        self.input_grating_width.setValue(config.get('grating_width', 10))
+        grating_form.addRow("Grosor (px):", self.input_grating_width)
+        
+        self.input_grating_spacing = QSpinBox()
+        self.input_grating_spacing.setRange(1, 1000)
+        self.input_grating_spacing.setValue(config.get('grating_spacing', 10))
+        grating_form.addRow("Espaciado (px):", self.input_grating_spacing)
+        
+        exposure_layout.addWidget(self.grating_container)
+        self.grating_container.setVisible(False)
+        
+        def toggle_grating_params(text):
+            is_grating = "Líneas Múltiples" in text
+            self.grating_container.setVisible(is_grating)
+            self.input_exp_stripes.setEnabled(not is_grating)
+            if is_grating:
+                self.input_exp_stripes.setValue(self.input_grating_lines.value())
+            
+        self.combo_exp_dir.currentTextChanged.connect(toggle_grating_params)
+        toggle_grating_params(self.combo_exp_dir.currentText())
+        # --------------------------------------------------
+        
+        self.lbl_exp_dimensions = QLabel("Dimensión por franja: -")
+        self.lbl_exp_dimensions.setStyleSheet("color: #00BFA5; font-style: italic; font-size: 12px;")
+        exposure_layout.addWidget(self.lbl_exp_dimensions)
         
         self.chk_exp_invert = QCheckBox("Invertir colores (Fondo oscuro, figura clara)")
         self.chk_exp_invert.setChecked(config.get('exp_invert', False))
@@ -250,6 +290,17 @@ class PatternCalibPanelBuilder:
         self.combo_exp_dir.currentIndexChanged.connect(on_param_changed)
         self.combo_exp_mode.currentIndexChanged.connect(on_param_changed)
         self.chk_exp_invert.stateChanged.connect(on_param_changed)
+        
+        self.input_grating_lines.valueChanged.connect(on_param_changed)
+        self.input_grating_width.valueChanged.connect(on_param_changed)
+        self.input_grating_spacing.valueChanged.connect(on_param_changed)
+        
+        # Synchronize lines with stripes directly when changed
+        def on_lines_changed(val):
+            if "Líneas Múltiples" in self.combo_exp_dir.currentText():
+                self.input_exp_stripes.setValue(val)
+                
+        self.input_grating_lines.valueChanged.connect(on_lines_changed)
         
         self.lbl_exp_status = QLabel("Estado: Inactivo")
         self.lbl_exp_status.setStyleSheet("font-weight: bold; color: #00BFA5;")

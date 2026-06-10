@@ -228,6 +228,12 @@ class FileManagementMixin:
 
                 image = cv2.imread(file_path, cv2.IMREAD_GRAYSCALE)
                 self.pattern = image / 255.0
+                
+                if getattr(self, "grid_view_active", False): self.toggle_grid_view()
+                if getattr(self, "calibration_view_active", False): self.toggle_calibration_view()
+                if getattr(self, "_ruler_scale_view_active", False): self.toggle_ruler_scale_view()
+                if getattr(self, "_pattern_calib_view_active", False): self.toggle_pattern_calibration_view()
+                
                 self.simulate_optics()
                 self._refresh_invert_button_state()
 
@@ -274,6 +280,11 @@ class FileManagementMixin:
             self._last_segmentation_bounds = None
             self._last_segmentation_grid_config = None
             self._last_image_position = None
+
+            if getattr(self, "grid_view_active", False): self.toggle_grid_view()
+            if getattr(self, "calibration_view_active", False): self.toggle_calibration_view()
+            if getattr(self, "_ruler_scale_view_active", False): self.toggle_ruler_scale_view()
+            if getattr(self, "_pattern_calib_view_active", False): self.toggle_pattern_calibration_view()
 
             self.simulate_optics()
             self.projector_button.setVisible(True)
@@ -613,6 +624,12 @@ class FileManagementMixin:
         ):
             image = cv2.imread(item_path, cv2.IMREAD_GRAYSCALE)
             self.pattern = image / 255.0
+            
+            if getattr(self, "grid_view_active", False): self.toggle_grid_view()
+            if getattr(self, "calibration_view_active", False): self.toggle_calibration_view()
+            if getattr(self, "_ruler_scale_view_active", False): self.toggle_ruler_scale_view()
+            if getattr(self, "_pattern_calib_view_active", False): self.toggle_pattern_calibration_view()
+            
             self.simulate_optics()
             self.projector_button.setVisible(True)
             self.update_projector_button()

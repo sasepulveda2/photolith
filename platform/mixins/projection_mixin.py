@@ -70,9 +70,7 @@ class ProjectionMixin:
         is_pattern_calib = getattr(self, "_pattern_calib_view_active", False)
         
         if image_to_project is None and not is_ruler and not is_pattern_calib:
-            self._show_warning(MSG_NO_IMAGE_PROJ_TITLE, MSG_NO_IMAGE_PROJ_BODY)
-            self.projector_active = False
-            return
+            self.log_to_console("Advertencia: No hay imagen principal cargada, abriendo proyector en negro.", "WARNING")
 
         self.projection_window = ProjectionWindow(self)
         self.projection_window.set_inversion(getattr(self, "invert_projection", False))
@@ -154,7 +152,8 @@ class ProjectionMixin:
         if not hasattr(self, "projector_button"):
             return
 
-        self.has_second_monitor = self.check_second_monitor()
+        from PyQt5.QtWidgets import QApplication
+        self.has_second_monitor = len(QApplication.screens()) > 1
 
         if not self.has_second_monitor:
             led, status = "🟠", "DESCONECTADO"

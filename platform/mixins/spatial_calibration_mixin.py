@@ -99,10 +99,7 @@ class SpatialCalibrationMixin:
         # Configurar cursor cruzado
         self._spatial_cursor = Cursor(self.ax, useblit=True, color='cyan', linewidth=1)
 
-        # Encender el proyector automáticamente en negro si estaba apagado
-        if not getattr(self, "projector_active", False):
-            if hasattr(self, "toggle_projector"):
-                self.toggle_projector()
+
 
         # Renderizamos el contenido inicial (Tamaño Espacial = 0)
         self._update_pattern_calib_canvas(self.pattern_calib_stacked.currentIndex())
@@ -194,10 +191,7 @@ class SpatialCalibrationMixin:
                 self.ax.axis('off')
                 self.canvas.draw_idle()
 
-        # Apagar proyector si quedó encendido al salir de calibración
-        if getattr(self, "projector_active", False):
-            if hasattr(self, "toggle_projector"):
-                self.toggle_projector()
+
 
         self.log_to_console("Modo Calibración de Patrón desactivado.", "INFO")
 
@@ -476,6 +470,11 @@ class SpatialCalibrationMixin:
         if hasattr(self, "chk_exp_invert"):
             config['exp_invert'] = self.chk_exp_invert.isChecked()
             
+        if hasattr(self, "input_grating_lines"):
+            config['grating_lines'] = self.input_grating_lines.value()
+            config['grating_width'] = self.input_grating_width.value()
+            config['grating_spacing'] = self.input_grating_spacing.value()
+            
         if hasattr(self, "input_cd_limit"):
             config['cd_limit'] = self.input_cd_limit.value()
             config['cd_spacing'] = self.input_cd_spacing.value()
@@ -484,12 +483,89 @@ class SpatialCalibrationMixin:
                 config['cd_invert'] = self.chk_cd_invert.isChecked()
             if hasattr(self, "input_cd_exp_time"):
                 config['cd_exp_time'] = self.input_cd_exp_time.value()
-            
+                
         try:
             with open(CONFIG_FILE, 'w', encoding='utf-8') as f:
                 json.dump(config, f, indent=4)
         except Exception as e:
             print(f"Error guardando parametros de exposicion: {e}")
+                
+
+        # Actualizar dimensiones dinámicamente
+        if hasattr(self, "_update_exposure_dimensions"):
+            self._update_exposure_dimensions()
+            
+    def _update_exposure_dimensions(self):
+        """Calcula y actualiza el texto de las dimensiones físicas de la franja."""
+        if getattr(self, "pattern_calib_stacked", None) is None or self.pattern_calib_stacked.currentIndex() != 1:
+            return
+            
+        try:
+            self._exp_direction = self.combo_exp_dir.currentText()
+            
+            if "Líneas Múltiples" in self._exp_direction and hasattr(self, "input_grating_lines"):
+                self._exp_total_stripes = int(self.input_grating_lines.value())
+            else:
+                self._exp_total_stripes = self.input_exp_stripes.value()
+            
+            if hasattr(self, "lbl_exp_dimensions"):
+                if self._exp_direction in ["Horizontal", "Vertical"]:
+                    if getattr(self.projection_window, "screen_geometry", None):
+                        h = self.projection_window.screen_geometry.height()
+                        w = self.projection_window.screen_geometry.width()
+                    else:
+                        h, w = 1080, 1920
+                    
+                    if self._exp_direction == "Horizontal":
+                        px_per_block = w / max(1, self._exp_total_stripes)
+                    else:
+                        px_per_block = h / max(1, self._exp_total_stripes)
+                        
+                    mm_per_px = getattr(self, "mm_per_pixel", None)
+                    if mm_per_px:
+                        mm = px_per_block * mm_per_px
+                        um = mm * 1000
+                        self.lbl_exp_dimensions.setText(f"Dimensión por franja: {px_per_block:.1f} px | {mm:.2f} mm | {um:.1f} µm")
+                    else:
+                        self.lbl_exp_dimensions.setText(f"Dimensión por franja: {px_per_block:.1f} px (Calib. física pendiente)")
+                else:
+                    self.lbl_exp_dimensions.setText("Dimensión por franja: Variable (forma central)")
+        except AttributeError:
+            pass
+            
+    def _preview_exposure_matrix(self):
+        """Genera una vista previa del primer bloque en el canvas y actualiza dimensiones."""
+        if not hasattr(self, "ax") or getattr(self, "pattern_calib_stacked", None) is None:
+            return
+            
+        if self.pattern_calib_stacked.currentIndex() != 1:
+            return
+            
+        try:
+            self._exp_total_stripes = self.input_exp_stripes.value()
+            self._exp_direction = self.combo_exp_dir.currentText()
+            self._exp_mode = self.combo_exp_mode.currentText()
+            self._exp_invert_colors = self.chk_exp_invert.isChecked() if hasattr(self, "chk_exp_invert") else False
+            
+            self._exp_current_stripe = 0
+            matrix = self._draw_current_stripe()
+            
+            # Invertir para enviar (simular proyector invertido)
+            matrix_to_send = matrix.copy()
+            if getattr(self, "invert_projection", False):
+                matrix_to_send = 255 - matrix_to_send
+                
+            self.ax.clear()
+            self.ax.imshow(matrix, cmap='gray')
+            self.ax.axis('off')
+            if hasattr(self, "canvas"):
+                self.canvas.draw_idle()
+                
+
+        except AttributeError:
+            pass
+            
+
 
     # ═══════════════════════════════════════════════════════════════════════
     # LOGICA DE MATRIZ DE EXPOSICION DINAMICA
@@ -498,11 +574,9 @@ class SpatialCalibrationMixin:
     def start_exposure_matrix(self):
         """inicia la matriz de exposicion dinamica leyendo parametros y proyectando el fondo blanco."""
         if not getattr(self, "projector_active", False):
-            if hasattr(self, "toggle_projector"):
-                self.toggle_projector()
-            if not getattr(self, "projector_active", False):
-                self.log_to_console("error: proyector inactivo o desconectado.", "error")
-                return
+            if hasattr(self, "log_to_console"):
+                self.log_to_console("error: el proyector no esta activo. enciéndelo primero con el botón '🎬 Proyectar'.", "error")
+            return
 
         proj = getattr(self, "projection_window", None)
         if not proj or not proj.screen_geometry:
@@ -515,10 +589,14 @@ class SpatialCalibrationMixin:
         try:
             base_time_s = float(self.input_exp_base.value())
             step_time_s = float(self.input_exp_step.value())
-            self._exp_total_stripes = int(self.input_exp_stripes.value())
             self._exp_direction = self.combo_exp_dir.currentText()
             self._exp_mode = self.combo_exp_mode.currentText()
-            self._exp_invert_colors = not self.chk_exp_invert.isChecked() if hasattr(self, "chk_exp_invert") else False
+            self._exp_invert_colors = self.chk_exp_invert.isChecked() if hasattr(self, "chk_exp_invert") else False
+            
+            if "Líneas Múltiples" in self._exp_direction and hasattr(self, "input_grating_lines"):
+                self._exp_total_stripes = int(self.input_grating_lines.value())
+            else:
+                self._exp_total_stripes = int(self.input_exp_stripes.value())
         except ValueError:
             self.log_to_console("error: parametros de exposicion invalidos.", "error")
             return
@@ -528,24 +606,42 @@ class SpatialCalibrationMixin:
             return
 
         self._exp_step_ms = int(step_time_s * 1000)
-        # Proyectar fondo negro absoluto durante el tiempo base de espera (pre-exposicion)
-        import numpy as np
-        self._exp_matrix = np.zeros((h, w), dtype=np.uint8)
-        if getattr(self, "_exp_invert_colors", False):
-            self._exp_matrix = 255 - self._exp_matrix
+        
+        self._exp_current_stripe = 0
+        self._exp_matrix = self._draw_current_stripe()
 
         matrix_to_send = self._exp_matrix.copy()
         if getattr(self, "invert_projection", False):
             matrix_to_send = 255 - matrix_to_send
             
         proj.update_segment(matrix_to_send)
+        
+        # Mostrar vista previa en el canvas (Optimizado)
+        if hasattr(self, "ax"):
+            if not hasattr(self, "_exp_image_artist") or self._exp_image_artist not in self.ax.images:
+                self.ax.clear()
+                self._exp_image_artist = self.ax.imshow(matrix_to_send, cmap='gray')
+                self.ax.axis('off')
+            else:
+                self._exp_image_artist.set_data(matrix_to_send)
+                # Opcionalmente, ajustar límites de contraste si cambian drásticamente
+                self._exp_image_artist.set_clim(vmin=0, vmax=255)
+            if hasattr(self, "canvas"):
+                self.canvas.draw_idle()
 
-        self._exp_current_stripe = 0
+        self._exp_current_stripe += 1
 
         if hasattr(self, "lbl_exp_status"):
             self.lbl_exp_status.setText("estado: tiempo base")
 
-        self._exp_timer.start(int(base_time_s * 1000))
+        import time
+        self._exp_start_time = time.time()
+        self._exp_ui_timer.start(100)
+        # Si el tiempo base es 0, usar el intervalo de paso como intervalo inicial
+        # Esto evita que QTimer con 0ms dispare inmediatamente y reduzca la duración
+        # total a (franjas - 1) * paso cuando el usuario espera que sean N * paso.
+        start_interval_ms = int(base_time_s * 1000) if base_time_s > 0 else self._exp_step_ms
+        self._exp_timer.start(start_interval_ms)
 
     def _update_exp_time_ui(self):
         """actualiza la etiqueta de tiempo transcurrido en tiempo real."""
@@ -599,6 +695,38 @@ class SpatialCalibrationMixin:
             if r > 0:
                 cv2.circle(matrix, (cx, cy), r, 255, -1)
                 
+        elif self._exp_direction in ["Líneas Múltiples (Horizontal)", "Líneas Múltiples (Vertical)"]:
+            try:
+                g_lines = int(self.input_grating_lines.value())
+                g_width = int(self.input_grating_width.value())
+                g_spacing = int(self.input_grating_spacing.value())
+            except Exception:
+                g_lines, g_width, g_spacing = 10, 10, 10
+                
+            total_size = (g_lines * g_width) + ((g_lines - 1) * g_spacing)
+            
+            if "Horizontal" in self._exp_direction:
+                # Líneas horizontales, el barrido expone líneas enteras
+                start_y = cy - (total_size // 2)
+                lines_to_show = int(math.ceil(g_lines * f))
+                
+                for i in range(lines_to_show):
+                    y0 = start_y + i * (g_width + g_spacing)
+                    y1 = y0 + g_width
+                    if y1 > 0 and y0 < h:
+                        matrix[max(0, y0):min(h, y1), :] = 255
+                            
+            else:
+                # Líneas verticales, el barrido expone líneas enteras
+                start_x = cx - (total_size // 2)
+                lines_to_show = int(math.ceil(g_lines * f))
+                
+                for i in range(lines_to_show):
+                    x0 = start_x + i * (g_width + g_spacing)
+                    x1 = x0 + g_width
+                    if x1 > 0 and x0 < w:
+                        matrix[:, max(0, x0):min(w, x1)] = 255
+                            
         elif self._exp_direction == "Triángulo Central":
             pts = np.array([
                 [cx, 0],
@@ -620,12 +748,6 @@ class SpatialCalibrationMixin:
             self.stop_exposure_matrix()
             return
 
-        # iniciar el cronometro de ui justo cuando empiezan los incrementos (ignorando el tiempo base)
-        if self._exp_current_stripe == 0:
-            import time
-            self._exp_start_time = time.time()
-            self._exp_ui_timer.start(100)
-
         # si ya se aplicaron todas las franjas y se ha esperado el ultimo step, apagar
         if self._exp_current_stripe >= self._exp_total_stripes:
             if hasattr(self, "lbl_exp_status"):
@@ -636,6 +758,18 @@ class SpatialCalibrationMixin:
             
             if getattr(self, "projection_window", None) is not None:
                 self.projection_window.show_black_screen()
+                
+            if hasattr(self, "ax"):
+                import numpy as np
+                if hasattr(self, "_exp_image_artist"):
+                    if getattr(self.projection_window, "screen_geometry", None):
+                        h = self.projection_window.screen_geometry.height()
+                        w = self.projection_window.screen_geometry.width()
+                    else:
+                        h, w = 1080, 1920
+                    self._exp_image_artist.set_data(np.zeros((h, w), dtype=np.uint8))
+                if hasattr(self, "canvas"):
+                    self.canvas.draw_idle()
             return
 
         self._exp_matrix = self._draw_current_stripe()
@@ -645,6 +779,19 @@ class SpatialCalibrationMixin:
             matrix_to_send = 255 - matrix_to_send
             
         self.projection_window.update_segment(matrix_to_send)
+        
+        # Mostrar vista previa en el canvas (Optimizado)
+        if hasattr(self, "ax"):
+            if not hasattr(self, "_exp_image_artist") or self._exp_image_artist not in self.ax.images:
+                self.ax.clear()
+                self._exp_image_artist = self.ax.imshow(matrix_to_send, cmap='gray')
+                self.ax.axis('off')
+            else:
+                self._exp_image_artist.set_data(matrix_to_send)
+                self._exp_image_artist.set_clim(vmin=0, vmax=255)
+            if hasattr(self, "canvas"):
+                self.canvas.draw_idle()
+                
         self._exp_current_stripe += 1
 
         if hasattr(self, "lbl_exp_status"):
@@ -668,6 +815,18 @@ class SpatialCalibrationMixin:
         proj = getattr(self, "projection_window", None)
         if proj:
             proj.show_black_screen()
+            
+        if hasattr(self, "ax"):
+            import numpy as np
+            if hasattr(self, "_exp_image_artist"):
+                if getattr(self.projection_window, "screen_geometry", None):
+                    h = self.projection_window.screen_geometry.height()
+                    w = self.projection_window.screen_geometry.width()
+                else:
+                    h, w = 1080, 1920
+                self._exp_image_artist.set_data(np.zeros((h, w), dtype=np.uint8))
+            if hasattr(self, "canvas"):
+                self.canvas.draw_idle()
 
     # ═══════════════════════════════════════════════════════════════════════
     # LOGICA DE TEST DE DIMENSION CRITICA (CD)

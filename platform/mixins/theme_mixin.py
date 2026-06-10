@@ -199,6 +199,9 @@ class ThemeMixin:
         if getattr(self, "_ruler_scale_view_active", False):
             self.toggle_ruler_scale_view()
 
+        if getattr(self, "_pattern_calib_view_active", False):
+            self.toggle_pattern_calibration_view()
+
         if hasattr(self, "toggle_view_button"):
             self.toggle_view_button.setText("🖼️ Vista Imagen")
         
@@ -282,6 +285,8 @@ class ThemeMixin:
                 self.toggle_grid_view()
             if getattr(self, "_ruler_scale_view_active", False):
                 self.toggle_ruler_scale_view()
+            if getattr(self, "_pattern_calib_view_active", False):
+                self.toggle_pattern_calibration_view()
 
             if hasattr(self, "calibration_button"):
                 self.calibration_button.setText("🖼️ Vista Normal")
@@ -377,6 +382,9 @@ class ThemeMixin:
             if not is_active:
                 self.projector_button.setEnabled(False)
                 self.projector_button.setToolTip(TOOLTIP_PROJECTOR_DISABLE)
+                
+        if hasattr(self, "update_projector_button"):
+            self.update_projector_button()
 
     def _update_projection_visibility(self, has_second: bool) -> None:
         """Oculta o muestra campos de escala/resolución según el monitor y proyección."""
