@@ -280,7 +280,7 @@ class PreferencesMixin:
         cancel_button.clicked.connect(dialog.reject)
         button_layout.addWidget(cancel_button)
 
-        apply_button = QPushButton("  Aplicar")
+        apply_button = QPushButton("Aplicar")
         apply_button.setDefault(True)
         apply_button.clicked.connect(dialog.accept)
         button_layout.addWidget(apply_button)
@@ -431,7 +431,7 @@ class PreferencesMixin:
         separator1.setFixedHeight(1)
         layout.addWidget(separator1)
 
-        delay_title = QLabel("⏸️ Tiempo entre Ciclos")
+        delay_title = QLabel(" Tiempo entre ciclos")
         delay_title.setStyleSheet(
             "font-size: 14px; font-weight: bold; margin-top: 10px;"
         )

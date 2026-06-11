@@ -122,9 +122,11 @@ QComboBox QAbstractItemView::item:hover {
 
 /* ── CheckBox ───────────────────────────────────────────────── */
 QCheckBox {
-    color: #000000;
+    color: #333333;
     spacing: 8px;
     padding: 6px;
+    background-color: transparent;
+    border: none;
 }
 QCheckBox::indicator {
     width: 20px;
@@ -215,7 +217,7 @@ QLabel#statLabel {
 
 QWidget#statsContainer {
     background-color: #E8E8E8;
-    border: 1px solid #D0D0D0;
+    border: none;
     border-radius: 8px;
 }
 
