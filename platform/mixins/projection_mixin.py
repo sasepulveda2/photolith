@@ -80,8 +80,8 @@ class ProjectionMixin:
         self.projection_window.show_black_screen()
 
         self.log_to_console(
-            "✓ Proyector activado - Pantalla en NEGRO\n"
-            "  La imagen se proyectará al iniciar Exposición, Frecuencia o Secuencia",
+            "Proyector activado - Pantalla en NEGRO\n"
+            "La imagen se proyectará al iniciar Exposición, Frecuencia o Secuencia",
             "INFO",
         )
         self._set_projection_ui_visibility(True)
@@ -137,7 +137,7 @@ class ProjectionMixin:
             self.force_stop_frequency()
         if getattr(self, "sequence_running", False):
             self.stop_sequence()
-            self.log_to_console("⏹️ Secuencia detenida - Proyector desactivado", "INFO")
+            self.log_to_console("Secuencia detenida - Proyector desactivado", "INFO")
 
     def on_projection_closed(self):
         """Callback cuando el usuario cierra la ventana secundaria manualmente."""
@@ -156,13 +156,13 @@ class ProjectionMixin:
         self.has_second_monitor = len(QApplication.screens()) > 1
 
         if not self.has_second_monitor:
-            led, status = "🟠", "DESCONECTADO"
+            led, status = "", "DESCONECTADO"
             self.projector_button.setStyleSheet(STYLE_PROJECTOR_BTN_DISCONNECTED)
         elif getattr(self, "projector_active", False):
-            led, status = "🟢", "ACTIVO"
+            led, status = "", "ACTIVO"
             self.projector_button.setStyleSheet("")
         else:
-            led, status = "🔴", "INACTIVO"
+            led, status = "", "INACTIVO"
             self.projector_button.setStyleSheet("")
             
         self.projector_button.setText(f"{led} Proyectar ({status})")
@@ -176,7 +176,7 @@ class ProjectionMixin:
         self.is_projecting_full_image = getattr(self, "is_projecting_full_image", False)
 
         if not getattr(self, "projector_active", False):
-            self._show_warning(MSG_PROJECTOR_INACTIVE_TITLE, "Use el botón '🎬 Proyectar' primero.")
+            self._show_warning(MSG_PROJECTOR_INACTIVE_TITLE, "Use el botón 'Proyectar' primero.")
             return
 
         if getattr(self, "projection_window", None) is None:
@@ -202,10 +202,10 @@ class ProjectionMixin:
         self.is_projecting_full_image = True
         
         if hasattr(self, "project_image_button"):
-            self.project_image_button.setText("⏹️ Detener Imagen Completa")
+            self.project_image_button.setText("Detener imagen completa")
             self.project_image_button.setStyleSheet(STYLE_BTN_ACTIVE_RED)
 
-        self.log_to_console("🖼️ Proyectando imagen completa en monitor secundario (Brillo 100%)", "SUCCESS")
+        self.log_to_console("Proyectando imagen completa en monitor secundario (Brillo 100%)", "SUCCESS")
 
     def _stop_full_image_projection(self):
         # Restaurar brillo original
@@ -216,10 +216,10 @@ class ProjectionMixin:
         self.is_projecting_full_image = False
         
         if hasattr(self, "project_image_button"):
-            self.project_image_button.setText("🖼️ Proyectar Imagen Completa")
+            self.project_image_button.setText("Proyectar imagen completa")
             self.project_image_button.setStyleSheet("")
             
-        self.log_to_console("⬛ Proyección de imagen completa detenida.", "INFO")
+        self.log_to_console("Proyección de imagen completa detenida.", "INFO")
 
     # ═══════════════════════════════════════════════════════════════════════════
     # MODO EXPOSICIÓN TEMPORIZADA
@@ -326,7 +326,7 @@ class ProjectionMixin:
         elapsed = float(time.time()) - self.exposure_start_time
         remaining = max(0.0, self.exposure_duration - elapsed)
         
-        cycle_info = f"⏱️ Ciclo {self.exposure_cycles_completed + 1}/{self.exposure_cycles_total}"
+        cycle_info = f"Ciclo {self.exposure_cycles_completed + 1}/{self.exposure_cycles_total}"
         if remaining < 1.0:
             self.exposure_status_label.setText(f"{cycle_info} | Tiempo restante: {remaining*1000:.3f}ms")
         else:
@@ -346,7 +346,7 @@ class ProjectionMixin:
         self.brightness_slider.setValue(0)
         self.update_brightness()
         self.exposure_status_label.setText(
-            f"⏸️ Ciclo {self.exposure_cycles_completed}/{self.exposure_cycles_total} completado | Preparando siguiente ciclo..."
+            f"Ciclo {self.exposure_cycles_completed}/{self.exposure_cycles_total} completado | Preparando siguiente ciclo..."
         )
         
         inter_delay = getattr(self, "inter_cycle_delay", 0)
@@ -363,7 +363,7 @@ class ProjectionMixin:
 
         b_mode = getattr(self, "final_brightness_mode", "zero")
         self.exposure_status_label.setText(
-            f"✅ Exposición completada: {self.exposure_cycles_completed} ciclo(s) | Brillo final: {'0%' if b_mode == 'zero' else '100%'}"
+            f"Exposición completada: {self.exposure_cycles_completed} ciclo(s) | Brillo final: {'0%' if b_mode == 'zero' else '100%'}"
         )
 
     def force_stop_exposure(self):
@@ -373,7 +373,7 @@ class ProjectionMixin:
         self.exposure_active = False
 
         self.exposure_status_label.setText(
-            f"⏹️ Exposición detenida: {self.exposure_cycles_completed}/{self.exposure_cycles_total} ciclo(s) completados"
+            f"Exposición detenida: {self.exposure_cycles_completed}/{self.exposure_cycles_total} ciclo(s) completados"
         )
 
     def _stop_exposure_timers(self):
@@ -390,7 +390,7 @@ class ProjectionMixin:
 
     def toggle_exposure_mirror(self, checked):
         self.exposure_mirror_h = bool(checked)
-        self.log_to_console(f"🪞 Modo Espejo X de Exposición: {'Activado' if checked else 'Desactivado'}", "INFO")
+        self.log_to_console(f"Modo espejo X de exposición: {'Activado' if checked else 'Desactivado'}", "INFO")
         
         if getattr(self, "is_projecting_full_image", False):
             self.is_projecting_full_image = False
@@ -404,7 +404,7 @@ class ProjectionMixin:
 
     def toggle_exposure_mirror_y(self, checked):
         self.exposure_mirror_v = bool(checked)
-        self.log_to_console(f"🪞 Modo Espejo Y de Exposición: {'Activado' if checked else 'Desactivado'}", "INFO")
+        self.log_to_console(f"Modo espejo Y de exposición: {'Activado' if checked else 'Desactivado'}", "INFO")
         
         if getattr(self, "is_projecting_full_image", False):
             self.is_projecting_full_image = False
@@ -508,7 +508,7 @@ class ProjectionMixin:
         QTimer.singleShot(on_time_ms, self.frequency_off_phase)
 
     def _update_frequency_status_label(self):
-        prefix = f"🌊 Ciclo #{self.frequency_cycle_count} | "
+        prefix = f"Ciclo #{self.frequency_cycle_count} | "
         if self.frequency_duration > 0:
             elapsed = time.time() - self.frequency_start_time
             rem = max(0, self.frequency_duration - elapsed)
@@ -530,7 +530,7 @@ class ProjectionMixin:
         self.force_stop_frequency()
         b_mode = getattr(self, "final_brightness_mode", "zero")
         self.frequency_status_label.setText(
-            f"✅ Modo de frecuencia completado: {self.frequency_cycle_count} ciclos - Brillo final: {'0%' if b_mode == 'zero' else '100%'}"
+            f"Modo de frecuencia completado: {self.frequency_cycle_count} ciclos - Brillo final: {'0%' if b_mode == 'zero' else '100%'}"
         )
 
     def force_stop_frequency(self):
@@ -544,7 +544,7 @@ class ProjectionMixin:
         count = getattr(self, "frequency_cycle_count", 0)
         b_mode = getattr(self, "final_brightness_mode", "zero")
         self.frequency_status_label.setText(
-            f"⏹️ Modo de frecuencia detenido: {count} ciclos completados - Brillo final: {'0%' if b_mode == 'zero' else '100%'}"
+            f"Modo de frecuencia detenido: {count} ciclos completados - Brillo final: {'0%' if b_mode == 'zero' else '100%'}"
         )
 
 
@@ -590,7 +590,7 @@ class ProjectionMixin:
         self.sequence_running = True
         self.sequence_paused = False
 
-        self.sequence_status_label.setText("Estado: ▶️ En ejecución")
+        self.sequence_status_label.setText("Estado: En ejecución")
         self.sequence_start_button.setEnabled(False)
         self.sequence_pause_button.setEnabled(True)
         self.sequence_stop_button.setEnabled(True)
@@ -600,10 +600,10 @@ class ProjectionMixin:
         exp_time = self.exposure_time_spin.value() if hasattr(self, "exposure_time_spin") else 0
         mov_time = self.movement_time_spin.value() if hasattr(self, "movement_time_spin") else 0
         self.log_to_console(
-            f"▶️ INICIANDO SECUENCIA DE PROYECCIÓN\n"
-            f"  • Total de chunks: {self.total_segments}\n"
-            f"  • Orden: Secuencial estricto (fila por fila)\n"
-            f"  • Tiempo por chunk: {exp_time}s exposición + {mov_time}s movimiento",
+            f"INICIANDO SECUENCIA DE PROYECCIÓN\n"
+            f"Total de chunks: {self.total_segments}\n"
+            f"Orden: Secuencial estricto (fila por fila)\n"
+            f"Tiempo por chunk: {exp_time}s exposición + {mov_time}s movimiento",
             "SUCCESS",
         )
 
@@ -612,12 +612,12 @@ class ProjectionMixin:
 
         self.sequence_paused = not self.sequence_paused
         if self.sequence_paused:
-            self.sequence_status_label.setText("Estado: ⏸️ Pausado")
-            self.sequence_pause_button.setText("▶️ Reanudar")
+            self.sequence_status_label.setText("Estado: Pausado")
+            self.sequence_pause_button.setText("Reanudar")
             if self.sequence_timer: self.sequence_timer.stop()
         else:
-            self.sequence_status_label.setText("Estado: ▶️ En ejecución")
-            self.sequence_pause_button.setText("⏸️ Pausar")
+            self.sequence_status_label.setText("Estado: En ejecución")
+            self.sequence_pause_button.setText("Pausar")
             self._process_next_segment()
 
     def stop_sequence(self):
@@ -632,10 +632,10 @@ class ProjectionMixin:
 
         self._refresh_grid_preserving_zoom()
         
-        self.sequence_status_label.setText("Estado: ⏹️ Detenido")
+        self.sequence_status_label.setText("Estado: Detenido")
         self.sequence_start_button.setEnabled(True)
         self.sequence_pause_button.setEnabled(False)
-        self.sequence_pause_button.setText("⏸️ Pausar")
+        self.sequence_pause_button.setText("Pausar")
         self.sequence_stop_button.setEnabled(False)
         self.current_segment_label.setText(f"Segmento: {self.current_segment_index}/{getattr(self, 'total_segments', 0)}")
         self.segment_progress_bar.setValue(int(self.current_segment_index))
@@ -655,7 +655,7 @@ class ProjectionMixin:
         self._expose_current_segment()
 
     def _complete_sequence(self):
-        self.sequence_status_label.setText("Estado: ✅ Completado")
+        self.sequence_status_label.setText("Estado: Completado")
         if getattr(self, "projector_active", False) and getattr(self, "projection_window", None):
             self.projection_window.show_black_screen()
             self.log_to_console("Proyección finalizada - Pantalla en negro", "SUCCESS")
@@ -693,12 +693,12 @@ class ProjectionMixin:
 
         if getattr(self, "projector_active", False) and getattr(self, "projection_window", None):
             self.projection_window.show_black_screen()
-            self.log_to_console("🖤 Pantalla en negro - Preparando movimiento", "INFO")
+            self.log_to_console("Pantalla en negro - Preparando movimiento", "INFO")
 
         self._refresh_grid_preserving_zoom()
 
         if hasattr(self, "auto_movement_checkbox") and self.auto_movement_checkbox.isChecked() and mov_s > 0:
-            self.log_to_console(f"🚀 Moviendo stage (tiempo estimado: {mov_s}s)", "INFO")
+            self.log_to_console(f"Moviendo stage (tiempo estimado: {mov_s}s)", "INFO")
 
         if mov_s > 0:
             QTimer.singleShot(int(mov_s * 1000), self._process_next_segment)
@@ -808,11 +808,11 @@ class ProjectionMixin:
     def _log_segment_details(self, seg: dict):
         self.log_to_console(
             f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-            f"📦 CHUNK {self.current_segment_index}/{self.total_segments}\n"
-            f"  • ID: S{seg['id']}\n"
-            f"  • Posición grid: Fila {seg['row']}, Columna {seg['col']}\n"
-            f"  • Tamaño: {seg['width']}×{seg['height']} px\n"
-            f"  • Orden: Secuencial estricto",
+            f"CHUNK {self.current_segment_index}/{self.total_segments}\n"
+            f"ID: S{seg['id']}\n"
+            f"Posición grid: Fila {seg['row']}, Columna {seg['col']}\n"
+            f"Tamaño: {seg['width']}×{seg['height']} px\n"
+            f"Orden: Secuencial estricto",
             "SEGMENTATION",
         )
 
@@ -870,13 +870,13 @@ class ProjectionMixin:
                 self.projection_window.update_segment(np.ones((h, w, 3), dtype=np.uint8) * 255)
                 self.is_projecting_white_pattern = True
                 if hasattr(self, "btn_calib_white"):
-                    self.btn_calib_white.setText("⏹️ Detener Proyección Blanca")
+                    self.btn_calib_white.setText("Detener Proyección Blanca")
                     self.btn_calib_white.setStyleSheet(STYLE_BTN_ACTIVE_RED)
             else:
                 self.projection_window.set_brightness(getattr(self, "_prev_brightness_for_calib", 100.0))
                 self.is_projecting_white_pattern = False
                 if hasattr(self, "btn_calib_white"):
-                    self.btn_calib_white.setText("⬜ Proyectar Patrón Blanco (Medir)")
+                    self.btn_calib_white.setText("Proyectar Patrón Blanco (Medir)")
                     self.btn_calib_white.setStyleSheet("")
                 
                 if hasattr(self, "update_projection"): self.update_projection()
@@ -886,4 +886,4 @@ class ProjectionMixin:
         if hasattr(self, "phys_width_spin") and hasattr(self, "phys_height_spin"):
             self.physical_segment_width = self.phys_width_spin.value()
             self.physical_segment_height = self.phys_height_spin.value()
-            self.log_to_console(f"📏 Dimensiones físicas actualizadas: {self.physical_segment_width} mm x {self.physical_segment_height} mm", "INFO")
+            self.log_to_console(f"Dimensiones físicas actualizadas: {self.physical_segment_width} mm x {self.physical_segment_height} mm", "INFO")

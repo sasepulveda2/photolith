@@ -85,7 +85,7 @@ class SpatialCalibrationMixin:
 
         # Actualizar botón
         if hasattr(self, "pattern_calib_button"):
-            self.pattern_calib_button.setText("🖼️ Salir Calibración")
+            self.pattern_calib_button.setText("Salir calibración")
 
         self.figure.clear()
         self.ax = self.figure.add_subplot(111)
@@ -136,7 +136,7 @@ class SpatialCalibrationMixin:
         elif index == 1:
             # Vista de Exposición
             self.ax.set_facecolor("#1E1E1E")
-            self.ax.text(0.5, 0.5, "Controles de Exposición", 
+            self.ax.text(0.5, 0.5, "Controles de exposición", 
                          transform=self.ax.transAxes, ha="center", va="center", color="#888888")
             self.ax.axis('off')
             if self._spatial_cursor:
@@ -577,7 +577,7 @@ class SpatialCalibrationMixin:
         """inicia la matriz de exposicion dinamica leyendo parametros y proyectando el fondo blanco."""
         if not getattr(self, "projector_active", False):
             if hasattr(self, "log_to_console"):
-                self.log_to_console("error: el proyector no esta activo. enciéndelo primero con el botón '🎬 Proyectar'.", "error")
+                self.log_to_console("error: el proyector no esta activo. enciéndelo primero con el botón 'Proyectar'.", "error")
             return
 
         proj = getattr(self, "projection_window", None)

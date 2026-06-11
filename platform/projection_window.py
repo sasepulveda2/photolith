@@ -148,12 +148,12 @@ class ProjectionWindow(QWidget):
 
         if self.parent_simulator:
             self.parent_simulator.log_to_console(
-                f"🖥️ PROYECTANDO EN PANTALLA SECUNDARIA:\n"
-                f"  • Chunk original: {segment_width}×{segment_height} px\n"
-                f"  • Escalado a: {new_width}×{new_height} px (factor {scale_factor:.2f}×)\n"
-                f"  • Monitor: {screen_width}×{screen_height} px\n"
-                f"  • Posición: centrado ({x_offset}, {y_offset})\n"
-                f"  • Valores canvas: min={canvas.min()}, max={canvas.max()}",
+                f" PROYECTANDO EN PANTALLA SECUNDARIA:\n"
+                f" Chunk original: {segment_width}×{segment_height} px\n"
+                f" Escalado a: {new_width}×{new_height} px (factor {scale_factor:.2f}×)\n"
+                f" Monitor: {screen_width}×{screen_height} px\n"
+                f" Posición: centrado ({x_offset}, {y_offset})\n"
+                f" Valores canvas: min={canvas.min()}, max={canvas.max()}",
                 "SUCCESS",
             )
 
