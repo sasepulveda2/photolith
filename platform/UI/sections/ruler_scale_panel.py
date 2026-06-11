@@ -1,5 +1,5 @@
 """
-Sección: 📏 REGLA DE ESCALA
+Sección: REGLA DE ESCALA
 
 Builder del panel lateral dedicado para la sección Regla de Escala.
 Se construye en el sidebar principal pero se oculta por defecto;

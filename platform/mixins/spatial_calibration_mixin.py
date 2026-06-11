@@ -161,7 +161,7 @@ class SpatialCalibrationMixin:
             self._main_sidebar.setVisible(True)
 
         if hasattr(self, "pattern_calib_button"):
-            self.pattern_calib_button.setText("📏 Calibración de Patrón")
+            self.pattern_calib_button.setText("Calibración de Patrón")
 
         # Desconectar eventos y limpiar cursor
         for cid in self._spatial_cids:

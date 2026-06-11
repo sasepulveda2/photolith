@@ -325,13 +325,13 @@ class IntensityAnalysisMixin:
             status = "  Buena"
         elif uniformity >= 60:
             color = "#FFFF00"
-            status = "⚠ Aceptable"
+            status = "Aceptable"
         elif uniformity >= 40:
             color = "#FF8800"
-            status = "⚠ Baja"
+            status = "Baja"
         else:
             color = "#FF0000"
-            status = "✗ Muy Baja"
+            status = "Muy Baja"
 
         self.uniformity_indicator.setStyleSheet(
             f"font-size: 16px; font-weight: bold; color: {color};"

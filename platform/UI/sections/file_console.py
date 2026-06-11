@@ -1,5 +1,5 @@
 """
-Secciones: 📁 ARCHIVOS + 📋 CONSOLA DEL SISTEMA.
+Secciones: ARCHIVOS + CONSOLA DEL SISTEMA.
 
 Métodos:
     _build_file_tree()         → árbol de navegación de archivos

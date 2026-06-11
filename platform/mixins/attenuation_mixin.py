@@ -134,7 +134,7 @@ class AttenuationMixin:
         self.calibration_flip_x = bool(state)
         self.save_calibration_data()
         self.log_to_console(
-            f"🔄 Flip X de calibración: {'  Activo' if self.calibration_flip_x else '✗ Inactivo'}",
+            f"Flip X de calibración: {'  Activo' if self.calibration_flip_x else 'Inactivo'}",
             "INFO",
         )
         if hasattr(self, "update_calibration_preview"):
@@ -147,7 +147,7 @@ class AttenuationMixin:
         self.calibration_flip_y = bool(state)
         self.save_calibration_data()
         self.log_to_console(
-            f"🔄 Flip Y de calibración: {'  Activo' if self.calibration_flip_y else '✗ Inactivo'}",
+            f"Flip Y de calibración: {'  Activo' if self.calibration_flip_y else 'Inactivo'}",
             "INFO",
         )
         if hasattr(self, "update_calibration_preview"):
@@ -194,13 +194,13 @@ class AttenuationMixin:
             ):
                 matrix_shape = self.attenuation_matrix.shape
                 self.calib_status_label.setText(
-                    f"✅ Calibración cargada ({matrix_shape[1]}×{matrix_shape[0]} px)"
+                    f"Calibración cargada ({matrix_shape[1]}×{matrix_shape[0]} px)"
                 )
                 self.calib_status_label.setStyleSheet(
                     "font-size: 10px; color: #51CF66;"
                 )
             else:
-                self.calib_status_label.setText("❌ Sin calibración cargada")
+                self.calib_status_label.setText("Sin calibración cargada")
                 self.calib_status_label.setStyleSheet(
                     "font-size: 10px; color: #FF6B6B;"
                 )
@@ -210,12 +210,12 @@ class AttenuationMixin:
                 hasattr(self, "apply_attenuation_to_grid")
                 and self.apply_attenuation_to_grid
             ):
-                self.calib_apply_status_label.setText("✅ Aplicación: ACTIVA")
+                self.calib_apply_status_label.setText("Aplicación: ACTIVA")
                 self.calib_apply_status_label.setStyleSheet(
                     "font-size: 10px; color: #51CF66;"
                 )
             else:
-                self.calib_apply_status_label.setText("⚪ Aplicación: Inactiva")
+                self.calib_apply_status_label.setText("Aplicación: Inactiva")
                 self.calib_apply_status_label.setStyleSheet(
                     "font-size: 10px; color: #888888;"
                 )
@@ -248,13 +248,13 @@ class AttenuationMixin:
             if hasattr(self, "sigma"):
                 if self.sigma > 0:
                     self.effect_sigma_label.setText(
-                        f"  Sigma (Blur): ✅ {self.sigma:.2f}"
+                        f"  Sigma (Blur): {self.sigma:.2f}"
                     )
                     self.effect_sigma_label.setStyleSheet(
                         "font-size: 10px; color: #51CF66;"
                     )
                 else:
-                    self.effect_sigma_label.setText(f"  Sigma (Blur): ⚪ Desactivado")
+                    self.effect_sigma_label.setText(f"  Sigma (Blur): Desactivado")
                     self.effect_sigma_label.setStyleSheet(
                         "font-size: 10px; color: #888888;"
                     )
@@ -262,14 +262,14 @@ class AttenuationMixin:
             if hasattr(self, "downscale_factor"):
                 if self.downscale_factor != 1.0:
                     self.effect_downscale_label.setText(
-                        f"  Downscaling: ✅ {self.downscale_factor:.2f}x"
+                        f"  Downscaling: {self.downscale_factor:.2f}x"
                     )
                     self.effect_downscale_label.setStyleSheet(
                         "font-size: 10px; color: #51CF66;"
                     )
                 else:
                     self.effect_downscale_label.setText(
-                        f"  Downscaling: ⚪ Sin reducción"
+                        f"  Downscaling: Sin reducción"
                     )
                     self.effect_downscale_label.setStyleSheet(
                         "font-size: 10px; color: #888888;"
@@ -278,14 +278,14 @@ class AttenuationMixin:
             if hasattr(self, "brightness"):
                 if self.brightness != 100:
                     self.effect_brightness_label.setText(
-                        f"  Brillo: ✅ {self.brightness}%"
+                        f"  Brillo: {self.brightness}%"
                     )
                     self.effect_brightness_label.setStyleSheet(
                         "font-size: 10px; color: #51CF66;"
                     )
                 else:
                     self.effect_brightness_label.setText(
-                        f"  Brillo: ⚪ 100% (sin ajuste)"
+                        f"  Brillo: 100% (sin ajuste)"
                     )
                     self.effect_brightness_label.setStyleSheet(
                         "font-size: 10px; color: #888888;"

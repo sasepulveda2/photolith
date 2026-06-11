@@ -212,184 +212,8 @@ class MotorGUI(QWidget):
         self.actualizar_pantalla()
 
     def apply_styles(self):
-        style = """
-            QWidget {
-                background-color: #121212;
-                color: #f0f0f0;
-                font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            }
-            
-            QFrame#screenFrame {
-                background-color: #0A0A0A;
-                border: 1px solid #2E2E2E;
-                border-radius: 6px;
-            }
-            
-            QLabel#odoTitle {
-                color: #808080;
-                font-size: 12px;
-                font-weight: bold;
-                letter-spacing: 1px;
-            }
-            
-            QLabel#odoLabel {
-                color: #C0C0C0;
-                font-family: 'Roboto Mono', Consolas, monospace;
-                font-size: 20px;
-                font-weight: 500;
-                line-height: 1.2;
-            }
-            
-            QLabel#statusLabel {
-                color: #888888;
-                font-size: 12px;
-                font-weight: normal;
-            }
-            
-            QLabel#unitBox {
-                color: #A0A0A0;
-                font-size: 12px;
-                font-weight: normal;
-            }
-            
-            QFrame#controlFrame {
-                background-color: #161616;
-                border-radius: 6px;
-                border: 1px solid #262626;
-            }
-            
-            QLabel#controlLabel {
-                color: #A0A0A0;
-                font-size: 12px;
-                font-weight: 800;
-            }
-            
-            QComboBox, QSpinBox {
-                background-color: #121212;
-                color: #f0f0f0;
-                border: 1px solid #2E2E2E;
-                border-radius: 6px;
-                padding: 5px 15px;
-                font-size: 16px;
-                font-weight: bold;
-            }
-            
-            QComboBox::drop-down {
-                border: none;
-                width: 30px;
-            }
-            
-            QComboBox:hover, QSpinBox:hover {
-                border: 1px solid #A0A0A0;
-            }
-            
-            QSpinBox::up-button, QSpinBox::down-button {
-                width: 30px;
-                background-color: #2E2E2E;
-                border-radius: 4px;
-                margin: 2px;
-            }
-            
-            QSpinBox::up-button:hover, QSpinBox::down-button:hover {
-                background-color: #3E3E3E;
-            }
-
-            QPushButton {
-                background-color: #1E1E1E;
-                border: 1px solid #2E2E2E;
-                border-radius: 8px;
-                padding: 8px 12px;
-                color: #E0E0E0;
-            }
-            QPushButton:hover {
-                background-color: #2C2C2C;
-                border: 1px solid #3E3E3E;
-            }
-            
-            QPushButton#btnMove {
-                background-color: #262626;
-                color: #E0E0E0;
-                font-size: 13px;
-                font-weight: 600;
-                border: 1px solid #404040;
-                border-radius: 6px;
-            }
-            
-            QPushButton#btnMove:hover {
-                background-color: #333333;
-                border: 1px solid #606060;
-            }
-            
-            QPushButton#btnMove:pressed {
-                background-color: #1E1E1E;
-            }
-            
-            QPushButton#btnMove360 {
-                background-color: #1A1A1A;
-                color: #A0A0A0;
-                font-size: 12px;
-                font-weight: 500;
-                border: 1px solid #3E3E3E;
-                border-radius: 6px;
-            }
-            
-            QPushButton#btnMove360:hover {
-                background-color: #242424;
-                color: #E0E0E0;
-            }
-            
-            QPushButton#btnMove360:pressed {
-                background-color: #121212;
-            }
-            
-            QPushButton#btnUtil {
-                background-color: #1A1A1A;
-                color: #A0A0A0;
-                font-size: 12px;
-                font-weight: 500;
-                border: 1px solid #2E2E2E;
-                border-radius: 6px;
-            }
-            
-            QPushButton#btnUtil:hover {
-                background-color: #242424;
-                border: 1px solid #3E3E3E;
-                color: #C0C0C0;
-            }
-            
-            QPushButton#btnUtilHome {
-                background-color: #1A1A1A;
-                color: #D32F2F;
-                font-size: 12px;
-                font-weight: 500;
-                border: 1px solid #5C1D1D;
-                border-radius: 6px;
-            }
-            
-            QPushButton#btnUtilHome:hover {
-                background-color: #2B1515;
-            }
-            
-            /* Controles Checkbox para Preferencias */
-            QCheckBox {
-                color: #E0E0E0;
-            }
-            QCheckBox::indicator {
-                width: 18px;
-                height: 18px;
-                border-radius: 4px;
-                border: 2px solid #3E3E3E;
-                background-color: #1E1E1E;
-            }
-            QCheckBox::indicator:hover {
-                border: 2px solid #A0A0A0;
-            }
-            QCheckBox::indicator:checked {
-                background-color: #A0A0A0;
-                border: 2px solid #A0A0A0;
-            }
-        """
-        self.setStyleSheet(style)
+        # El estilo ahora se hereda de los temas globales
+        pass
 
 
     def update_unit_display(self):
@@ -566,7 +390,6 @@ class MotorPreferencesGUI(QWidget):
         
         # Mapeo de Ejes
         gb_map = QGroupBox("Mapeo Físico de Ejes")
-        gb_map.setStyleSheet("QGroupBox { color: #A0A0A0; font-weight: bold; border: 1px solid #2E2E2E; border-radius: 8px; margin-top: 10px; padding-top: 15px; } QGroupBox::title { subcontrol-origin: margin; left: 10px; }")
         mapping_layout = QGridLayout(gb_map)
         mapping_layout.addWidget(QLabel("Lógico"), 0, 0)
         mapping_layout.addWidget(QLabel("Físico"), 0, 1)
@@ -595,7 +418,6 @@ class MotorPreferencesGUI(QWidget):
 
         # Pasos por 360
         gb_steps = QGroupBox("Mecánica (Pasos por 360°)")
-        gb_steps.setStyleSheet(gb_map.styleSheet())
         steps_layout = QFormLayout(gb_steps)
         self.map_steps_360 = {}
         
@@ -614,7 +436,6 @@ class MotorPreferencesGUI(QWidget):
 
         # Feedrates
         gb_feed = QGroupBox("Feedrates (Velocidad G-Code)")
-        gb_feed.setStyleSheet(gb_map.styleSheet())
         feed_layout = QFormLayout(gb_feed)
         
         self.btn_unlock = QPushButton("Desbloquear Velocidades")
@@ -665,32 +486,5 @@ class MotorPreferencesGUI(QWidget):
         self.ctrl.set_mapping(self.mapping)
 
     def apply_styles(self):
-        style = """
-            QWidget {
-                background-color: #121212;
-                color: #f0f0f0;
-                font-family: "Segoe UI", "Roboto", "Helvetica Neue", sans-serif;
-            }
-            QComboBox, QSpinBox {
-                background-color: #1E1E1E;
-                color: #f0f0f0;
-                border: 1px solid #2E2E2E;
-                border-radius: 4px;
-                padding: 4px;
-            }
-            QComboBox:hover, QSpinBox:hover {
-                border: 1px solid #A0A0A0;
-            }
-            QPushButton {
-                background-color: #1E1E1E;
-                border: 1px solid #2E2E2E;
-                border-radius: 6px;
-                padding: 6px;
-                color: #E0E0E0;
-            }
-            QPushButton:hover {
-                background-color: #2C2C2C;
-                border: 1px solid #3E3E3E;
-            }
-        """
-        self.setStyleSheet(style)
+        # Hereda los estilos de los temas principales
+        pass

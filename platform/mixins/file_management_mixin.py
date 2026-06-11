@@ -537,9 +537,9 @@ class FileManagementMixin:
 
     def show_context_menu(self, position):
         menu = QMenu()
-        create_folder = menu.addAction("📁 Nueva carpeta")
-        rename_item = menu.addAction("✏️ Renombrar")
-        delete_item = menu.addAction("🗑️ Eliminar")
+        create_folder = menu.addAction("Nueva carpeta")
+        rename_item = menu.addAction("️ Renombrar")
+        delete_item = menu.addAction("️ Eliminar")
 
         action = menu.exec_(self.file_tree.viewport().mapToGlobal(position))
 

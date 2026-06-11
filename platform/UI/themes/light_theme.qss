@@ -10,6 +10,10 @@ QWidget {
     font-size: 13px;
 }
 
+QLabel {
+    background-color: transparent;
+}
+
 /* ── Botones ────────────────────────────────────────────────── */
 QPushButton {
     background-color: #F5F5F5;
@@ -381,4 +385,136 @@ QTabBar::tab:hover:!selected {
     background-color: #E0E0E0;
     border: 1px solid #BBBBBB;
     color: #444444;
+}
+
+
+/* ── Estilos específicos de Motor GUI (Añadidos para tema claro) ───────────────────────────────────────────────── */
+QFrame#screenFrame {
+    background-color: #FAFAFA;
+    border: 1px solid #D0D0D0;
+    border-radius: 6px;
+}
+
+QLabel#odoTitle {
+    color: #666666;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    background-color: #FAFAFA;
+    border-radius: 6px;
+    padding: 4px 8px;
+}
+
+QLabel#odoLabel {
+    color: #333333;
+    font-family: 'Roboto Mono', Consolas, monospace;
+    font-size: 20px;
+    font-weight: 500;
+    line-height: 1.2;
+}
+
+QLabel#statusLabel {
+    color: #555555;
+    font-size: 12px;
+    font-weight: normal;
+}
+
+QLabel#unitBox {
+    color: #666666;
+    font-size: 12px;
+    font-weight: normal;
+}
+
+QFrame#controlFrame {
+    background-color: #F0F0F0;
+    border-radius: 6px;
+    border: 1px solid #E0E0E0;
+}
+
+QLabel#controlLabel {
+    color: #555555;
+    font-size: 12px;
+    font-weight: 800;
+    background-color: #FFFFFF;
+    border-radius: 6px;
+    padding: 4px 8px;
+}
+
+QPushButton#btnMove {
+    background-color: #E8E8E8;
+    color: #333333;
+    font-size: 13px;
+    font-weight: 600;
+    border: 1px solid #CCCCCC;
+    border-radius: 6px;
+}
+
+QPushButton#btnMove:hover {
+    background-color: #DCDCDC;
+    border: 1px solid #AAAAAA;
+}
+
+QPushButton#btnMove:pressed {
+    background-color: #CCCCCC;
+}
+
+QPushButton#btnMove360 {
+    background-color: #F5F5F5;
+    color: #555555;
+    font-size: 12px;
+    font-weight: 500;
+    border: 1px solid #DDDDDD;
+    border-radius: 6px;
+}
+
+QPushButton#btnMove360:hover {
+    background-color: #EEEEEE;
+    color: #333333;
+}
+
+QPushButton#btnMove360:pressed {
+    background-color: #E0E0E0;
+}
+
+QPushButton#btnUtil {
+    background-color: #F5F5F5;
+    color: #555555;
+    font-size: 12px;
+    font-weight: 500;
+    border: 1px solid #D0D0D0;
+    border-radius: 6px;
+}
+
+QPushButton#btnUtil:hover {
+    background-color: #EEEEEE;
+    border: 1px solid #BBBBBB;
+    color: #333333;
+}
+
+QPushButton#btnUtilHome {
+    background-color: #FFF0F0;
+    color: #D32F2F;
+    font-size: 12px;
+    font-weight: 500;
+    border: 1px solid #FFCCCC;
+    border-radius: 6px;
+}
+
+QPushButton#btnUtilHome:hover {
+    background-color: #FFE0E0;
+}
+
+
+/* ── GroupBox ───────────────────────────────────────────────── */
+QGroupBox {
+    color: #666666;
+    font-weight: bold;
+    border: 1px solid #CCCCCC;
+    border-radius: 8px;
+    margin-top: 10px;
+    padding-top: 15px;
+}
+QGroupBox::title {
+    subcontrol-origin: margin;
+    left: 10px;
 }

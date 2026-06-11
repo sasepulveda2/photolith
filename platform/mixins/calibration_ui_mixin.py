@@ -98,7 +98,7 @@ class CalibrationUIMixin:
             source_tab.setMinimumWidth(750)
 
             # Título de la sección
-            source_title = QLabel("📷 Selección de Fuente de Imagen")
+            source_title = QLabel(" Selección de Fuente de Imagen")
             source_title.setStyleSheet(
                 "font-size: 14px; font-weight: bold; margin-bottom: 10px; color: #A0A0A0;"
             )
@@ -625,7 +625,7 @@ class CalibrationUIMixin:
             adjustment_layout.setContentsMargins(20, 20, 20, 20)
             adjustment_layout.setSpacing(15)
 
-            adjustment_title = QLabel("🔧 Herramientas de Ajuste de Calibración")
+            adjustment_title = QLabel("Herramientas de Ajuste de Calibración")
             adjustment_title.setStyleSheet(
                 "font-size: 14px; font-weight: bold; margin-bottom: 10px; color: #A0A0A0;"
             )

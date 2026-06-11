@@ -40,7 +40,7 @@ class GridMixin:
 
             self.save_grid_config()
             self.grid_generated = True
-            self.generate_grid_button.setText("💾 Guardar Nuevo Tamaño")
+            self.generate_grid_button.setText("Guardar Nuevo Tamaño")
             self.display_grid()
 
             # Actualizar información de segmentación si está en modo automático
@@ -137,7 +137,7 @@ class GridMixin:
 
             self.grid_stats_section.setVisible(True)
             self.grid_stats_section.set_collapsed(False)
-            self.grid_status_label.setText(f"✅ Grid: {cells_x}x{cells_y} celdas")
+            self.grid_status_label.setText(f"Grid: {cells_x}x{cells_y} celdas")
 
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Error al mostrar el grid: {str(e)}")
@@ -260,10 +260,10 @@ class GridMixin:
         Coordenadas en píxeles con precisión float para litografía de alta resolución.
         """
         if self.image_on_grid is None:
-            self.coord_top_left_label.setText("🔺 Superior Izq: -")
-            self.coord_top_right_label.setText("🔺 Superior Der: -")
-            self.coord_bottom_left_label.setText("🔻 Inferior Izq: -")
-            self.coord_bottom_right_label.setText("🔻 Inferior Der: -")
+            self.coord_top_left_label.setText("Superior Izq: -")
+            self.coord_top_right_label.setText("Superior Der: -")
+            self.coord_bottom_left_label.setText("Inferior Izq: -")
+            self.coord_bottom_right_label.setText("Inferior Der: -")
             return
 
         h, w = self.image_on_grid.shape[:2]
@@ -277,16 +277,16 @@ class GridMixin:
 
         # Mostrar con precisión de 2 decimales para coordenadas sub-pixel
         self.coord_top_left_label.setText(
-            f"🔺 Superior Izq: ({top_left[0]:.2f}, {top_left[1]:.2f})"
+            f"Superior Izq: ({top_left[0]:.2f}, {top_left[1]:.2f})"
         )
         self.coord_top_right_label.setText(
-            f"🔺 Superior Der: ({top_right[0]:.2f}, {top_right[1]:.2f})"
+            f"Superior Der: ({top_right[0]:.2f}, {top_right[1]:.2f})"
         )
         self.coord_bottom_left_label.setText(
-            f"🔻 Inferior Izq: ({bottom_left[0]:.2f}, {bottom_left[1]:.2f})"
+            f"Inferior Izq: ({bottom_left[0]:.2f}, {bottom_left[1]:.2f})"
         )
         self.coord_bottom_right_label.setText(
-            f"🔻 Inferior Der: ({bottom_right[0]:.2f}, {bottom_right[1]:.2f})"
+            f"Inferior Der: ({bottom_right[0]:.2f}, {bottom_right[1]:.2f})"
         )
 
 
@@ -635,7 +635,7 @@ class GridMixin:
             # Iniciar grabación
             self.recording = True
             self.recorded_positions = []
-            self.record_button.setText("⏹️ Detener Grabación")
+            self.record_button.setText("️ Detener Grabación")
             self.record_button.setStyleSheet("background-color: #FF4444;")
             QMessageBox.information(
                 self,
@@ -645,7 +645,7 @@ class GridMixin:
         else:
             # Detener grabación
             self.recording = False
-            self.record_button.setText("⏺️ Grabar Movimiento")
+            self.record_button.setText("️ Grabar Movimiento")
             self.record_button.setStyleSheet("")
             self.play_button.setEnabled(len(self.recorded_positions) > 0)
             QMessageBox.information(
@@ -672,7 +672,7 @@ class GridMixin:
             # Iniciar reproducción
             self.playback_active = True
             self.playback_index = 0
-            self.play_button.setText("⏸️ Pausar")
+            self.play_button.setText("️ Pausar")
             self.record_button.setEnabled(False)
             self.drag_mode_combo.setEnabled(False)
             # 100ms entre cada posición (10 fps)

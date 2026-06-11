@@ -2,9 +2,9 @@
 Secciones de datos del sidebar: DATA, BINARIO y ESTADÍSTICAS GRID.
 
 Métodos:
-    _build_stats_section()       → 📊 estadísticas de imagen/proyector
-    _build_binary_section()      → ⚫⚪ modo binario + inversión
-    _build_grid_stats_section()  → 📏 info de solo lectura del grid
+    _build_stats_section()       → estadísticas de imagen/proyector
+    _build_binary_section()      → modo binario + inversión
+    _build_grid_stats_section()  → info de solo lectura del grid
 """
 from PyQt5.QtWidgets import QVBoxLayout, QHBoxLayout, QLabel, QSlider, QCheckBox, QLineEdit
 from PyQt5.QtCore import Qt

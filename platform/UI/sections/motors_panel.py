@@ -1,5 +1,5 @@
 """
-Sección: ⚙️ CONTROL DE MOTORES.
+Sección: ️ CONTROL DE MOTORES.
 
 Métodos:
     _build_motors_section()          → sección principal (conexión + parámetros)

@@ -1,5 +1,5 @@
 """
-Sección: 🎬 CONTROL DE PROYECCIÓN.
+Sección: CONTROL DE PROYECCIÓN.
 
 Métodos:
     _build_projection_section()   → sección principal
@@ -32,7 +32,7 @@ class ProjectionPanelBuilder:
     """Mixin: construye la sección de control de proyección."""
 
     def _build_projection_section(self) -> None:
-        """🎬 CONTROL DE PROYECCIÓN — factor de downscaling y consola de secuencias."""
+        """CONTROL DE PROYECCIÓN — factor de downscaling y consola de secuencias."""
         self.projection_control_section = CollapsibleSection(
             " Control de proyección", self, expanded=False, section_id="projection"
         )

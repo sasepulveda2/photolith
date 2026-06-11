@@ -93,7 +93,7 @@ class ThemeMixin:
             self.cmd_process.finished.connect(self._handle_cmd_finished)
             
         if self.cmd_process.state() == 2: # QProcess::Running
-            self.log_to_console("⚠️ Espere a que el comando actual termine.", "WARNING")
+            self.log_to_console("️ Espere a que el comando actual termine.", "WARNING")
             return
             
         import shutil
@@ -231,7 +231,7 @@ class ThemeMixin:
             self.hide_calibration_interface()
             self.calibration_view_active = False
             if hasattr(self, "calibration_button"):
-                self.calibration_button.setText("🎯 Calibración")
+                self.calibration_button.setText("Calibración")
 
         if getattr(self, "_ruler_scale_view_active", False):
             self.toggle_ruler_scale_view()
@@ -243,7 +243,7 @@ class ThemeMixin:
             self.toggle_motors_view()
 
         if hasattr(self, "toggle_view_button"):
-            self.toggle_view_button.setText("🖼️ Vista Imagen")
+            self.toggle_view_button.setText("️ Vista Imagen")
         
         # Mostrar componentes del grid
         if hasattr(self, "grid_config_section"):
@@ -280,11 +280,11 @@ class ThemeMixin:
 
         if getattr(self, "grid_generated", False):
             if hasattr(self, "generate_grid_button"):
-                self.generate_grid_button.setText("💾 Guardar Nuevo Tamaño")
+                self.generate_grid_button.setText("Guardar Nuevo Tamaño")
             self.display_grid()
         else:
             if hasattr(self, "generate_grid_button"):
-                self.generate_grid_button.setText("🎨 Generar Grid")
+                self.generate_grid_button.setText("Generar Grid")
             if hasattr(self, "grid_stats_section"):
                 self.grid_stats_section.setVisible(False)
             self._show_empty_canvas(EMPTY_CANVAS_TEXT_GRID)
@@ -295,7 +295,7 @@ class ThemeMixin:
             self.toggle_ruler_scale_view()
 
         if hasattr(self, "toggle_view_button"):
-            self.toggle_view_button.setText("📏 Vista Grid")
+            self.toggle_view_button.setText("Vista Grid")
         
         # Ocultar componentes del grid
         if hasattr(self, "grid_config_section"):
@@ -331,11 +331,11 @@ class ThemeMixin:
                 self.toggle_motors_view()
 
             if hasattr(self, "calibration_button"):
-                self.calibration_button.setText("🖼️ Vista Normal")
+                self.calibration_button.setText("️ Vista Normal")
             self.show_calibration_interface()
         else:
             if hasattr(self, "calibration_button"):
-                self.calibration_button.setText("🎯 Calibración")
+                self.calibration_button.setText("Calibración")
             self.hide_calibration_interface()
 
             if getattr(self, "pattern", None) is not None:

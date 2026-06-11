@@ -1,5 +1,5 @@
 """
-Sección: 🎥 CÁMARA BASLER.
+Sección: CÁMARA BASLER.
 
 Métodos:
     _build_basler_section()  → controles de exposición, ganancia, gamma, negro

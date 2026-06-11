@@ -104,7 +104,7 @@ class CameraMixin:
             return
 
         # Cambiar botón
-        self.start_camera_button.setText("⏹️ Detener Cámara")
+        self.start_camera_button.setText("️ Detener Cámara")
 
         # Iniciar timer para actualizar frames
         if not hasattr(self, "camera_timer"):
@@ -226,7 +226,7 @@ class CameraMixin:
                 self.basler_timer.timeout.connect(self.update_basler_frame)
 
             self.basler_timer.start(33)  # ~30 FPS
-            self.start_basler_button.setText("⏸️ Detener Cámara Basler")
+            self.start_basler_button.setText("️ Detener Cámara Basler")
 
             # Mostrar controles en sidebar si existen
             if hasattr(self, "basler_sidebar_section"):

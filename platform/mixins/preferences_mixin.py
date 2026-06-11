@@ -344,7 +344,7 @@ class PreferencesMixin:
         from PyQt5.QtWidgets import QFontComboBox
         
         dialog = QDialog(self)
-        dialog.setWindowTitle("Apariencia y Estilo")
+        dialog.setWindowTitle("Apariencia y estilo")
         dialog.setFixedWidth(400)
         dialog.setWindowFlags(dialog.windowFlags() & ~Qt.WindowContextHelpButtonHint)
 
@@ -366,7 +366,7 @@ class PreferencesMixin:
         layout.setSpacing(16)
         layout.setContentsMargins(20, 20, 20, 20)
 
-        title_label = QLabel("Personalizar Apariencia")
+        title_label = QLabel("Personalizar apariencia")
         title_label.setStyleSheet(f"""
             font-size: 16px;
             font-weight: bold;
@@ -401,18 +401,18 @@ class PreferencesMixin:
         layout.addWidget(separator1)
 
         # Gradientes de Acento
-        gradient_title = QLabel("Color de Acento (Botones Principales)")
+        gradient_title = QLabel("Color botones")
         gradient_title.setStyleSheet("font-size: 14px; font-weight: bold; margin-top: 10px;")
         layout.addWidget(gradient_title)
 
         gradient_group = QButtonGroup(dialog)
         
         gradients = [
-            ("Gris Platino (Por Defecto)", "#A0A0A0", "#606060"),
-            ("Acero Oscuro", "#707070", "#404040"),
-            ("Azul Medianoche", "#4A6FA5", "#2B4365"),
-            ("Esmeralda Muted", "#5B8A72", "#365948"),
-            ("Bronce Oscuro", "#A37B5C", "#634731")
+            ("Gris", "#A0A0A0", "#606060"),
+            ("Acero", "#707070", "#404040"),
+            ("Azul", "#4A6FA5", "#2B4365"),
+            ("Esmeralda", "#5B8A72", "#365948"),
+            ("Bronce", "#A37B5C", "#634731")
         ]
         
         current_gradient = settings.value("app_gradient", "Gris Platino (Por Defecto)")

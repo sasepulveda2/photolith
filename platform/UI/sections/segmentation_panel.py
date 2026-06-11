@@ -1,5 +1,5 @@
 """
-Sección: ✂️ SEGMENTACIÓN DE IMAGEN.
+Sección: ️ SEGMENTACIÓN DE IMAGEN.
 
 Métodos:
     _build_segmentation_section()          → sección principal
@@ -29,7 +29,7 @@ class SegmentationPanelBuilder:
     """Mixin: construye la sección de segmentación de imagen."""
 
     def _build_segmentation_section(self) -> None:
-        """✂️ SEGMENTACIÓN — modo de corte, transformaciones geométricas y aplicación."""
+        """️ SEGMENTACIÓN — modo de corte, transformaciones geométricas y aplicación."""
         self.segmentation_section = CollapsibleSection(
             " Segmentación ", self, expanded=False, section_id="segmentation"
         )

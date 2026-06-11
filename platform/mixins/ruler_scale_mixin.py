@@ -96,7 +96,7 @@ class RulerScaleMixin:
 
         # Actualizar botón de la toolbar
         if hasattr(self, "ruler_scale_button"):
-            self.ruler_scale_button.setText("🖼️ Salir Regla")
+            self.ruler_scale_button.setText("️ Salir Regla")
 
         # Actualizar info del panel
         self.update_ruler_info_panel()
@@ -133,7 +133,7 @@ class RulerScaleMixin:
 
         # Restaurar botón de la toolbar
         if hasattr(self, "ruler_scale_button"):
-            self.ruler_scale_button.setText("📏 Regla de Escala")
+            self.ruler_scale_button.setText("Regla de Escala")
         if hasattr(self, "projector_button"):
             self.projector_button.setVisible(getattr(self, "_ruler_prev_proj_visible", False))
 
@@ -422,7 +422,7 @@ class RulerScaleMixin:
         self._ruler_update_status("Moviendo motor X...")
 
         self.log_to_console(
-            f"⏳ Iniciando movimiento del Motor X: +{steps_to_move} pasos ({move_distance_mm:.3f} mm, Modo: {step_mode})...",
+            f"Iniciando movimiento del Motor X: +{steps_to_move} pasos ({move_distance_mm:.3f} mm, Modo: {step_mode})...",
             "INFO"
         )
         self.log_to_console("  (La proyección se mantendrá apagada durante el movimiento)", "INFO")
@@ -431,11 +431,11 @@ class RulerScaleMixin:
             controller.step_move("X", 1, steps_to_move)
             self._ruler_motor_steps_moved += steps_to_move
             self.log_to_console(
-                f"✅ Movimiento completado (+{steps_to_move} pasos). Esperando estabilización...",
+                f"Movimiento completado (+{steps_to_move} pasos). Esperando estabilización...",
                 "SUCCESS",
             )
         except Exception as e:
-            self.log_to_console(f"❌ Error moviendo motor: {e}", "ERROR")
+            self.log_to_console(f"Error moviendo motor: {e}", "ERROR")
 
         # Esperar estabilización antes de la siguiente exposición
         self._ruler_stabilize_timer.start(500)
@@ -446,11 +446,11 @@ class RulerScaleMixin:
 
         if controller is not None and controller.ser is not None and self._ruler_motor_steps_moved > 0:
             self._ruler_update_status("Regresando motor a posición inicial...")
-            self.log_to_console(f"⏪ Devolviendo Motor X al origen (-{self._ruler_motor_steps_moved} pasos)...", "INFO")
+            self.log_to_console(f"Devolviendo Motor X al origen (-{self._ruler_motor_steps_moved} pasos)...", "INFO")
             try:
                 controller.step_move("X", -1, self._ruler_motor_steps_moved)
                 self.log_to_console(
-                    f"✅ Motor X regresado correctamente al origen.",
+                    f"Motor X regresado correctamente al origen.",
                     "SUCCESS",
                 )
             except Exception as e:
@@ -477,11 +477,11 @@ class RulerScaleMixin:
         # Regresar motor
         controller = getattr(self, "motor_controller_instance", None)
         if controller is not None and controller.ser is not None and self._ruler_motor_steps_moved > 0:
-            self.log_to_console(f"⏪ Devolviendo Motor X al origen (-{self._ruler_motor_steps_moved} pasos)...", "INFO")
+            self.log_to_console(f"Devolviendo Motor X al origen (-{self._ruler_motor_steps_moved} pasos)...", "INFO")
             try:
                 controller.step_move("X", -1, self._ruler_motor_steps_moved)
                 self.log_to_console(
-                    f"✅ Motor X regresado correctamente al origen.",
+                    f"Motor X regresado correctamente al origen.",
                     "SUCCESS",
                 )
             except Exception as e:

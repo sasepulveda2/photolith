@@ -1,6 +1,6 @@
 """
 Secciones del sidebar relacionadas con el grid:
-    🖼️ IMAGEN EN GRID y 📏 CONFIGURACIÓN GRID.
+    ️ IMAGEN EN GRID y CONFIGURACIÓN GRID.
 
 Métodos:
     _build_image_coords_section()  → posición, arrastre, grabación
@@ -23,7 +23,7 @@ class GridPanelsBuilder:
     """Mixin: construye las secciones de grid (coordenadas + configuración)."""
 
     def _build_image_coords_section(self) -> None:
-        """🖼️ IMAGEN EN GRID — posición, modo de arrastre y grabación de movimientos."""
+        """️ IMAGEN EN GRID — posición, modo de arrastre y grabación de movimientos."""
         self.image_coords_section = CollapsibleSection(
             "Coordenadas originales", self, expanded=True, section_id="image_coords"
         )
@@ -67,7 +67,7 @@ class GridPanelsBuilder:
         self.info_layout.addWidget(self.image_coords_section)
 
     def _build_grid_config_section(self) -> None:
-        """📏 CONFIGURACIÓN GRID — dimensiones, píxeles por celda, unidad y generación."""
+        """CONFIGURACIÓN GRID — dimensiones, píxeles por celda, unidad y generación."""
         self.grid_config_section = CollapsibleSection(
             "Configuración de grid", self, expanded=True, section_id="grid_config"
         )

@@ -158,7 +158,7 @@ class ImageProcessingMixin:
             self.simulate_optics()
 
         self.binary_status_label.setText(
-            f"Estado: {'  Activo' if self.binary_mode_enabled else '✗ Inactivo'}"
+            f"Estado: {'  Activo' if self.binary_mode_enabled else 'Inactivo'}"
         )
 
 
@@ -373,7 +373,7 @@ class ImageProcessingMixin:
                 self.projection_window.update_image(current_image)
 
         self.log_to_console(
-            f"🔄 Transformación actualizada: Rotación={self.image_rotation}°, "
+            f"Transformación actualizada: Rotación={self.image_rotation}°, "
             f"Espejo H={self.image_mirror_h}, Espejo V={self.image_mirror_v}",
             "INFO",
         )
@@ -688,7 +688,7 @@ class ImageProcessingMixin:
                 slice_type = f"CELDA (Grid {cells_x}×{cells_y})"
             else:
                 # Sin grid, no se puede segmentar
-                self.log_to_console("❌ ERROR: No hay grid configurado", "ERROR")
+                self.log_to_console("ERROR: No hay grid configurado", "ERROR")
                 return
 
             # Log de configuración con transformaciones
@@ -704,7 +704,7 @@ class ImageProcessingMixin:
                 transform_str = f" | Transformaciones: {', '.join(parts)}"
 
             self.log_to_console(
-                f"🔧 MODO DE SLICE: {slice_type}\n"
+                f"MODO DE SLICE: {slice_type}\n"
                 f"    Divisiones: {self.segments_x}×{self.segments_y}{transform_str}",
                 "INFO",
             )
@@ -772,7 +772,7 @@ class ImageProcessingMixin:
                     reason = "primer cálculo"
 
                 self.log_to_console(
-                    f"⚙️ CALCULANDO SLICE ÚNICO: {reason}\n"
+                    f"️ CALCULANDO SLICE ÚNICO: {reason}\n"
                     f"    Imagen: {img_width}×{img_height} px | Grid: {self.segments_x}×{self.segments_y}",
                     "SEGMENTATION",
                 )
@@ -827,7 +827,7 @@ class ImageProcessingMixin:
                 }
 
                 self.log_to_console(
-                    f"📊 Cálculo de cobertura de imagen:\n"
+                    f"Cálculo de cobertura de imagen:\n"
                     f"    Grid total: {self.segments_x}×{self.segments_y} = {self.segments_x * self.segments_y} celdas\n"
                     f"    Imagen ocupa: {len(cells_with_content)} celdas",
                     "INFO",
@@ -882,7 +882,7 @@ class ImageProcessingMixin:
                 slice_height_cells = image_bounds["end_y"] - image_bounds["start_y"] + 1
 
                 self.log_to_console(
-                    f"📐 Configuración chunks:\n"
+                    f"Configuración chunks:\n"
                     f"    Tamaño celda: {cell_width:.1f}×{cell_height:.1f} px\n"
                     f"    Área slice: {slice_width_cells}×{slice_height_cells} celdas\n"
                     f"    Grid total: {self.segments_x}×{self.segments_y}",
@@ -981,7 +981,7 @@ class ImageProcessingMixin:
                         # DEBUG: Log primeros 5 chunks extraídos
                         if segment_id < 5:
                             self.log_to_console(
-                                f"  🔹 Chunk #{segment_id} [fila={row}, col={col}]: "
+                                f"  Chunk #{segment_id} [fila={row}, col={col}]: "
                                 f"coords=({x_start},{y_start})-({x_end},{y_end}), "
                                 f"size={x_end-x_start}×{y_end-y_start}px, "
                                 f"values=[{segment.min():.2f}, {segment.max():.2f}]",
@@ -1025,7 +1025,7 @@ class ImageProcessingMixin:
             # Información del slice
             if image_bounds is not None:
                 slice_info = (
-                    f"\n🔲 SLICE ÚNICO ACTIVO:\n"
+                    f"\nSLICE ÚNICO ACTIVO:\n"
                     f"    Rango X: [{image_bounds['start_x']} → {image_bounds['end_x']}]\n"
                     f"    Rango Y: [{image_bounds['start_y']} → {image_bounds['end_y']}]\n"
                     f"    Dimensiones: {image_bounds['end_x'] - image_bounds['start_x'] + 1} × "
@@ -1061,7 +1061,7 @@ class ImageProcessingMixin:
                     projected_height = int(avg_chunk_height * scale_factor)
 
                     projection_info = (
-                        f"\n🖥️ RESOLUCIÓN EN PROYECCIÓN:\n"
+                        f"\n️ RESOLUCIÓN EN PROYECCIÓN:\n"
                         f"    Monitor: {screen_width}×{screen_height} px\n"
                         f"    Chunk promedio: {avg_chunk_width:.1f}×{avg_chunk_height:.1f} px\n"
                         f"    Proyectado como: {projected_width}×{projected_height} px\n"
@@ -1069,7 +1069,7 @@ class ImageProcessingMixin:
                     )
 
                 chunk_size_info = (
-                    f"\n📏 CARACTERÍSTICAS DE LOS CHUNKS:\n"
+                    f"\nCARACTERÍSTICAS DE LOS CHUNKS:\n"
                     f"    Tamaño promedio: {avg_chunk_width:.1f}×{avg_chunk_height:.1f} px\n"
                     f"    Rango ancho: {min_chunk_width}-{max_chunk_width} px\n"
                     f"    Rango alto: {min_chunk_height}-{max_chunk_height} px\n"
@@ -1088,10 +1088,10 @@ class ImageProcessingMixin:
                     transforms.append("Espejo H")
                 if self.image_mirror_v:
                     transforms.append("Espejo V")
-                transform_info = f"\n🔄 TRANSFORMACIONES: {', '.join(transforms)}\n"
+                transform_info = f"\nTRANSFORMACIONES: {', '.join(transforms)}\n"
 
             cache_status = (
-                "  Reutilizado desde caché" if use_cache else "⚙️ Recién calculado"
+                "  Reutilizado desde caché" if use_cache else "️ Recién calculado"
             )
 
             QMessageBox.information(
@@ -1103,7 +1103,7 @@ class ImageProcessingMixin:
                 f"{slice_info}"
                 f"{chunk_size_info}"
                 f"{projection_info}\n"
-                f"📊 ESTADÍSTICAS:\n"
+                f"ESTADÍSTICAS:\n"
                 f"    Grid configurado: {self.segments_x}×{self.segments_y} = {total_blocks} divisiones\n"
                 f"    Chunks activos (con contenido): {segments_with_content}\n"
                 f"    Chunks fuera del slice: {skipped_outside_image}\n"

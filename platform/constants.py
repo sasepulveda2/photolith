@@ -328,7 +328,7 @@ MSG_INVALID_FREQUENCY = "Por favor ingrese una frecuencia válida (mayor a 0).\n
 MSG_INVALID_DURATION = "Por favor ingrese una duración válida (0 para infinito).\n\nEjemplo: 0, 30 o 60"
 
 MSG_NO_SEGMENTS_TITLE = "Sin segmentos de imagen"
-MSG_NO_SEGMENTS_BODY = "Debe aplicar segmentación de imagen antes de iniciar una secuencia.\n\nPasos:\n1. Cargue una imagen\n2. Vaya a '✂️ SEGMENTACIÓN DE IMAGEN'\n3. Configure el modo y número de segmentos\n4. Presione 'Aplicar Segmentación'"
+MSG_NO_SEGMENTS_BODY = "Debe aplicar segmentación de imagen antes de iniciar una secuencia.\n\nPasos:\n1. Cargue una imagen\n2. Vaya a '️ SEGMENTACIÓN DE IMAGEN'\n3. Configure el modo y número de segmentos\n4. Presione 'Aplicar Segmentación'"
 
 STYLE_PROJECTOR_BTN_DISCONNECTED = """
     QPushButton {

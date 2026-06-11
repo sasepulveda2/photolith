@@ -12,21 +12,21 @@ _build_ui()                          ← orquestador principal
 ├── _build_toolbar()                 ← toolbar_canvas.py
 ├── _build_canvas()                  ← toolbar_canvas.py
 ├── _build_sidebar()                 ← scroll area con todas las secciones
-│   ├── _build_stats_section()           data_panels.py      📊 DATA
-│   ├── _build_binary_section()          data_panels.py      ⚫⚪ BINARIO
-│   ├── _build_grid_stats_section()      data_panels.py      📏 ESTADÍSTICAS GRID
-│   ├── _build_basler_section()          camera_panel.py     🎥 CÁMARA BASLER
-│   ├── _build_image_coords_section()    grid_panels.py      🖼️ IMAGEN EN GRID
-│   ├── _build_grid_config_section()     grid_panels.py      📏 CONFIGURACIÓN GRID
-│   ├── _build_segmentation_section()    segmentation_panel.py ✂️ SEGMENTACIÓN
-│   ├── _build_motors_section()          motors_panel.py     ⚙️ MOTORES
-│   ├── _build_exposure_frequency_tabs() exposure_panel.py   tabs ⏱️/〜
-│   ├── _build_exposure_section()        exposure_panel.py   ⏱️ EXPOSICIÓN
+│   ├── _build_stats_section()           data_panels.py      DATA
+│   ├── _build_binary_section()          data_panels.py      BINARIO
+│   ├── _build_grid_stats_section()      data_panels.py      ESTADÍSTICAS GRID
+│   ├── _build_basler_section()          camera_panel.py     CÁMARA BASLER
+│   ├── _build_image_coords_section()    grid_panels.py      ️ IMAGEN EN GRID
+│   ├── _build_grid_config_section()     grid_panels.py      CONFIGURACIÓN GRID
+│   ├── _build_segmentation_section()    segmentation_panel.py ️ SEGMENTACIÓN
+│   ├── _build_motors_section()          motors_panel.py     ️ MOTORES
+│   ├── _build_exposure_frequency_tabs() exposure_panel.py   tabs ️/〜
+│   ├── _build_exposure_section()        exposure_panel.py   ️ EXPOSICIÓN
 │   ├── _build_frequency_section()       exposure_panel.py   〜 FRECUENCIA
-│   ├── _build_projection_section()      projection_panel.py 🎬 PROYECCIÓN
-│   ├── _build_calibration_monitor()     calibration_panel.py 🔍 CALIBRACIÓN
-│   ├── _build_file_tree()               file_console.py     📁 ARCHIVOS
-│   └── _build_console_section()         file_console.py     📋 CONSOLA
+│   ├── _build_projection_section()      projection_panel.py PROYECCIÓN
+│   ├── _build_calibration_monitor()     calibration_panel.py CALIBRACIÓN
+│   ├── _build_file_tree()               file_console.py     ARCHIVOS
+│   └── _build_console_section()         file_console.py     CONSOLA
 └── _connect_screen_signals()        ← detección de monitor secundario
 """
 from PyQt5.QtWidgets import (
