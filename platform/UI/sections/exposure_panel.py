@@ -1,5 +1,5 @@
 """
-Secciones: ⏱️ EXPOSICIÓN + 〜 FRECUENCIA.
+Secciones: EXPOSICIÓN + FRECUENCIA.
 
 Métodos:
     _build_exposure_frequency_tabs()  → tabs de selección
@@ -41,7 +41,7 @@ class ExposurePanelBuilder:
         self.info_layout.addLayout(tabs_row)
 
     def _build_exposure_section(self) -> None:
-        """⏱️ EXPOSICIÓN — tiempo, intensidad, ciclos y controles de start/stop."""
+        """EXPOSICIÓN — tiempo, intensidad, ciclos y controles de start/stop."""
         self.exposure_section = CollapsibleSection(
             "EXPOSICIÓN", self, expanded=True, section_id="exposure"
         )
@@ -99,7 +99,7 @@ class ExposurePanelBuilder:
         self.info_layout.addWidget(self.exposure_section)
 
     def _build_frequency_section(self) -> None:
-        """〜 FRECUENCIA — valor, unidad, duración y controles de start/stop."""
+        """FRECUENCIA — valor, unidad, duración y controles de start/stop."""
         self.frequency_section = CollapsibleSection(
             " FRECUENCIA", self, expanded=False, section_id="frequency"
         )

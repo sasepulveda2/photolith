@@ -48,25 +48,28 @@ class PreferencesMixin:
         )
 
         if self.dark_mode:
-            theme_action = menu.addAction(" Modo Claro")
+            theme_action = menu.addAction("Modo Claro")
         else:
-            theme_action = menu.addAction(" Modo Oscuro")
+            theme_action = menu.addAction("Modo Oscuro")
 
         theme_action.triggered.connect(self.toggle_theme)
 
-        scale_action = menu.addAction(" Configuración de escala")
+        scale_action = menu.addAction("Configuración de Escala")
         scale_action.triggered.connect(self.show_scale_config)
 
-        exposure_config_action = menu.addAction(" Configuración de exposición")
+        appearance_action = menu.addAction("Apariencia y Estilo")
+        appearance_action.triggered.connect(self.show_appearance_config)
+
+        exposure_config_action = menu.addAction("Configuración de Exposición")
         exposure_config_action.triggered.connect(self.show_exposure_config)
 
-        grid_config_action = menu.addAction(" Configuración de grid")
+        grid_config_action = menu.addAction("Configuración de Grid")
         grid_config_action.triggered.connect(self.show_grid_color_config)
 
         effects_action = menu.addAction(
-            " Aplicar Efectos en Grid"
+            "Aplicar Efectos en Grid"
             if not self.apply_effects_to_grid
-            else " Desactivar Efectos en Grid"
+            else "Desactivar Efectos en Grid"
         )
         effects_action.triggered.connect(self.toggle_grid_effects)
 
@@ -77,7 +80,7 @@ class PreferencesMixin:
         heatmap_action.triggered.connect(self.toggle_heatmap_visibility)
 
         # Opción para limpiar cache de segmentación
-        clear_cache_action = menu.addAction(" Limpiar Cache de Segmentación")
+        clear_cache_action = menu.addAction("Limpiar Cache de Segmentación")
         clear_cache_action.triggered.connect(self.clear_segmentation_cache)
 
         menu.exec_(
@@ -176,7 +179,7 @@ class PreferencesMixin:
             self.image_segments = []
 
         # Log
-        self.log_to_console(" Cache de segmentación limpiado", "WARNING")
+        self.log_to_console("Cache de segmentación limpiado", "WARNING")
 
         # Mensaje informativo
         info_msg = "Cache de segmentación limpiado.\n\n"
@@ -216,7 +219,7 @@ class PreferencesMixin:
         layout.setSpacing(16)
         layout.setContentsMargins(20, 20, 20, 20)
 
-        title_label = QLabel(" Escala de Imagen Proyectada")
+        title_label = QLabel("Escala de Imagen Proyectada")
         title_label.setStyleSheet(f"""
             font-size: 16px;
             font-weight: bold;
@@ -227,11 +230,11 @@ class PreferencesMixin:
 
         mode_group = QButtonGroup(dialog)
 
-        automatic_radio = QRadioButton(" Automático (ajustar al monitor)")
+        automatic_radio = QRadioButton("Automático (Ajustar al monitor)")
         automatic_radio.setChecked(self.scale_mode == "automatic")
         mode_group.addButton(automatic_radio, 0)
 
-        manual_radio = QRadioButton(" Manual (porcentaje personalizado)")
+        manual_radio = QRadioButton("Manual (Porcentaje personalizado)")
         manual_radio.setChecked(self.scale_mode == "manual")
         mode_group.addButton(manual_radio, 1)
 
@@ -337,6 +340,165 @@ class PreferencesMixin:
                 if self.projection_window:
                     self.projection_window._apply_brightness_and_display()
 
+    def show_appearance_config(self):
+        from PyQt5.QtWidgets import QFontComboBox
+        
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Apariencia y Estilo")
+        dialog.setFixedWidth(400)
+        dialog.setWindowFlags(dialog.windowFlags() & ~Qt.WindowContextHelpButtonHint)
+
+        if self.dark_mode and sys.platform == "win32":
+            try:
+                hwnd = int(dialog.winId())
+                DWMWA_USE_IMMERSIVE_DARK_MODE = 20
+                value = ctypes.c_int(1)
+                ctypes.windll.dwmapi.DwmSetWindowAttribute(
+                    hwnd,
+                    DWMWA_USE_IMMERSIVE_DARK_MODE,
+                    ctypes.byref(value),
+                    ctypes.sizeof(value),
+                )
+            except:
+                pass
+
+        layout = QVBoxLayout()
+        layout.setSpacing(16)
+        layout.setContentsMargins(20, 20, 20, 20)
+
+        title_label = QLabel("Personalizar Apariencia")
+        title_label.setStyleSheet(f"""
+            font-size: 16px;
+            font-weight: bold;
+            color: {'#A0A0A0' if self.dark_mode else '#00796B'};
+            padding: 10px 0;
+        """)
+        layout.addWidget(title_label)
+
+        # Tipografía
+        font_layout = QHBoxLayout()
+        font_label = QLabel("Tipografía Principal:")
+        font_combo = QFontComboBox()
+        # Limitar a fuentes comunes para evitar desbordes visuales
+        font_combo.setCurrentFont(self.font())
+        
+        # Leer fuente actual de QSettings
+        from PyQt5.QtCore import QSettings
+        settings = QSettings("Uandes", "PhotolithSimulator")
+        current_font = settings.value("app_font", "'Segoe UI', 'Helvetica Neue', Helvetica, sans-serif")
+        if isinstance(current_font, str):
+            font_combo.setCurrentText(current_font.split(",")[0].strip("'\" "))
+
+        font_layout.addWidget(font_label)
+        font_layout.addWidget(font_combo)
+        layout.addLayout(font_layout)
+        
+        separator1 = QLabel()
+        separator1.setStyleSheet(
+            f"background-color: {'#3E3E3E' if self.dark_mode else '#CCCCCC'}; max-height: 1px;"
+        )
+        separator1.setFixedHeight(1)
+        layout.addWidget(separator1)
+
+        # Gradientes de Acento
+        gradient_title = QLabel("Color de Acento (Botones Principales)")
+        gradient_title.setStyleSheet("font-size: 14px; font-weight: bold; margin-top: 10px;")
+        layout.addWidget(gradient_title)
+
+        gradient_group = QButtonGroup(dialog)
+        
+        gradients = [
+            ("Gris Platino (Por Defecto)", "#A0A0A0", "#606060"),
+            ("Acero Oscuro", "#707070", "#404040"),
+            ("Azul Medianoche", "#4A6FA5", "#2B4365"),
+            ("Esmeralda Muted", "#5B8A72", "#365948"),
+            ("Bronce Oscuro", "#A37B5C", "#634731")
+        ]
+        
+        current_gradient = settings.value("app_gradient", "Gris Platino (Por Defecto)")
+
+        for idx, (name, c1, c2) in enumerate(gradients):
+            row = QHBoxLayout()
+            radio = QRadioButton(name)
+            if current_gradient == name:
+                radio.setChecked(True)
+            gradient_group.addButton(radio, idx)
+            row.addWidget(radio)
+            
+            preview = QLabel(" ")
+            preview.setFixedSize(40, 20)
+            preview.setStyleSheet(f"border-radius: 4px; background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 {c1}, stop:1 {c2});")
+            row.addWidget(preview)
+            row.addStretch()
+            layout.addLayout(row)
+
+        button_layout = QHBoxLayout()
+        button_layout.addStretch()
+
+        cancel_button = QPushButton("Cancelar")
+        cancel_button.clicked.connect(dialog.reject)
+        button_layout.addWidget(cancel_button)
+
+        apply_button = QPushButton("Aplicar")
+        apply_button.setDefault(True)
+        apply_button.clicked.connect(dialog.accept)
+        button_layout.addWidget(apply_button)
+
+        layout.addLayout(button_layout)
+        dialog.setLayout(layout)
+
+        dialog.setStyleSheet(f"""
+            QDialog {{
+                background-color: {'#1E1E1E' if self.dark_mode else '#FFFFFF'};
+                color: {'#E0E0E0' if self.dark_mode else '#000000'};
+            }}
+            QRadioButton {{
+                color: {'#E0E0E0' if self.dark_mode else '#000000'};
+                font-size: 13px;
+                padding: 5px;
+            }}
+            QLabel {{
+                color: {'#E0E0E0' if self.dark_mode else '#000000'};
+            }}
+            QFontComboBox {{
+                background-color: {'#2C2C2C' if self.dark_mode else '#FFFFFF'};
+                border: 1px solid {'#3E3E3E' if self.dark_mode else '#CCCCCC'};
+                border-radius: 4px;
+                padding: 4px;
+                color: {'#E0E0E0' if self.dark_mode else '#000000'};
+            }}
+            QPushButton {{
+                background-color: {'#2C2C2C' if self.dark_mode else '#F0F0F0'};
+                border: 1px solid {'#3E3E3E' if self.dark_mode else '#CCCCCC'};
+                border-radius: 6px;
+                padding: 8px 16px;
+                color: {'#E0E0E0' if self.dark_mode else '#000000'};
+            }}
+            QPushButton:hover {{
+                background-color: {'#3A3A3A' if self.dark_mode else '#E0E0E0'};
+            }}
+            QPushButton:default {{
+                background-color: #A0A0A0;
+                color: #000000;
+                border: 1px solid #A0A0A0;
+            }}
+            QPushButton:default:hover {{
+                background-color: #808080;
+            }}
+        """)
+
+        if dialog.exec_() == QDialog.Accepted:
+            selected_font = font_combo.currentText()
+            settings.setValue("app_font", selected_font)
+            
+            selected_idx = gradient_group.checkedId()
+            if selected_idx >= 0:
+                name, c1, c2 = gradients[selected_idx]
+                settings.setValue("app_gradient", name)
+                settings.setValue("app_gradient_start", c1)
+                settings.setValue("app_gradient_end", c2)
+            
+            self.apply_theme()
 
     def update_projection_stats(
         self, original_width, original_height, scaled_width, scaled_height
@@ -396,7 +558,7 @@ class PreferencesMixin:
         """)
         layout.addWidget(title_label)
 
-        brightness_title = QLabel(" Brillo final al completar")
+        brightness_title = QLabel("Brillo Final al Completar")
         brightness_title.setStyleSheet(
             "font-size: 14px; font-weight: bold; margin-top: 10px;"
         )
@@ -404,11 +566,11 @@ class PreferencesMixin:
 
         brightness_group = QButtonGroup(dialog)
 
-        brightness_zero_radio = QRadioButton(" Apagar (0% de brillo)")
+        brightness_zero_radio = QRadioButton("Apagar (0% de brillo)")
         brightness_zero_radio.setChecked(self.final_brightness_mode == "zero")
         brightness_group.addButton(brightness_zero_radio, 0)
 
-        brightness_full_radio = QRadioButton(" Mantener encendido (100% de brillo)")
+        brightness_full_radio = QRadioButton("Mantener encendido (100% de brillo)")
         brightness_full_radio.setChecked(self.final_brightness_mode == "full")
         brightness_group.addButton(brightness_full_radio, 1)
 
@@ -673,7 +835,7 @@ class PreferencesMixin:
         separator.setStyleSheet("color: #555; margin: 15px 0;")
         layout.addWidget(separator)
 
-        title2 = QLabel("🔍 Color del Grid de Píxeles")
+        title2 = QLabel("Color del grid de píxeles")
         title2.setStyleSheet("font-size: 16px; font-weight: bold; margin-bottom: 10px;")
         layout.addWidget(title2)
 

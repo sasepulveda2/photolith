@@ -142,16 +142,53 @@ class ThemeMixin:
             self.simulate_optics()
 
     def apply_dark_theme(self) -> None:
-        """Aplica la paleta y hoja de estilos del tema oscuro."""
+        """Aplica la paleta y hoja de estilos del tema oscuro con personalización."""
         self.figure.set_facecolor(DARK_BG_PRIMARY)
         self.canvas.draw()
-        self.setStyleSheet(load_theme("dark"))
+        
+        qss = load_theme("dark")
+        qss = self._apply_appearance_preferences(qss)
+        self.setStyleSheet(qss)
 
     def apply_light_theme(self) -> None:
-        """Aplica la paleta y hoja de estilos del tema claro."""
+        """Aplica la paleta y hoja de estilos del tema claro con personalización."""
         self.figure.set_facecolor(LIGHT_BG_PRIMARY)
         self.canvas.draw()
-        self.setStyleSheet(load_theme("light"))
+        
+        qss = load_theme("light")
+        qss = self._apply_appearance_preferences(qss)
+        self.setStyleSheet(qss)
+
+    def _apply_appearance_preferences(self, qss: str) -> str:
+        """Aplica la fuente seleccionada y el gradiente de acento al QSS cargado."""
+        from PyQt5.QtCore import QSettings
+        settings = QSettings("Uandes", "PhotolithSimulator")
+        
+        # Reemplazar fuente (Fallback a Segoe UI en lugar de Arial para evitar advertencia OpenType)
+        app_font = settings.value("app_font", "'Segoe UI', 'Helvetica Neue', Helvetica, sans-serif")
+        if isinstance(app_font, str):
+            qss = qss.replace("'Helvetica Neue', Helvetica, Arial", app_font)
+            
+        # Reemplazar gradiente de botones
+        grad_start = settings.value("app_gradient_start", "#A0A0A0")
+        grad_end = settings.value("app_gradient_end", "#606060")
+        
+        if isinstance(grad_start, str) and isinstance(grad_end, str):
+            # El gradiente base en los .qss está definido como "#A0A0A0" y "#606060" en los botones modernButton
+            qss = qss.replace("stop:0 #A0A0A0, stop:1 #606060", f"stop:0 {grad_start}, stop:1 {grad_end}")
+            
+            # Hover (hacerlo ligeramente más claro calculando o simplemente usando los base para mantener simplicidad)
+            qss = qss.replace("stop:0 #C0C0C0, stop:1 #808080", f"stop:0 {grad_start}, stop:1 {grad_start}") 
+            
+            # Pressed (hacerlo más oscuro)
+            qss = qss.replace("stop:0 #606060, stop:1 #016968", f"stop:0 {grad_end}, stop:1 {grad_end}")
+            
+            # Cambiar colores de acento generales (checkboxes checked, letras destacadas, bordes, etc.)
+            qss = qss.replace("background-color: #A0A0A0;", f"background-color: {grad_start};")
+            qss = qss.replace("border: 2px solid #A0A0A0;", f"border: 2px solid {grad_start};")
+            qss = qss.replace("color: #A0A0A0;", f"color: {grad_start};")
+            
+        return qss
 
     def _set_titlebar_dark_mode(self, enabled: bool) -> None:
         """Aplica el modo inmersivo a la barra de título de Windows si es posible."""

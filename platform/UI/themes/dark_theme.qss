@@ -125,6 +125,8 @@ QCheckBox {
     color: #E0E0E0;
     spacing: 8px;
     padding: 6px;
+    background-color: transparent;
+    border: none;
 }
 QCheckBox::indicator {
     width: 20px;
@@ -215,7 +217,7 @@ QLabel#statLabel {
 
 QWidget#statsContainer {
     background-color: #1A1A1A;
-    border: 1px solid #2A2A2A;
+    border: none;
     border-radius: 8px;
 }
 
