@@ -95,14 +95,9 @@ class MotorGUI(QWidget):
         self.unit_box.setObjectName("unitBox")
         self.unit_box.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         
-        self.btn_prefs = QPushButton("⚙️ Preferencias")
-        self.btn_prefs.setObjectName("btnPrefs")
-        self.btn_prefs.clicked.connect(self.mostrar_preferencias)
-        
         info_layout.addWidget(self.status_label)
         info_layout.addStretch()
         info_layout.addWidget(self.unit_box)
-        info_layout.addWidget(self.btn_prefs)
         main_layout.addLayout(info_layout)
 
         # --- CONTROLES DE CONFIGURACIÓN ---
@@ -203,102 +198,6 @@ class MotorGUI(QWidget):
 
         self.actualizar_pantalla()
 
-    def mostrar_preferencias(self):
-        dialog = QDialog(self)
-        dialog.setWindowTitle("Preferencias de Motores")
-        dialog.setFixedWidth(400)
-        dialog.setWindowFlags(dialog.windowFlags() & ~Qt.WindowContextHelpButtonHint)
-        
-        try:
-            if sys.platform == "win32":
-                hwnd = int(dialog.winId())
-                DWMWA_USE_IMMERSIVE_DARK_MODE = 20
-                value = ctypes.c_int(1)
-                ctypes.windll.dwmapi.DwmSetWindowAttribute(
-                    hwnd,
-                    DWMWA_USE_IMMERSIVE_DARK_MODE,
-                    ctypes.byref(value),
-                    ctypes.sizeof(value),
-                )
-        except:
-            pass
-
-        layout = QVBoxLayout(dialog)
-        layout.setSpacing(15)
-        layout.setContentsMargins(20, 20, 20, 20)
-
-        title = QLabel("ASIGNACIÓN LÓGICO ➔ FÍSICO (HARDWARE)")
-        title.setStyleSheet("font-size: 14px; font-weight: bold; color: #03DAC6; margin-bottom: 10px;")
-        layout.addWidget(title)
-
-        mapping_layout = QGridLayout()
-        mapping_layout.setSpacing(10)
-
-        self.map_combos = {}
-        self.map_invs = {}
-        self.map_steps_360 = {}
-
-        mapping_layout.addWidget(QLabel("<b>Eje Lógico</b>"), 0, 0)
-        mapping_layout.addWidget(QLabel("<b>Motor Físico</b>"), 0, 1)
-        mapping_layout.addWidget(QLabel("<b>Invertir</b>"), 0, 2)
-        mapping_layout.addWidget(QLabel("<b>Step 360°</b>"), 0, 3)
-
-        for row, logical in enumerate(["X", "Y", "Z", "E"], start=1):
-            lbl = QLabel(f"Eje {logical} ➔")
-            
-            combo = QComboBox()
-            combo.addItems(["X", "Y", "Z", "E"])
-            combo.setCurrentText(self.mapping[logical]["motor"])
-            combo.currentTextChanged.connect(self.actualizar_mapping)
-            self.map_combos[logical] = combo
-            
-            inv = QCheckBox("Invertir")
-            inv.setChecked(self.mapping[logical]["invert"])
-            inv.toggled.connect(self.actualizar_mapping)
-            self.map_invs[logical] = inv
-            
-            steps_spin = QSpinBox()
-            steps_spin.setRange(1, 100000)
-            steps_spin.setValue(self.steps_360[logical])
-            steps_spin.valueChanged.connect(self.actualizar_mapping)
-            self.map_steps_360[logical] = steps_spin
-            
-            mapping_layout.addWidget(lbl, row, 0)
-            mapping_layout.addWidget(combo, row, 1)
-            mapping_layout.addWidget(inv, row, 2)
-            mapping_layout.addWidget(steps_spin, row, 3)
-
-        layout.addLayout(mapping_layout)
-        
-        btn_layout = QHBoxLayout()
-        btn_layout.addStretch()
-        close_btn = QPushButton("Cerrar")
-        close_btn.clicked.connect(dialog.accept)
-        btn_layout.addWidget(close_btn)
-        
-        layout.addLayout(btn_layout)
-        
-        dialog.setStyleSheet(self.styleSheet())
-        dialog.exec_()
-
-    def actualizar_mapping(self):
-        for logical in ["X", "Y", "Z", "E"]:
-            self.mapping[logical]["motor"] = self.map_combos[logical].currentText()
-            self.mapping[logical]["invert"] = self.map_invs[logical].isChecked()
-            self.steps_360[logical] = self.map_steps_360[logical].value()
-            
-        if self.on_mapping_changed:
-            self.on_mapping_changed(self.mapping)
-            
-        if self.on_steps_360_changed:
-            self.on_steps_360_changed(self.steps_360)
-        
-        # También pasamos la actualización al controlador para que lo use inmediatamente
-        self.ctrl.set_mapping(self.mapping)
-        
-        self.status_label.setText("🟢 Asignación de Hardware Guardada")
-        self.status_label.setStyleSheet("color: #03DAC6;")
-
     def apply_styles(self):
         style = """
             QWidget {
@@ -392,18 +291,6 @@ class MotorGUI(QWidget):
             QPushButton:hover {
                 background-color: #2C2C2C;
                 border: 1px solid #3E3E3E;
-            }
-            
-            QPushButton#btnPrefs {
-                background-color: transparent;
-                border: 1px solid #2E2E2E;
-                border-radius: 8px;
-                color: #03DAC6;
-                font-weight: bold;
-            }
-            QPushButton#btnPrefs:hover {
-                background-color: #2C2C2C;
-                border: 1px solid #03DAC6;
             }
             
             QPushButton#btnMove {
@@ -596,3 +483,168 @@ class MotorGUI(QWidget):
         else:
             self.status_label.setText("🔴 Fallo al Reconectar")
             self.status_label.setStyleSheet("color: #F44336;")
+
+
+class MotorPreferencesGUI(QWidget):
+    def __init__(self, controller, mapping=None, on_mapping_changed=None, steps_360=None, on_steps_360_changed=None, feedrates=None, on_feedrates_changed=None):
+        super().__init__()
+        self.ctrl = controller
+        self.mapping = mapping or {"X": {"motor": "X", "invert": False}, "Y": {"motor": "Y", "invert": False}, "Z": {"motor": "Z", "invert": False}, "E": {"motor": "E", "invert": False}}
+        self.on_mapping_changed = on_mapping_changed
+        self.steps_360 = steps_360 or {"X": 3200, "Y": 3200, "Z": 640, "E": 3200}
+        self.on_steps_360_changed = on_steps_360_changed
+        self.feedrates = feedrates or {"X": 5000, "Y": 5000, "Z": 500, "E": 5000}
+        self.on_feedrates_changed = on_feedrates_changed
+
+        self.initUI()
+        self.apply_styles()
+
+    def initUI(self):
+        from PyQt5.QtWidgets import QVBoxLayout, QLabel, QScrollArea, QWidget, QGroupBox, QGridLayout, QComboBox, QCheckBox, QSpinBox, QFormLayout, QPushButton
+        from PyQt5.QtCore import Qt
+
+        main_layout = QVBoxLayout(self)
+        main_layout.setContentsMargins(15, 15, 15, 15)
+        main_layout.setSpacing(15)
+
+        title = QLabel("⚙️ Preferencias de Motores")
+        title.setAlignment(Qt.AlignCenter)
+        title.setStyleSheet("color: #03DAC6; font-size: 16px; font-weight: bold; margin-bottom: 10px;")
+        main_layout.addWidget(title)
+
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setStyleSheet("QScrollArea { border: none; background: transparent; }")
+        
+        content_widget = QWidget()
+        layout = QVBoxLayout(content_widget)
+        layout.setContentsMargins(0, 0, 0, 0)
+        
+        # Mapeo de Ejes
+        gb_map = QGroupBox("Mapeo Físico de Ejes")
+        gb_map.setStyleSheet("QGroupBox { color: #A0A0A0; font-weight: bold; border: 1px solid #2E2E2E; border-radius: 8px; margin-top: 10px; padding-top: 15px; } QGroupBox::title { subcontrol-origin: margin; left: 10px; }")
+        mapping_layout = QGridLayout(gb_map)
+        mapping_layout.addWidget(QLabel("Lógico"), 0, 0)
+        mapping_layout.addWidget(QLabel("Físico"), 0, 1)
+        mapping_layout.addWidget(QLabel("Invertir"), 0, 2)
+
+        self.map_combos = {}
+        self.map_invs = {}
+        
+        for i, logical in enumerate(["X", "Y", "Z", "E"]):
+            mapping_layout.addWidget(QLabel(f"Eje {logical}:"), i+1, 0)
+            
+            cb = QComboBox()
+            cb.addItems(["X", "Y", "Z", "E"])
+            cb.setCurrentText(self.mapping[logical]["motor"])
+            cb.currentTextChanged.connect(self.actualizar_config)
+            self.map_combos[logical] = cb
+            mapping_layout.addWidget(cb, i+1, 1)
+            
+            chk = QCheckBox()
+            chk.setChecked(self.mapping[logical]["invert"])
+            chk.stateChanged.connect(self.actualizar_config)
+            self.map_invs[logical] = chk
+            mapping_layout.addWidget(chk, i+1, 2)
+
+        layout.addWidget(gb_map)
+
+        # Pasos por 360
+        gb_steps = QGroupBox("Mecánica (Pasos por 360°)")
+        gb_steps.setStyleSheet(gb_map.styleSheet())
+        steps_layout = QFormLayout(gb_steps)
+        self.map_steps_360 = {}
+        
+        for logical in ["X", "Y", "Z", "E"]:
+            sb = QSpinBox()
+            sb.setRange(100, 100000)
+            sb.setSingleStep(100)
+            sb.setValue(self.steps_360.get(logical, 3200))
+            sb.valueChanged.connect(self.actualizar_config)
+            self.map_steps_360[logical] = sb
+            steps_layout.addRow(f"Eje {logical}:", sb)
+            
+        layout.addWidget(gb_steps)
+
+        # Feedrates
+        gb_feed = QGroupBox("Feedrates (Velocidad G-Code)")
+        gb_feed.setStyleSheet(gb_map.styleSheet())
+        feed_layout = QFormLayout(gb_feed)
+        
+        self.btn_unlock = QPushButton("Desbloquear Velocidades")
+        self.btn_unlock.setCheckable(True)
+        self.btn_unlock.setStyleSheet("QPushButton:checked { background-color: #F44336; color: white; border: none; }")
+        self.btn_unlock.toggled.connect(self.toggle_feedrates)
+        feed_layout.addRow(self.btn_unlock)
+
+        self.map_feedrates = {}
+        for logical in ["X", "Y", "Z", "E"]:
+            sb = QSpinBox()
+            sb.setRange(10, 50000)
+            sb.setSingleStep(100)
+            sb.setValue(self.feedrates.get(logical, 5000))
+            sb.setEnabled(False)
+            sb.valueChanged.connect(self.actualizar_config)
+            self.map_feedrates[logical] = sb
+            feed_layout.addRow(f"Eje {logical}:", sb)
+
+        layout.addWidget(gb_feed)
+
+        layout.addStretch()
+        scroll.setWidget(content_widget)
+        main_layout.addWidget(scroll)
+
+    def toggle_feedrates(self, checked):
+        for sb in self.map_feedrates.values():
+            sb.setEnabled(checked)
+        if checked:
+            self.btn_unlock.setText("Bloquear Velocidades")
+        else:
+            self.btn_unlock.setText("Desbloquear Velocidades")
+
+    def actualizar_config(self):
+        for logical in ["X", "Y", "Z", "E"]:
+            self.mapping[logical]["motor"] = self.map_combos[logical].currentText()
+            self.mapping[logical]["invert"] = self.map_invs[logical].isChecked()
+            self.steps_360[logical] = self.map_steps_360[logical].value()
+            self.feedrates[logical] = self.map_feedrates[logical].value()
+            
+        if self.on_mapping_changed:
+            self.on_mapping_changed(self.mapping)
+        if self.on_steps_360_changed:
+            self.on_steps_360_changed(self.steps_360)
+        if self.on_feedrates_changed:
+            self.on_feedrates_changed(self.feedrates)
+        
+        self.ctrl.set_mapping(self.mapping)
+
+    def apply_styles(self):
+        style = """
+            QWidget {
+                background-color: #121212;
+                color: #f0f0f0;
+                font-family: "Segoe UI", "Roboto", "Helvetica Neue", sans-serif;
+            }
+            QComboBox, QSpinBox {
+                background-color: #1E1E1E;
+                color: #f0f0f0;
+                border: 1px solid #2E2E2E;
+                border-radius: 4px;
+                padding: 4px;
+            }
+            QComboBox:hover, QSpinBox:hover {
+                border: 1px solid #03DAC6;
+            }
+            QPushButton {
+                background-color: #1E1E1E;
+                border: 1px solid #2E2E2E;
+                border-radius: 6px;
+                padding: 6px;
+                color: #E0E0E0;
+            }
+            QPushButton:hover {
+                background-color: #2C2C2C;
+                border: 1px solid #3E3E3E;
+            }
+        """
+        self.setStyleSheet(style)

@@ -231,67 +231,129 @@ class LithographySimulator(
         self.motor_controller_instance = None
         self.load_motor_sidebar_settings()
 
-    def toggle_motors_panel(self):
-        """Muestra u oculta el panel de control de motores NEMA."""
-        if self.motor_gui is None:
-            # Importación lazy para no ralentizar el inicio
-            from motors.main import load_settings, seleccionar_puerto_y_baud, save_settings, puerto_key
-            from motors.motor_controller import CrealityController
-            from motors.gui import MotorGUI
-            from PyQt5.QtWidgets import QMessageBox
-            from PyQt5.QtCore import Qt
-
-            settings = load_settings()
-            puerto, baud = seleccionar_puerto_y_baud(settings)
-
-            if not puerto:
-                return
-
-            controller = CrealityController(
-                puerto.device, 
-                baud=baud,
-                initial_positions=settings.get("positions", {}),
-                mapping=settings.get("mapping")
-            )
-            if not controller.connect():
-                QMessageBox.critical(self, "Error de Conexión", f"No se pudo conectar a la placa en {puerto.device}.")
-                return
-
-            settings["port_identity"] = puerto_key(puerto)
-            settings["baud"] = baud
-            save_settings(settings)
-
-            def guardar_posiciones(positions):
-                settings["positions"] = positions
-                save_settings(settings)
-
-            def guardar_ultimo_movimiento(movement):
-                settings["last_movement"] = movement
-                save_settings(settings)
-
-            def guardar_mapping(mapping):
-                settings["mapping"] = mapping
-                save_settings(settings)
-
-            controller.on_positions_changed = guardar_posiciones
-            controller.on_last_movement_changed = guardar_ultimo_movimiento
-
-            # Instanciamos el MotorGUI como panel Tool/Flotante
-            self.motor_gui = MotorGUI(controller, mapping=settings.get("mapping"), on_mapping_changed=guardar_mapping)
-            # Configurar como panel flotante que pertenece a esta ventana principal
-            self.motor_gui.setWindowFlags(Qt.Tool)
+    def toggle_motors_view(self):
+        """Muestra u oculta la vista principal de motores y sus preferencias."""
+        if not hasattr(self, '_motors_view_active'):
+            self._motors_view_active = False
             
-            # Mantener la estética
-            if hasattr(self, "dark_mode") and self.dark_mode:
-                # El gui.py de motors ya tiene estilo, pero por las dudas
-                pass
+        if not self._motors_view_active:
+            # Al encender la vista, comprobar si está instanciada
+            if self.motor_gui is None:
+                # Importación lazy para no ralentizar el inicio
+                from motors.main import load_settings, seleccionar_puerto_y_baud, save_settings, puerto_key
+                from motors.motor_controller import CrealityController
+                from motors.gui import MotorGUI, MotorPreferencesGUI
+                from PyQt5.QtWidgets import QMessageBox
 
-        if self.motor_gui.isVisible():
-            self.motor_gui.hide()
+                settings = load_settings()
+                puerto, baud = seleccionar_puerto_y_baud(settings)
+
+                if not puerto:
+                    return
+
+                controller = CrealityController(
+                    puerto.device, 
+                    baud=baud,
+                    initial_positions=settings.get("positions", {}),
+                    mapping=settings.get("mapping")
+                )
+                if not controller.connect():
+                    QMessageBox.critical(self, "Error de Conexión", f"No se pudo conectar a la placa en {puerto.device}.")
+                    return
+
+                settings["port_identity"] = puerto_key(puerto)
+                settings["baud"] = baud
+                save_settings(settings)
+
+                def guardar_posiciones(positions):
+                    settings["positions"] = positions
+                    save_settings(settings)
+
+                def guardar_ultimo_movimiento(movement):
+                    settings["last_movement"] = movement
+                    save_settings(settings)
+
+                def guardar_mapping(mapping):
+                    settings["mapping"] = mapping
+                    save_settings(settings)
+                    
+                def guardar_steps_360(steps):
+                    settings["steps_360"] = steps
+                    save_settings(settings)
+                    
+                def guardar_feedrates(feedrates):
+                    settings["feedrates"] = feedrates
+                    save_settings(settings)
+
+                controller.on_positions_changed = guardar_posiciones
+                controller.on_last_movement_changed = guardar_ultimo_movimiento
+
+                # Instanciamos el MotorGUI en el centro
+                self.motor_gui = MotorGUI(
+                    controller, 
+                    mapping=settings.get("mapping"), 
+                    on_mapping_changed=guardar_mapping,
+                    steps_360=settings.get("steps_360"),
+                    on_steps_360_changed=guardar_steps_360
+                )
+                self.motor_central_layout.addWidget(self.motor_gui)
+                
+                # Instanciamos el MotorPreferencesGUI en el sidebar
+                self.motor_prefs_gui = MotorPreferencesGUI(
+                    controller,
+                    mapping=settings.get("mapping"), 
+                    on_mapping_changed=guardar_mapping,
+                    steps_360=settings.get("steps_360"),
+                    on_steps_360_changed=guardar_steps_360,
+                    feedrates=settings.get("feedrates"),
+                    on_feedrates_changed=guardar_feedrates
+                )
+                self.motors_panel_layout.addWidget(self.motor_prefs_gui)
+
+            # Activar Vista Motores
+            self._motors_view_active = True
+            if hasattr(self, "motors_button"):
+                self.motors_button.setText("⚙️ Volver al Editor")
+
+            # Desactivar otras vistas
+            if getattr(self, "grid_view_active", False):
+                self.toggle_grid_view()
+            if getattr(self, "calibration_view_active", False):
+                self.toggle_calibration_view()
+            if getattr(self, "_ruler_scale_view_active", False):
+                self.toggle_ruler_scale_view()
+            if getattr(self, "_pattern_calib_view_active", False):
+                self.toggle_pattern_calibration_view()
+
+            # Ocultar canvas normal y sidebar normal
+            if hasattr(self, "canvas_container"):
+                self.canvas_container.setVisible(False)
+            if hasattr(self, "_main_sidebar"):
+                self._main_sidebar.setVisible(False)
+
+            # Mostrar panels de motores
+            if hasattr(self, "motor_central_widget"):
+                self.motor_central_widget.setVisible(True)
+            if hasattr(self, "motors_panel_widget"):
+                self.motors_panel_widget.setVisible(True)
+
         else:
-            self.motor_gui.show()
-            self.motor_gui.raise_()
-            self.motor_gui.activateWindow()
+            # Desactivar Vista Motores
+            self._motors_view_active = False
+            if hasattr(self, "motors_button"):
+                self.motors_button.setText("⚙️ Motores")
+            
+            # Ocultar panels de motores
+            if hasattr(self, "motor_central_widget"):
+                self.motor_central_widget.setVisible(False)
+            if hasattr(self, "motors_panel_widget"):
+                self.motors_panel_widget.setVisible(False)
+                
+            # Mostrar canvas normal y sidebar normal
+            if hasattr(self, "canvas_container"):
+                self.canvas_container.setVisible(True)
+            if hasattr(self, "_main_sidebar"):
+                self._main_sidebar.setVisible(True)
 
     # ═══════════════════════════════════════════════════════════════════════════
     # LÓGICA DE CONTROLADORES DE MOTOR (SIDEBAR INTEGRADA)

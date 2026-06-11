@@ -85,6 +85,8 @@ class RulerScaleMixin:
             self.toggle_calibration_view()
         if getattr(self, "_pattern_calib_view_active", False):
             self.toggle_pattern_calibration_view()
+        if getattr(self, "_motors_view_active", False):
+            self.toggle_motors_view()
 
         # Ocultar sidebar normal, mostrar panel de regla
         if hasattr(self, "_main_sidebar"):

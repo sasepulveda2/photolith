@@ -48,7 +48,7 @@ class ToolbarCanvasBuilder:
         self.preferences_button.clicked.connect(self.show_preferences_menu)
 
         self.motors_button = QPushButton("⚙️ Motores")
-        self.motors_button.clicked.connect(self.toggle_motors_panel)
+        self.motors_button.clicked.connect(self.toggle_motors_view)
 
         self.projector_button = QPushButton("🎬 Proyectar")
         self.projector_button.clicked.connect(self.toggle_projector)

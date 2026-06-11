@@ -71,6 +71,8 @@ class SpatialCalibrationMixin:
             self.toggle_calibration_view()
         if getattr(self, "_ruler_scale_view_active", False):
             self.toggle_ruler_scale_view()
+        if getattr(self, "_motors_view_active", False):
+            self.toggle_motors_view()
 
         # Ocultar sidebar normal
         if hasattr(self, "_main_sidebar"):
@@ -84,9 +86,8 @@ class SpatialCalibrationMixin:
         if hasattr(self, "pattern_calib_button"):
             self.pattern_calib_button.setText("🖼️ Salir Calibración")
 
-        if not hasattr(self, "ax") or self.ax is None:
-            self.figure.clear()
-            self.ax = self.figure.add_subplot(111)
+        self.figure.clear()
+        self.ax = self.figure.add_subplot(111)
 
         # Conectar eventos de matplotlib al canvas principal
         self._spatial_cids = [

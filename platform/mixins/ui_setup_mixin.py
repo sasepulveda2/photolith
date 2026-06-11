@@ -99,10 +99,26 @@ class UISetupMixin(
         self._connect_screen_signals()
 
         canvas_layout = QHBoxLayout()
-        canvas_layout.addLayout(self.canvas_with_toolbar, stretch=3)
+        
+        self.canvas_container = QWidget()
+        self.canvas_container.setLayout(self.canvas_with_toolbar)
+        
+        self.motor_central_widget = QWidget()
+        self.motor_central_widget.setVisible(False)
+        self.motor_central_layout = QVBoxLayout(self.motor_central_widget)
+        self.motor_central_layout.setContentsMargins(0,0,0,0)
+
+        self.motors_panel_widget = QWidget()
+        self.motors_panel_widget.setVisible(False)
+        self.motors_panel_layout = QVBoxLayout(self.motors_panel_widget)
+        self.motors_panel_layout.setContentsMargins(0,0,0,0)
+
+        canvas_layout.addWidget(self.canvas_container, stretch=3)
+        canvas_layout.addWidget(self.motor_central_widget, stretch=3)
         canvas_layout.addWidget(sidebar, stretch=1)
         canvas_layout.addWidget(self.ruler_panel_widget, stretch=1)
         canvas_layout.addWidget(self.pattern_calib_sidebar_widget, stretch=1)
+        canvas_layout.addWidget(self.motors_panel_widget, stretch=1)
 
         canvas_widget = QWidget()
         canvas_widget.setLayout(canvas_layout)
