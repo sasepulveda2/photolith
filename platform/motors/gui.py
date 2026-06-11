@@ -13,7 +13,8 @@ from PyQt5.QtWidgets import (
     QSizePolicy,
     QGroupBox,
     QCheckBox,
-    QDialog
+    QDialog,
+    QDoubleSpinBox
 )
 from PyQt5.QtCore import Qt
 
@@ -114,18 +115,30 @@ class MotorGUI(QWidget):
         self.axis_sel.currentTextChanged.connect(self.actualizar_pantalla)
         self.axis_sel.setMinimumHeight(45)
 
-        multi_label = QLabel("MULTIPLICADOR (STEPS)")
+        multi_label = QLabel("CANTIDAD A MOVER")
         multi_label.setObjectName("controlLabel")
-        self.multi_sel = QSpinBox()
-        self.multi_sel.setRange(1, 10000)
-        self.multi_sel.setValue(1)
+        
+        multi_layout = QHBoxLayout()
+        multi_layout.setContentsMargins(0, 0, 0, 0)
+        self.multi_sel = QDoubleSpinBox()
+        self.multi_sel.setRange(0.001, 10000)
+        self.multi_sel.setValue(1.0)
+        self.multi_sel.setDecimals(3)
         self.multi_sel.setMinimumHeight(45)
         self.multi_sel.valueChanged.connect(self.update_unit_display)
+        
+        self.unit_sel = QComboBox()
+        self.unit_sel.addItems(["Steps", "mm", "Grados"])
+        self.unit_sel.setMinimumHeight(45)
+        self.unit_sel.currentTextChanged.connect(self.update_unit_display)
+        
+        multi_layout.addWidget(self.multi_sel, stretch=2)
+        multi_layout.addWidget(self.unit_sel, stretch=1)
 
         config_layout.addWidget(axis_label, 0, 0)
         config_layout.addWidget(self.axis_sel, 1, 0)
         config_layout.addWidget(multi_label, 0, 1)
-        config_layout.addWidget(self.multi_sel, 1, 1)
+        config_layout.addLayout(multi_layout, 1, 1)
         
         main_layout.addWidget(config_frame)
 
@@ -381,22 +394,47 @@ class MotorGUI(QWidget):
 
 
     def update_unit_display(self):
-        val_mm = self.multi_sel.value() * 0.0125
-        if val_mm < 1:
-            self.unit_box.setText(f"Movimiento: {val_mm*1000:.1f} µm")
-        elif val_mm < 10:
-            self.unit_box.setText(f"Movimiento: {val_mm:.3f} mm")
-        else:
-            self.unit_box.setText(f"Movimiento: {val_mm/10:.2f} cm")
+        valor = self.multi_sel.value()
+        unidad = self.unit_sel.currentText()
+        eje = self.axis_sel.currentText()
+        
+        steps_per_rev = self.steps_360.get(eje, 3200)
+        steps_per_mm = 2 * steps_per_rev
+        
+        if unidad == "Steps":
+            steps = int(valor)
+            mm = steps / steps_per_mm
+            grados = steps * (360.0 / steps_per_rev)
+            self.unit_box.setText(f"Movimiento: {steps} Steps | {mm:.3f} mm | {grados:.1f}°")
+        elif unidad == "mm":
+            mm = valor
+            steps = int(mm * steps_per_mm)
+            grados = steps * (360.0 / steps_per_rev)
+            self.unit_box.setText(f"Movimiento: {mm:.3f} mm | {steps} Steps | {grados:.1f}°")
+        elif unidad == "Grados":
+            grados = valor
+            steps = int(grados / (360.0 / steps_per_rev))
+            mm = steps / steps_per_mm
+            self.unit_box.setText(f"Movimiento: {grados:.1f}° | {steps} Steps | {mm:.3f} mm")
 
     def ejecutar_movimiento(self, direccion):
         eje = self.axis_sel.currentText()
-        steps_base = direccion
-        multiplicador = self.multi_sel.value()
+        valor = self.multi_sel.value()
+        unidad = self.unit_sel.currentText()
+        
+        steps_per_rev = self.steps_360.get(eje, 3200)
+        steps_per_mm = 2 * steps_per_rev
+        
+        if unidad == "Steps":
+            steps_totales = int(valor) * direccion
+        elif unidad == "mm":
+            steps_totales = int(valor * steps_per_mm) * direccion
+        elif unidad == "Grados":
+            steps_totales = int(valor / (360.0 / steps_per_rev)) * direccion
 
         try:
-            self.ctrl.step_move(eje, steps_base, multiplicador)
-            self.status_label.setText("🟢 Movimiento Exitoso")
+            self.ctrl.step_move(eje, steps_totales, 1)
+            self.status_label.setText(f"🟢 Movimiento Exitoso: {steps_totales} steps")
             self.status_label.setStyleSheet("color: #03DAC6;")
         except Exception:
             self.status_label.setText("⏳ Error detectado. Intentando Auto-Reconexión...")
@@ -434,13 +472,17 @@ class MotorGUI(QWidget):
         eje = self.axis_sel.currentText()
         pasos_actuales = self.ctrl.positions.get(eje, 0)
 
-        mm = pasos_actuales * 0.0125
-        grados = pasos_actuales * 1.8
+        steps_per_rev = self.steps_360.get(eje, 3200)
+        steps_per_mm = 2 * steps_per_rev
+
+        mm = pasos_actuales / steps_per_mm if steps_per_mm else 0
+        grados = pasos_actuales * (360.0 / steps_per_rev) if steps_per_rev else 0
 
         self.odo_title.setText(f"EJE ACTIVO: {eje} | POSICIÓN ABSOLUTA")
         self.odo_label.setText(
             f"{pasos_actuales} Steps\n{mm:.3f} mm\n{grados:.1f}°"
         )
+        self.update_unit_display()
 
     def set_zero(self):
         eje = self.axis_sel.currentText()
@@ -561,6 +603,8 @@ class MotorPreferencesGUI(QWidget):
             sb.setSingleStep(100)
             sb.setValue(self.steps_360.get(logical, 3200))
             sb.valueChanged.connect(self.actualizar_config)
+            sb.setEnabled(False)  # Por seguridad, no se modifica por defecto
+            sb.setToolTip("Pasos por revolución. Normalmente configurado a nivel firmware.")
             self.map_steps_360[logical] = sb
             steps_layout.addRow(f"Eje {logical}:", sb)
             

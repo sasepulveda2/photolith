@@ -37,14 +37,14 @@ class ToolbarCanvasBuilder:
         self.toggle_view_button = QPushButton("📏 Vista Grid")
         self.toggle_view_button.clicked.connect(self.toggle_grid_view)
 
-        self.calibration_button = QPushButton("🎯 Calibración Óptica")
+        self.calibration_button = QPushButton(" Calibración Óptica")
         self.calibration_button.clicked.connect(self.toggle_calibration_view)
 
         self.pattern_calib_button = QPushButton("📏 Calibración de Patrón")
         self.pattern_calib_button.clicked.connect(self.toggle_pattern_calibration_view)
         self.pattern_calib_button.setToolTip("Pestaña para calibración de tamaño espacial y exposición")
 
-        self.preferences_button = QPushButton(" preferencias")
+        self.preferences_button = QPushButton(" Preferencias")
         self.preferences_button.clicked.connect(self.show_preferences_menu)
 
         self.motors_button = QPushButton("⚙️ Motores")
