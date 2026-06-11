@@ -48,25 +48,25 @@ class PreferencesMixin:
         )
 
         if self.dark_mode:
-            theme_action = menu.addAction("☀️ Modo Claro")
+            theme_action = menu.addAction(" Modo Claro")
         else:
-            theme_action = menu.addAction("🌙 Modo Oscuro")
+            theme_action = menu.addAction(" Modo Oscuro")
 
         theme_action.triggered.connect(self.toggle_theme)
 
-        scale_action = menu.addAction("📐 Configuración de Escala")
+        scale_action = menu.addAction(" Configuración de escala")
         scale_action.triggered.connect(self.show_scale_config)
 
-        exposure_config_action = menu.addAction("⏱️ Configuración de Exposición")
+        exposure_config_action = menu.addAction(" Configuración de exposición")
         exposure_config_action.triggered.connect(self.show_exposure_config)
 
-        grid_config_action = menu.addAction("📏 Configuración de Grid")
+        grid_config_action = menu.addAction(" Configuración de grid")
         grid_config_action.triggered.connect(self.show_grid_color_config)
 
         effects_action = menu.addAction(
-            "✨ Aplicar Efectos en Grid"
+            " Aplicar Efectos en Grid"
             if not self.apply_effects_to_grid
-            else "✨ Desactivar Efectos en Grid"
+            else " Desactivar Efectos en Grid"
         )
         effects_action.triggered.connect(self.toggle_grid_effects)
 
@@ -77,7 +77,7 @@ class PreferencesMixin:
         heatmap_action.triggered.connect(self.toggle_heatmap_visibility)
 
         # Opción para limpiar cache de segmentación
-        clear_cache_action = menu.addAction("🗑️ Limpiar Cache de Segmentación")
+        clear_cache_action = menu.addAction(" Limpiar Cache de Segmentación")
         clear_cache_action.triggered.connect(self.clear_segmentation_cache)
 
         menu.exec_(
@@ -176,16 +176,16 @@ class PreferencesMixin:
             self.image_segments = []
 
         # Log
-        self.log_to_console("🗑️ Cache de segmentación limpiado", "WARNING")
+        self.log_to_console(" Cache de segmentación limpiado", "WARNING")
 
         # Mensaje informativo
         info_msg = "Cache de segmentación limpiado.\n\n"
         if old_config:
             info_msg += (
-                f"Cache anterior:\n  • Configuración: {old_config[0]}×{old_config[1]}\n"
+                f"Cache anterior:\n    Configuración: {old_config[0]}×{old_config[1]}\n"
             )
         if old_bounds:
-            info_msg += f"  • Bounds: X[{old_bounds['start_x']}-{old_bounds['end_x']}] Y[{old_bounds['start_y']}-{old_bounds['end_y']}]\n"
+            info_msg += f"    Bounds: X[{old_bounds['start_x']}-{old_bounds['end_x']}] Y[{old_bounds['start_y']}-{old_bounds['end_y']}]\n"
         info_msg += "\nLa próxima segmentación recalculará desde cero."
 
         QMessageBox.information(self, "Cache Limpiado", info_msg)
@@ -216,7 +216,7 @@ class PreferencesMixin:
         layout.setSpacing(16)
         layout.setContentsMargins(20, 20, 20, 20)
 
-        title_label = QLabel("📐 Escala de Imagen Proyectada")
+        title_label = QLabel(" Escala de Imagen Proyectada")
         title_label.setStyleSheet(f"""
             font-size: 16px;
             font-weight: bold;
@@ -227,11 +227,11 @@ class PreferencesMixin:
 
         mode_group = QButtonGroup(dialog)
 
-        automatic_radio = QRadioButton("🔄 Automático (Ajustar al monitor)")
+        automatic_radio = QRadioButton(" Automático (ajustar al monitor)")
         automatic_radio.setChecked(self.scale_mode == "automatic")
         mode_group.addButton(automatic_radio, 0)
 
-        manual_radio = QRadioButton("🎚️ Manual (Porcentaje personalizado)")
+        manual_radio = QRadioButton(" Manual (porcentaje personalizado)")
         manual_radio.setChecked(self.scale_mode == "manual")
         mode_group.addButton(manual_radio, 1)
 
@@ -280,7 +280,7 @@ class PreferencesMixin:
         cancel_button.clicked.connect(dialog.reject)
         button_layout.addWidget(cancel_button)
 
-        apply_button = QPushButton("✓ Aplicar")
+        apply_button = QPushButton("  Aplicar")
         apply_button.setDefault(True)
         apply_button.clicked.connect(dialog.accept)
         button_layout.addWidget(apply_button)
@@ -387,7 +387,7 @@ class PreferencesMixin:
         layout.setSpacing(16)
         layout.setContentsMargins(20, 20, 20, 20)
 
-        title_label = QLabel("⏱️ Configuración de Exposición")
+        title_label = QLabel("Configuración de exposición")
         title_label.setStyleSheet(f"""
             font-size: 16px;
             font-weight: bold;
@@ -396,7 +396,7 @@ class PreferencesMixin:
         """)
         layout.addWidget(title_label)
 
-        brightness_title = QLabel("💡 Brillo Final al Completar")
+        brightness_title = QLabel(" Brillo final al completar")
         brightness_title.setStyleSheet(
             "font-size: 14px; font-weight: bold; margin-top: 10px;"
         )
@@ -404,11 +404,11 @@ class PreferencesMixin:
 
         brightness_group = QButtonGroup(dialog)
 
-        brightness_zero_radio = QRadioButton("🔴 Apagar (0% de brillo)")
+        brightness_zero_radio = QRadioButton(" Apagar (0% de brillo)")
         brightness_zero_radio.setChecked(self.final_brightness_mode == "zero")
         brightness_group.addButton(brightness_zero_radio, 0)
 
-        brightness_full_radio = QRadioButton("🟢 Mantener encendido (100% de brillo)")
+        brightness_full_radio = QRadioButton(" Mantener encendido (100% de brillo)")
         brightness_full_radio.setChecked(self.final_brightness_mode == "full")
         brightness_group.addButton(brightness_full_radio, 1)
 
@@ -484,7 +484,7 @@ class PreferencesMixin:
         cancel_button.clicked.connect(dialog.reject)
         button_layout.addWidget(cancel_button)
 
-        apply_button = QPushButton("✓ Aplicar")
+        apply_button = QPushButton("  Aplicar")
         apply_button.setDefault(True)
         apply_button.clicked.connect(dialog.accept)
         button_layout.addWidget(apply_button)
@@ -601,7 +601,7 @@ class PreferencesMixin:
         layout.setContentsMargins(20, 20, 20, 20)
 
         # SECCIÓN 1: Color Grid Principal
-        title1 = QLabel("🎨 Color del Grid Principal")
+        title1 = QLabel(" Color del grid principal")
         title1.setStyleSheet("font-size: 16px; font-weight: bold; margin-bottom: 10px;")
         layout.addWidget(title1)
 
@@ -732,9 +732,9 @@ class PreferencesMixin:
         layout.addLayout(colors_grid2)
 
         button_layout = QHBoxLayout()
-        ok_button = QPushButton("✓ Aceptar")
+        ok_button = QPushButton("Aceptar")
         ok_button.clicked.connect(dialog.accept)
-        cancel_button = QPushButton("✗ Cancelar")
+        cancel_button = QPushButton("Cancelar")
         cancel_button.clicked.connect(dialog.reject)
         button_layout.addWidget(ok_button)
         button_layout.addWidget(cancel_button)

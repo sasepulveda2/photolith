@@ -40,7 +40,7 @@ class IntensityAnalysisMixin:
                 self.calibration_grayscale = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
                 # Actualizar status
-                self.calib_image_status.setText(f"   ✓ {os.path.basename(file_path)}")
+                self.calib_image_status.setText(f"     {os.path.basename(file_path)}")
                 self.calib_image_status.setStyleSheet(
                     "font-size: 11px; color: #00CC00; margin-left: 40px;"
                 )
@@ -319,10 +319,10 @@ class IntensityAnalysisMixin:
         # Colorear según uniformidad
         if uniformity >= 90:
             color = "#00FF00"
-            status = "✓ Excelente"
+            status = "  Excelente"
         elif uniformity >= 75:
             color = "#88FF00"
-            status = "✓ Buena"
+            status = "  Buena"
         elif uniformity >= 60:
             color = "#FFFF00"
             status = "⚠ Aceptable"

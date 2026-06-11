@@ -216,46 +216,46 @@ class MotorGUI(QWidget):
             QWidget {
                 background-color: #121212;
                 color: #f0f0f0;
-                font-family: "Segoe UI", "Roboto", "Helvetica Neue", sans-serif;
+                font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
             }
             
             QFrame#screenFrame {
                 background-color: #0A0A0A;
-                border: 2px solid #2E2E2E;
-                border-radius: 12px;
+                border: 1px solid #2E2E2E;
+                border-radius: 6px;
             }
             
             QLabel#odoTitle {
-                color: #A0A0A0;
-                font-size: 14px;
+                color: #808080;
+                font-size: 12px;
                 font-weight: bold;
-                letter-spacing: 2px;
+                letter-spacing: 1px;
             }
             
             QLabel#odoLabel {
-                color: #A0A0A0;
-                font-family: "Consolas", "Courier New", monospace;
-                font-size: 24px;
-                font-weight: bold;
+                color: #C0C0C0;
+                font-family: 'Roboto Mono', Consolas, monospace;
+                font-size: 20px;
+                font-weight: 500;
                 line-height: 1.2;
             }
             
             QLabel#statusLabel {
-                color: #A0A0A0;
-                font-size: 14px;
-                font-weight: bold;
+                color: #888888;
+                font-size: 12px;
+                font-weight: normal;
             }
             
             QLabel#unitBox {
-                color: #E0E0E0;
-                font-size: 14px;
-                font-weight: bold;
+                color: #A0A0A0;
+                font-size: 12px;
+                font-weight: normal;
             }
             
             QFrame#controlFrame {
-                background-color: #1E1E1E;
-                border-radius: 10px;
-                border: 1px solid #2E2E2E;
+                background-color: #161616;
+                border-radius: 6px;
+                border: 1px solid #262626;
             }
             
             QLabel#controlLabel {
@@ -307,68 +307,67 @@ class MotorGUI(QWidget):
             }
             
             QPushButton#btnMove {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #A0A0A0, stop:1 #606060);
-                color: #121212;
-                font-size: 16px;
-                font-weight: 900;
-                border: none;
-                border-radius: 10px;
+                background-color: #262626;
+                color: #E0E0E0;
+                font-size: 13px;
+                font-weight: 600;
+                border: 1px solid #404040;
+                border-radius: 6px;
             }
             
             QPushButton#btnMove:hover {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #C0C0C0, stop:1 #808080);
+                background-color: #333333;
+                border: 1px solid #606060;
             }
             
             QPushButton#btnMove:pressed {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #606060, stop:1 #016968);
+                background-color: #1E1E1E;
             }
             
             QPushButton#btnMove360 {
-                background-color: #1E1E1E;
+                background-color: #1A1A1A;
                 color: #A0A0A0;
-                font-size: 14px;
-                font-weight: 900;
-                border: 2px solid #A0A0A0;
-                border-radius: 10px;
+                font-size: 12px;
+                font-weight: 500;
+                border: 1px solid #3E3E3E;
+                border-radius: 6px;
             }
             
             QPushButton#btnMove360:hover {
-                background-color: #A0A0A0;
-                color: #121212;
+                background-color: #242424;
+                color: #E0E0E0;
             }
             
             QPushButton#btnMove360:pressed {
-                background-color: #A0A0A0;
-                color: #121212;
+                background-color: #121212;
             }
             
             QPushButton#btnUtil {
-                background-color: #1E1E1E;
+                background-color: #1A1A1A;
                 color: #A0A0A0;
-                font-size: 14px;
-                font-weight: bold;
+                font-size: 12px;
+                font-weight: 500;
                 border: 1px solid #2E2E2E;
-                border-radius: 8px;
+                border-radius: 6px;
             }
             
             QPushButton#btnUtil:hover {
-                background-color: #2C2C2C;
+                background-color: #242424;
                 border: 1px solid #3E3E3E;
                 color: #C0C0C0;
             }
             
             QPushButton#btnUtilHome {
-                background-color: #1E1E1E;
-                color: #F44336;
-                font-size: 14px;
-                font-weight: bold;
-                border: 1px solid #F44336;
-                border-radius: 8px;
+                background-color: #1A1A1A;
+                color: #D32F2F;
+                font-size: 12px;
+                font-weight: 500;
+                border: 1px solid #5C1D1D;
+                border-radius: 6px;
             }
             
             QPushButton#btnUtilHome:hover {
-                background-color: #F44336;
-                color: #121212;
+                background-color: #2B1515;
             }
             
             /* Controles Checkbox para Preferencias */

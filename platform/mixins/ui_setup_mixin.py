@@ -30,7 +30,7 @@ _build_ui()                          ← orquestador principal
 └── _connect_screen_signals()        ← detección de monitor secundario
 """
 from PyQt5.QtWidgets import (
-    QApplication, QVBoxLayout, QHBoxLayout, QScrollArea, QWidget,
+    QApplication, QVBoxLayout, QHBoxLayout, QScrollArea, QWidget, QFrame
 )
 from PyQt5.QtCore import Qt, QTimer
 
@@ -139,8 +139,8 @@ class UISetupMixin(
         # Asignar prioridad de expansión al canvas (índice 0)
         v_splitter.setStretchFactor(0, 1)
         v_splitter.setStretchFactor(1, 0)
-        # Darle poco espacio a la consola inicialmente
-        v_splitter.setSizes([800, 150])
+        # Darle espacio 0 a la consola inicialmente para que empiece compacta
+        v_splitter.setSizes([1000, 0])
 
         main_layout = QVBoxLayout()
         main_layout.addLayout(control_layout)
@@ -208,6 +208,9 @@ class UISetupMixin(
         self._build_calibration_monitor()      #  MONITOREO DE CALIBRACIÓN
         self.info_layout.addSpacing(SIDEBAR_SECTION_SPACING)
         self._build_file_tree()                #  ARCHIVOS
+        
+        # Agregar stretch al final para empujar todo hacia arriba
+        self.info_layout.addStretch()
 
         info_widget = QWidget()
         info_widget.setLayout(self.info_layout)
@@ -215,6 +218,7 @@ class UISetupMixin(
         scroll_area = QScrollArea()
         scroll_area.setWidget(info_widget)
         scroll_area.setWidgetResizable(True)
+        scroll_area.setFrameShape(QFrame.NoFrame)
         scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         scroll_area.setMinimumWidth(SIDEBAR_MIN_WIDTH)
         scroll_area.setMaximumWidth(SIDEBAR_MAX_WIDTH)

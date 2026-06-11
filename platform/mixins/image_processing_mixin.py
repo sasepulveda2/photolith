@@ -158,7 +158,7 @@ class ImageProcessingMixin:
             self.simulate_optics()
 
         self.binary_status_label.setText(
-            f"Estado: {'✓ Activo' if self.binary_mode_enabled else '✗ Inactivo'}"
+            f"Estado: {'  Activo' if self.binary_mode_enabled else '✗ Inactivo'}"
         )
 
 
@@ -705,7 +705,7 @@ class ImageProcessingMixin:
 
             self.log_to_console(
                 f"🔧 MODO DE SLICE: {slice_type}\n"
-                f"  • Divisiones: {self.segments_x}×{self.segments_y}{transform_str}",
+                f"    Divisiones: {self.segments_x}×{self.segments_y}{transform_str}",
                 "INFO",
             )
 
@@ -750,7 +750,7 @@ class ImageProcessingMixin:
                     self._last_cells_with_content
                 )  # Restaurar lista de celdas
                 self.log_to_console(
-                    "✓✓✓ USANDO SLICE EN CACHÉ (IDEMPOTENCIA)\n"
+                    "    USANDO SLICE EN CACHÉ (IDEMPOTENCIA)\n"
                     "    La operación es idempotente - mismo resultado sin reprocesar",
                     "SUCCESS",
                 )
@@ -828,8 +828,8 @@ class ImageProcessingMixin:
 
                 self.log_to_console(
                     f"📊 Cálculo de cobertura de imagen:\n"
-                    f"  • Grid total: {self.segments_x}×{self.segments_y} = {self.segments_x * self.segments_y} celdas\n"
-                    f"  • Imagen ocupa: {len(cells_with_content)} celdas",
+                    f"    Grid total: {self.segments_x}×{self.segments_y} = {self.segments_x * self.segments_y} celdas\n"
+                    f"    Imagen ocupa: {len(cells_with_content)} celdas",
                     "INFO",
                 )
 
@@ -841,7 +841,7 @@ class ImageProcessingMixin:
                     cells_str = ", ".join([f"[{r},{c}]" for r, c in preview_cells])
                     suffix = "..." if len(cells_with_content) > 10 else ""
                     self.log_to_console(
-                        f"  • Primeras celdas: {cells_str}{suffix}", "INFO"
+                        f"    Primeras celdas: {cells_str}{suffix}", "INFO"
                     )
 
                 # ═══════════════════════════════════════════════════════════════════
@@ -857,10 +857,10 @@ class ImageProcessingMixin:
                     end_cell_y - start_cell_y + 1
                 )
                 self.log_to_console(
-                    f"✓ SLICE CALCULADO:\n"
-                    f"  • Rango X: celdas {start_cell_x} → {end_cell_x} ({end_cell_x - start_cell_x + 1} celdas)\n"
-                    f"  • Rango Y: celdas {start_cell_y} → {end_cell_y} ({end_cell_y - start_cell_y + 1} celdas)\n"
-                    f"  • Total chunks: {chunks_in_slice}",
+                    f"  SLICE CALCULADO:\n"
+                    f"    Rango X: celdas {start_cell_x} → {end_cell_x} ({end_cell_x - start_cell_x + 1} celdas)\n"
+                    f"    Rango Y: celdas {start_cell_y} → {end_cell_y} ({end_cell_y - start_cell_y + 1} celdas)\n"
+                    f"    Total chunks: {chunks_in_slice}",
                     "SUCCESS",
                 )
 
@@ -883,9 +883,9 @@ class ImageProcessingMixin:
 
                 self.log_to_console(
                     f"📐 Configuración chunks:\n"
-                    f"  • Tamaño celda: {cell_width:.1f}×{cell_height:.1f} px\n"
-                    f"  • Área slice: {slice_width_cells}×{slice_height_cells} celdas\n"
-                    f"  • Grid total: {self.segments_x}×{self.segments_y}",
+                    f"    Tamaño celda: {cell_width:.1f}×{cell_height:.1f} px\n"
+                    f"    Área slice: {slice_width_cells}×{slice_height_cells} celdas\n"
+                    f"    Grid total: {self.segments_x}×{self.segments_y}",
                     "INFO",
                 )
 
@@ -1026,9 +1026,9 @@ class ImageProcessingMixin:
             if image_bounds is not None:
                 slice_info = (
                     f"\n🔲 SLICE ÚNICO ACTIVO:\n"
-                    f"  • Rango X: [{image_bounds['start_x']} → {image_bounds['end_x']}]\n"
-                    f"  • Rango Y: [{image_bounds['start_y']} → {image_bounds['end_y']}]\n"
-                    f"  • Dimensiones: {image_bounds['end_x'] - image_bounds['start_x'] + 1} × "
+                    f"    Rango X: [{image_bounds['start_x']} → {image_bounds['end_x']}]\n"
+                    f"    Rango Y: [{image_bounds['start_y']} → {image_bounds['end_y']}]\n"
+                    f"    Dimensiones: {image_bounds['end_x'] - image_bounds['start_x'] + 1} × "
                     f"{image_bounds['end_y'] - image_bounds['start_y'] + 1} celdas\n"
                 )
             else:
@@ -1062,17 +1062,17 @@ class ImageProcessingMixin:
 
                     projection_info = (
                         f"\n🖥️ RESOLUCIÓN EN PROYECCIÓN:\n"
-                        f"  • Monitor: {screen_width}×{screen_height} px\n"
-                        f"  • Chunk promedio: {avg_chunk_width:.1f}×{avg_chunk_height:.1f} px\n"
-                        f"  • Proyectado como: {projected_width}×{projected_height} px\n"
-                        f"  • Factor de escala: {scale_factor:.2f}×\n"
+                        f"    Monitor: {screen_width}×{screen_height} px\n"
+                        f"    Chunk promedio: {avg_chunk_width:.1f}×{avg_chunk_height:.1f} px\n"
+                        f"    Proyectado como: {projected_width}×{projected_height} px\n"
+                        f"    Factor de escala: {scale_factor:.2f}×\n"
                     )
 
                 chunk_size_info = (
                     f"\n📏 CARACTERÍSTICAS DE LOS CHUNKS:\n"
-                    f"  • Tamaño promedio: {avg_chunk_width:.1f}×{avg_chunk_height:.1f} px\n"
-                    f"  • Rango ancho: {min_chunk_width}-{max_chunk_width} px\n"
-                    f"  • Rango alto: {min_chunk_height}-{max_chunk_height} px\n"
+                    f"    Tamaño promedio: {avg_chunk_width:.1f}×{avg_chunk_height:.1f} px\n"
+                    f"    Rango ancho: {min_chunk_width}-{max_chunk_width} px\n"
+                    f"    Rango alto: {min_chunk_height}-{max_chunk_height} px\n"
                 )
             else:
                 chunk_size_info = ""
@@ -1091,12 +1091,12 @@ class ImageProcessingMixin:
                 transform_info = f"\n🔄 TRANSFORMACIONES: {', '.join(transforms)}\n"
 
             cache_status = (
-                "✓ Reutilizado desde caché" if use_cache else "⚙️ Recién calculado"
+                "  Reutilizado desde caché" if use_cache else "⚙️ Recién calculado"
             )
 
             QMessageBox.information(
                 self,
-                "✓ Segmentación Completada",
+                "  Segmentación Completada",
                 f"SISTEMA DE SLICE POR CELDA (Grid)\n"
                 f"Estado: {cache_status}\n"
                 f"{transform_info}"
@@ -1104,13 +1104,13 @@ class ImageProcessingMixin:
                 f"{chunk_size_info}"
                 f"{projection_info}\n"
                 f"📊 ESTADÍSTICAS:\n"
-                f"  • Grid configurado: {self.segments_x}×{self.segments_y} = {total_blocks} divisiones\n"
-                f"  • Chunks activos (con contenido): {segments_with_content}\n"
-                f"  • Chunks fuera del slice: {skipped_outside_image}\n"
-                f"  • Chunks vacíos (dentro del slice): {empty_blocks}\n\n"
-                f"✓ Los chunks se proyectarán en orden secuencial\n"
-                f"✓ Cada chunk se escalará al máximo tamaño posible\n"
-                f"✓ El slice es DETERMINISTA y se mantendrá mientras\n"
+                f"    Grid configurado: {self.segments_x}×{self.segments_y} = {total_blocks} divisiones\n"
+                f"    Chunks activos (con contenido): {segments_with_content}\n"
+                f"    Chunks fuera del slice: {skipped_outside_image}\n"
+                f"    Chunks vacíos (dentro del slice): {empty_blocks}\n\n"
+                f"  Los chunks se proyectarán en orden secuencial\n"
+                f"  Cada chunk se escalará al máximo tamaño posible\n"
+                f"  El slice es DETERMINISTA y se mantendrá mientras\n"
                 f"   no cambie la imagen, su posición o el grid",
             )
 

@@ -41,35 +41,15 @@ class FileConsolePanelBuilder:
 
         layout.addWidget(self.file_tree)
         self.files_section.setContentWidget(container)
-        self.info_layout.addWidget(self.files_section, stretch=1)
+        self.info_layout.addWidget(self.files_section)
 
     def _build_console_section(self) -> QWidget:
         """ Consola del Sistema — log de mensajes en el pie de la ventana."""
-        class ConsoleWidget(QWidget):
-            def __init__(self, parent=None):
-                super().__init__(parent)
-                self.content_container = None
-
-            def resizeEvent(self, event):
-                super().resizeEvent(event)
-                if self.content_container:
-                    # Hide content if height is less than 80px
-                    self.content_container.setVisible(self.height() >= 80)
-
-        console_widget = ConsoleWidget()
-        console_layout = QVBoxLayout(console_widget)
-        console_layout.setContentsMargins(*CONSOLE_CONTENT_MARGINS)
-
-        title = QLabel("Consola del sistema")
-        title.setStyleSheet("font-weight: bold; color: #A6E3A1; margin-bottom: 5px;")
-        console_layout.addWidget(title)
-
-        console_widget.setMinimumHeight(35) # Permite bajar hasta que solo se vea el título
-
+        self.console_section = CollapsibleSection("Consola del sistema", self, expanded=False, section_id="system_console")
+        
         content_container = QWidget()
         content_layout = QVBoxLayout(content_container)
-        content_layout.setContentsMargins(0, 0, 0, 0)
-        console_widget.content_container = content_container
+        content_layout.setContentsMargins(*CONSOLE_CONTENT_MARGINS)
 
         self.system_console = QTextEdit()
         self.system_console.setReadOnly(True)
@@ -104,10 +84,11 @@ class FileConsolePanelBuilder:
         content_layout.addWidget(self.system_console)
         content_layout.addLayout(input_layout)
         
-        console_layout.addWidget(content_container)
+        self.console_section.setContentWidget(content_container)
 
-        # Modificamos la política de tamaño
+        # Modificamos la política de tamaño para que pueda estirarse en el QSplitter
         from PyQt5.QtWidgets import QSizePolicy
-        console_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.MinimumExpanding)
+        self.console_section.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.console_section.content_area.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-        return console_widget
+        return self.console_section

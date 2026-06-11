@@ -818,9 +818,9 @@ class ProjectionMixin:
 
     def _update_calibration_monitor_info(self, processed):
         if hasattr(self, "last_projection_size_label"):
-            self.last_projection_size_label.setText(f"• Tamaño: {processed.shape[1]}×{processed.shape[0]} px")
+            self.last_projection_size_label.setText(f"  Tamaño: {processed.shape[1]}×{processed.shape[0]} px")
         if hasattr(self, "last_projection_values_label"):
-            self.last_projection_values_label.setText(f"• Valores: min={processed.min():.2f}, max={processed.max():.2f}, μ={processed.mean():.2f}")
+            self.last_projection_values_label.setText(f"  Valores: min={processed.min():.2f}, max={processed.max():.2f}, μ={processed.mean():.2f}")
         if hasattr(self, "update_calibration_monitor"):
             self.update_calibration_monitor()
 

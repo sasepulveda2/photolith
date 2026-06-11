@@ -1,30 +1,29 @@
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QFrame, QSizePolicy, QToolButton, QVBoxLayout, QWidget
+from PyQt5.QtCore import Qt, QSettings
+from PyQt5.QtWidgets import QFrame, QSizePolicy, QPushButton, QVBoxLayout, QWidget
 
 
 class CollapsibleSection(QWidget):
     def __init__(self, title: str, parent=None, expanded: bool = True, section_id: str = None):
         super().__init__(parent)
         self.section_id = section_id
+        self.title_text = title
 
-        # Intentar encontrar el simulador principal para acceder a config
-        self._simulator = None
-        p = self.parent()
-        while p is not None:
-            if hasattr(p, "config") and hasattr(p, "save_config"):
-                self._simulator = p
-                break
-            p = p.parent()
+        # Usar QSettings para guardar el estado colapsable
+        self.settings = QSettings("Uandes", "PhotolithSimulator")
+        
+        if self.section_id:
+            val = self.settings.value(f"section_expanded_{self.section_id}", expanded)
+            if isinstance(val, str):
+                expanded = val.lower() == 'true'
+            else:
+                expanded = bool(val)
 
-        if self._simulator and self.section_id:
-            expanded = self._simulator.config.get(f"section_expanded_{self.section_id}", expanded)
-
-        # pyrefly: ignore [unexpected-keyword]
-        self.toggle_button = QToolButton(text=title)
+        # Usar QPushButton con texto explícito para la flecha
+        self.toggle_button = QPushButton()
         self.toggle_button.setCheckable(True)
         self.toggle_button.setChecked(expanded)
-        self.toggle_button.setArrowType(Qt.DownArrow if expanded else Qt.RightArrow)
-        self.toggle_button.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
+        self._update_button_text(expanded)
+        
         self.toggle_button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.toggle_button.setObjectName("sectionTitle")
         self.toggle_button.setCursor(Qt.PointingHandCursor)
@@ -46,12 +45,15 @@ class CollapsibleSection(QWidget):
 
         self.toggle_button.toggled.connect(self._on_toggled)
 
+    def _update_button_text(self, expanded: bool):
+        arrow = "▼" if expanded else "▶"
+        self.toggle_button.setText(f"{arrow}  {self.title_text}")
+
     def _on_toggled(self, checked: bool) -> None:
-        self.toggle_button.setArrowType(Qt.DownArrow if checked else Qt.RightArrow)
+        self._update_button_text(checked)
         self.content_area.setVisible(checked)
-        if self._simulator and self.section_id:
-            self._simulator.config[f"section_expanded_{self.section_id}"] = checked
-            self._simulator.save_config()
+        if self.section_id:
+            self.settings.setValue(f"section_expanded_{self.section_id}", checked)
 
     def setContentWidget(self, widget: QWidget) -> None:
         while self.content_layout.count():

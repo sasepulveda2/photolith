@@ -147,14 +147,40 @@ QCheckBox::indicator:checked:hover {
     border: 2px solid #A0A0A0;
 }
 
+/* ── Inputs ─────────────────────────────────────────────────── */
+QLineEdit, QSpinBox, QDoubleSpinBox {
+    background-color: #F8F8F8;
+    border: 1px solid #D0D0D0;
+    border-radius: 6px;
+    padding: 6px 10px;
+    color: #333333;
+    selection-background-color: #A0A0A0;
+    selection-color: #FFFFFF;
+}
+
+QLineEdit:hover, QSpinBox:hover, QDoubleSpinBox:hover {
+    border: 1px solid #A0A0A0;
+    background-color: #FFFFFF;
+}
+
+QLineEdit:focus, QSpinBox:focus, QDoubleSpinBox:focus {
+    border: 1px solid #808080;
+    background-color: #FFFFFF;
+}
+
+QSpinBox::up-button, QDoubleSpinBox::up-button,
+QSpinBox::down-button, QDoubleSpinBox::down-button {
+    width: 0px;
+}
+
 /* ── Labels ─────────────────────────────────────────────────── */
 QLabel {
     color: #000000;
 }
 
 QLabel#sectionTitle,
-QToolButton#sectionTitle {
-    color: #A0A0A0;
+QPushButton#sectionTitle {
+    color: #666666;
     font-size: 11px;
     font-weight: bold;
     letter-spacing: 1px;
@@ -165,20 +191,20 @@ QLabel#sectionTitle {
     margin-top: 4px;
 }
 
-QToolButton#sectionTitle {
-    background-color: #F8F8F8;
-    border: 1px solid #E0E0E0;
+QPushButton#sectionTitle {
+    background-color: #E8E8E8;
+    border: 1px solid #D0D0D0;
     border-radius: 8px;
     padding: 8px 12px;
     text-align: left;
 }
 
-QToolButton#sectionTitle:hover {
-    background-color: #F0F0F0;
+QPushButton#sectionTitle:hover {
+    background-color: #DFDFDF;
 }
 
-QToolButton#sectionTitle:checked {
-    background-color: #EAEAEA;
+QPushButton#sectionTitle:checked {
+    background-color: #D5D5D5;
 }
 
 QLabel#statLabel {
@@ -188,10 +214,9 @@ QLabel#statLabel {
 }
 
 QWidget#statsContainer {
-    background-color: #F8F8F8;
-    border: 1px solid #E0E0E0;
+    background-color: #E8E8E8;
+    border: 1px solid #D0D0D0;
     border-radius: 8px;
-    border-left: 3px solid #A0A0A0;
 }
 
 /* ── Sliders ────────────────────────────────────────────────── */
@@ -237,6 +262,11 @@ QTreeWidget::item:selected {
 }
 
 /* ── ScrollBars ─────────────────────────────────────────────── */
+QScrollArea {
+    border: none;
+    background-color: transparent;
+}
+
 QScrollBar:vertical {
     background-color: transparent;
     width: 10px;

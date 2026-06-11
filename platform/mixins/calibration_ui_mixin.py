@@ -123,7 +123,7 @@ class CalibrationUIMixin:
             source_layout.addWidget(self.camera_radio)
 
             camera_info = QLabel(
-                "   • Captura imágenes en tiempo real desde la cámara conectada"
+                "     Captura imágenes en tiempo real desde la cámara conectada"
             )
             camera_info.setStyleSheet(
                 "font-size: 11px; color: #888888; margin-left: 20px;"
@@ -163,7 +163,7 @@ class CalibrationUIMixin:
                 source_layout.addWidget(self.basler_radio)
 
                 basler_info = QLabel(
-                    "   • Cámara industrial con controles avanzados de exposición y ganancia"
+                    "     Cámara industrial con controles avanzados de exposición y ganancia"
                 )
                 basler_info.setStyleSheet(
                     "font-size: 11px; color: #888888; margin-left: 20px;"
@@ -313,7 +313,7 @@ class CalibrationUIMixin:
             )
             source_layout.addWidget(self.image_radio)
 
-            image_info = QLabel("   • Carga una imagen preexistente desde el disco")
+            image_info = QLabel("     Carga una imagen preexistente desde el disco")
             image_info.setStyleSheet(
                 "font-size: 11px; color: #888888; margin-left: 20px;"
             )

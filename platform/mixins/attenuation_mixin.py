@@ -95,7 +95,7 @@ class AttenuationMixin:
                     # Actualizar label de estado
                     if hasattr(self, "calibration_status_label"):
                         self.calibration_status_label.setText(
-                            f"Calibración: {'✓ Activa' if self.apply_attenuation_to_grid else 'Inactiva'}"
+                            f"Calibración: {'  Activa' if self.apply_attenuation_to_grid else 'Inactiva'}"
                         )
 
                 if "threshold" in config:
@@ -134,7 +134,7 @@ class AttenuationMixin:
         self.calibration_flip_x = bool(state)
         self.save_calibration_data()
         self.log_to_console(
-            f"🔄 Flip X de calibración: {'✓ Activo' if self.calibration_flip_x else '✗ Inactivo'}",
+            f"🔄 Flip X de calibración: {'  Activo' if self.calibration_flip_x else '✗ Inactivo'}",
             "INFO",
         )
         if hasattr(self, "update_calibration_preview"):
@@ -147,7 +147,7 @@ class AttenuationMixin:
         self.calibration_flip_y = bool(state)
         self.save_calibration_data()
         self.log_to_console(
-            f"🔄 Flip Y de calibración: {'✓ Activo' if self.calibration_flip_y else '✗ Inactivo'}",
+            f"🔄 Flip Y de calibración: {'  Activo' if self.calibration_flip_y else '✗ Inactivo'}",
             "INFO",
         )
         if hasattr(self, "update_calibration_preview"):
@@ -225,10 +225,10 @@ class AttenuationMixin:
             # ═══════════════════════════════════════════════════════════════════
             if hasattr(self, "calibration_threshold"):
                 self.atten_threshold_label.setText(
-                    f"• Threshold: {self.calibration_threshold:.1f}%"
+                    f"  Threshold: {self.calibration_threshold:.1f}%"
                 )
             else:
-                self.atten_threshold_label.setText("• Threshold: No configurado")
+                self.atten_threshold_label.setText("  Threshold: No configurado")
 
             if (
                 hasattr(self, "attenuation_matrix")
@@ -236,11 +236,11 @@ class AttenuationMixin:
             ):
                 min_val = self.attenuation_matrix.min()
                 max_val = self.attenuation_matrix.max()
-                self.atten_min_label.setText(f"• Valor mínimo: {min_val:.3f}")
-                self.atten_max_label.setText(f"• Valor máximo: {max_val:.3f}")
+                self.atten_min_label.setText(f"  Valor mínimo: {min_val:.3f}")
+                self.atten_max_label.setText(f"  Valor máximo: {max_val:.3f}")
             else:
-                self.atten_min_label.setText("• Valor mínimo: -")
-                self.atten_max_label.setText("• Valor máximo: -")
+                self.atten_min_label.setText("  Valor mínimo: -")
+                self.atten_max_label.setText("  Valor máximo: -")
 
             # ═══════════════════════════════════════════════════════════════════
             # EFECTOS ACTIVOS
@@ -248,13 +248,13 @@ class AttenuationMixin:
             if hasattr(self, "sigma"):
                 if self.sigma > 0:
                     self.effect_sigma_label.setText(
-                        f"• Sigma (Blur): ✅ {self.sigma:.2f}"
+                        f"  Sigma (Blur): ✅ {self.sigma:.2f}"
                     )
                     self.effect_sigma_label.setStyleSheet(
                         "font-size: 10px; color: #51CF66;"
                     )
                 else:
-                    self.effect_sigma_label.setText(f"• Sigma (Blur): ⚪ Desactivado")
+                    self.effect_sigma_label.setText(f"  Sigma (Blur): ⚪ Desactivado")
                     self.effect_sigma_label.setStyleSheet(
                         "font-size: 10px; color: #888888;"
                     )
@@ -262,14 +262,14 @@ class AttenuationMixin:
             if hasattr(self, "downscale_factor"):
                 if self.downscale_factor != 1.0:
                     self.effect_downscale_label.setText(
-                        f"• Downscaling: ✅ {self.downscale_factor:.2f}x"
+                        f"  Downscaling: ✅ {self.downscale_factor:.2f}x"
                     )
                     self.effect_downscale_label.setStyleSheet(
                         "font-size: 10px; color: #51CF66;"
                     )
                 else:
                     self.effect_downscale_label.setText(
-                        f"• Downscaling: ⚪ Sin reducción"
+                        f"  Downscaling: ⚪ Sin reducción"
                     )
                     self.effect_downscale_label.setStyleSheet(
                         "font-size: 10px; color: #888888;"
@@ -278,14 +278,14 @@ class AttenuationMixin:
             if hasattr(self, "brightness"):
                 if self.brightness != 100:
                     self.effect_brightness_label.setText(
-                        f"• Brillo: ✅ {self.brightness}%"
+                        f"  Brillo: ✅ {self.brightness}%"
                     )
                     self.effect_brightness_label.setStyleSheet(
                         "font-size: 10px; color: #51CF66;"
                     )
                 else:
                     self.effect_brightness_label.setText(
-                        f"• Brillo: ⚪ 100% (sin ajuste)"
+                        f"  Brillo: ⚪ 100% (sin ajuste)"
                     )
                     self.effect_brightness_label.setStyleSheet(
                         "font-size: 10px; color: #888888;"
@@ -299,33 +299,33 @@ class AttenuationMixin:
                         else 50
                     )
                     self.effect_binary_label.setText(
-                        f"• Modo Binario: ✅ Activo (Th: {threshold:.0f})"
+                        f"Modo Binario: Activo (Th: {threshold:.0f})"
                     )
                     self.effect_binary_label.setStyleSheet(
                         "font-size: 10px; color: #51CF66;"
                     )
                 else:
-                    self.effect_binary_label.setText(f"• Modo Binario: ⚪ Desactivado")
+                    self.effect_binary_label.setText(f"Modo Binario: Desactivado")
                     self.effect_binary_label.setStyleSheet(
                         "font-size: 10px; color: #888888;"
                     )
 
             if hasattr(self, "invert_projection"):
                 if self.invert_projection:
-                    self.effect_invert_label.setText(f"• Inversión: ✅ Activa")
+                    self.effect_invert_label.setText(f"Inversión: Activa")
                     self.effect_invert_label.setStyleSheet(
                         "font-size: 10px; color: #51CF66;"
                     )
                 else:
-                    self.effect_invert_label.setText(f"• Inversión: ⚪ Desactivada")
+                    self.effect_invert_label.setText(f"Inversión: Desactivada")
                     self.effect_invert_label.setStyleSheet(
                         "font-size: 10px; color: #888888;"
                     )
 
-            self.log_to_console("✅ Monitor de calibración actualizado", "INFO")
+            self.log_to_console(" Monitor de calibración actualizado", "INFO")
 
         except Exception as e:
-            self.log_to_console(f"❌ Error al actualizar monitor: {str(e)}", "ERROR")
+            self.log_to_console(f" Error al actualizar monitor: {str(e)}", "ERROR")
 
 
 
@@ -448,7 +448,7 @@ class AttenuationMixin:
 
         except Exception as e:
             self.log_to_console(
-                f"❌ Error en preview de calibración: {str(e)}", "ERROR"
+                f" Error en preview de calibración: {str(e)}", "ERROR"
             )
             import traceback
 
@@ -515,7 +515,7 @@ class AttenuationMixin:
         matrix_min = np.min(self.attenuation_matrix)
         matrix_max = np.max(self.attenuation_matrix)
         self.matrix_status_label.setText(
-            f"Estado: ✓ Matriz generada ({self.attenuation_matrix.shape[0]}×{self.attenuation_matrix.shape[1]})"
+            f"Estado:   Matriz generada ({self.attenuation_matrix.shape[0]}×{self.attenuation_matrix.shape[1]})"
         )
         self.matrix_range_label.setText(f"Rango: {matrix_min:.2f} - {matrix_max:.2f}")
 
@@ -684,7 +684,7 @@ class AttenuationMixin:
         # Actualizar label de estado
         if hasattr(self, "calibration_status_label"):
             self.calibration_status_label.setText(
-                f"Calibración: {'✓ Activa' if self.apply_attenuation_to_grid else 'Inactiva'}"
+                f"Calibración: {'  Activa' if self.apply_attenuation_to_grid else 'Inactiva'}"
             )
 
         # Guardar estado
@@ -774,7 +774,7 @@ class AttenuationMixin:
                 matrix_min = np.min(self.attenuation_matrix)
                 matrix_max = np.max(self.attenuation_matrix)
                 self.matrix_status_label.setText(
-                    f"Estado: ✓ Matriz cargada ({self.attenuation_matrix.shape[0]}×{self.attenuation_matrix.shape[1]})"
+                    f"Estado: Matriz cargada ({self.attenuation_matrix.shape[0]}×{self.attenuation_matrix.shape[1]})"
                 )
                 self.matrix_range_label.setText(
                     f"Rango: {matrix_min:.2f} - {matrix_max:.2f}"
