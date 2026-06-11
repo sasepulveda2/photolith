@@ -27,7 +27,7 @@ class PatternCalibPanelBuilder:
 
         title = QLabel("CALIBRACIÓN DE PATRÓN")
         title.setAlignment(Qt.AlignCenter)
-        title.setStyleSheet("font-weight: bold; font-size: 14px; color: #03DAC6;")
+        title.setStyleSheet("font-weight: bold; font-size: 14px; color: #A0A0A0;")
         main_layout.addWidget(title)
 
         # Botones de selección en lugar de Tabs
@@ -121,7 +121,7 @@ class PatternCalibPanelBuilder:
         
         mot_ctrl_layout = QHBoxLayout()
         self.btn_motor_move_mm = QPushButton("Mover motor")
-        self.btn_motor_move_mm.setStyleSheet("font-weight: bold; background-color: #00BFA5; color: black;")
+        self.btn_motor_move_mm.setStyleSheet("font-weight: bold; background-color: #A0A0A0; color: black;")
         mot_ctrl_layout.addWidget(self.btn_motor_move_mm)
         
         self.btn_motor_return = QPushButton("Volver al origen")
@@ -133,7 +133,7 @@ class PatternCalibPanelBuilder:
         proj_btn_layout.addWidget(self.btn_preview_motor)
         
         self.btn_expose_motor = QPushButton("Iniciar exposición")
-        self.btn_expose_motor.setStyleSheet("font-weight: bold; background-color: #00BFA5; color: black;")
+        self.btn_expose_motor.setStyleSheet("font-weight: bold; background-color: #A0A0A0; color: black;")
         proj_btn_layout.addWidget(self.btn_expose_motor)
         
         self.btn_stop_motor_expose = QPushButton("Detener")
@@ -174,7 +174,7 @@ class PatternCalibPanelBuilder:
         manual_layout.addWidget(self.input_mm_calib)
         
         self.lbl_result_calib = QLabel("Escala: -")
-        self.lbl_result_calib.setStyleSheet("font-weight: bold; color: #00BFA5; font-size: 13px;")
+        self.lbl_result_calib.setStyleSheet("font-weight: bold; color: #A0A0A0; font-size: 13px;")
         manual_layout.addWidget(self.lbl_result_calib)
         
         manual_layout.addStretch()
@@ -272,7 +272,7 @@ class PatternCalibPanelBuilder:
         # --------------------------------------------------
         
         self.lbl_exp_dimensions = QLabel("Dimensión por franja: -")
-        self.lbl_exp_dimensions.setStyleSheet("color: #00BFA5; font-style: italic; font-size: 12px;")
+        self.lbl_exp_dimensions.setStyleSheet("color: #A0A0A0; font-style: italic; font-size: 12px;")
         exposure_layout.addWidget(self.lbl_exp_dimensions)
         
         self.chk_exp_invert = QCheckBox("Invertir colores (Fondo oscuro, figura clara)")
@@ -303,7 +303,7 @@ class PatternCalibPanelBuilder:
         self.input_grating_lines.valueChanged.connect(on_lines_changed)
         
         self.lbl_exp_status = QLabel("Estado: Inactivo")
-        self.lbl_exp_status.setStyleSheet("font-weight: bold; color: #00BFA5;")
+        self.lbl_exp_status.setStyleSheet("font-weight: bold; color: #A0A0A0;")
         exposure_layout.addWidget(self.lbl_exp_status)
         
         self.lbl_exp_time = QLabel("Tiempo transcurrido: 0.0 s")
@@ -313,7 +313,7 @@ class PatternCalibPanelBuilder:
         exposure_layout.addStretch()
 
         self.btn_start_exp_matrix = QPushButton("Iniciar secuencia de exposición")
-        self.btn_start_exp_matrix.setStyleSheet("font-weight: bold; background-color: #00BFA5; color: black;")
+        self.btn_start_exp_matrix.setStyleSheet("font-weight: bold; background-color: #A0A0A0; color: black;")
         self.btn_start_exp_matrix.clicked.connect(self.start_exposure_matrix)
         exposure_layout.addWidget(self.btn_start_exp_matrix)
 
@@ -374,7 +374,7 @@ class PatternCalibPanelBuilder:
         cd_btn_layout.addWidget(self.btn_preview_cd)
 
         self.btn_expose_cd = QPushButton("Iniciar exposición")
-        self.btn_expose_cd.setStyleSheet("font-weight: bold; background-color: #00BFA5; color: black;")
+        self.btn_expose_cd.setStyleSheet("font-weight: bold; background-color: #A0A0A0; color: black;")
         self.btn_expose_cd.clicked.connect(self.expose_cd_test)
         cd_btn_layout.addWidget(self.btn_expose_cd)
         

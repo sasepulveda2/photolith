@@ -39,8 +39,8 @@ LIGHT_TEXT_PRIMARY = "#000000"
 LIGHT_TEXT_SECONDARY = "#333333"
 
 # ─── Colores de Acento ───────────────────────────────────────────────
-ACCENT_TEAL = "#03DAC6"
-ACCENT_TEAL_DARK = "#00BFA5"
+ACCENT_TEAL = "#A0A0A0"
+ACCENT_TEAL_DARK = "#A0A0A0"
 ACCENT_TEAL_MUTED = "#00796B"
 ACCENT_ORANGE = "#FF8C00"
 ACCENT_RED = "#FF4444"
@@ -231,17 +231,17 @@ STYLE_MOTOR_PULSE_TITLE = "font-weight: bold; margin-top: 5px;"
 STYLE_MOTOR_PAD_BUTTON = """
     QPushButton {
         background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-            stop:0 #03DAC6, stop:1 #018786);
+            stop:0 #A0A0A0, stop:1 #606060);
         border: none; border-radius: 8px;
         color: #121212; font-weight: bold; font-size: 16px; padding: 0px;
     }
     QPushButton:hover {
         background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-            stop:0 #00E5CC, stop:1 #01A299);
+            stop:0 #C0C0C0, stop:1 #808080);
     }
     QPushButton:pressed {
         background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-            stop:0 #018786, stop:1 #016968);
+            stop:0 #606060, stop:1 #016968);
     }
 """
 
@@ -271,7 +271,7 @@ CONSOLE_LOG_COLORS = {
     "SUCCESS": "#4CAF50",
     "WARNING": "#FFC107",
     "ERROR": "#F44336",
-    "OPTIMIZATION": "#03DAC6",
+    "OPTIMIZATION": "#A0A0A0",
     "SEGMENTATION": "#BB86FC",
 }
 

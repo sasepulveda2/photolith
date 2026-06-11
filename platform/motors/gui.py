@@ -233,7 +233,7 @@ class MotorGUI(QWidget):
             }
             
             QLabel#odoLabel {
-                color: #03DAC6;
+                color: #A0A0A0;
                 font-family: "Consolas", "Courier New", monospace;
                 font-size: 24px;
                 font-weight: bold;
@@ -241,7 +241,7 @@ class MotorGUI(QWidget):
             }
             
             QLabel#statusLabel {
-                color: #03DAC6;
+                color: #A0A0A0;
                 font-size: 14px;
                 font-weight: bold;
             }
@@ -280,7 +280,7 @@ class MotorGUI(QWidget):
             }
             
             QComboBox:hover, QSpinBox:hover {
-                border: 1px solid #03DAC6;
+                border: 1px solid #A0A0A0;
             }
             
             QSpinBox::up-button, QSpinBox::down-button {
@@ -307,7 +307,7 @@ class MotorGUI(QWidget):
             }
             
             QPushButton#btnMove {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #03DAC6, stop:1 #018786);
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #A0A0A0, stop:1 #606060);
                 color: #121212;
                 font-size: 16px;
                 font-weight: 900;
@@ -316,29 +316,29 @@ class MotorGUI(QWidget):
             }
             
             QPushButton#btnMove:hover {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #00E5CC, stop:1 #01A299);
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #C0C0C0, stop:1 #808080);
             }
             
             QPushButton#btnMove:pressed {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #018786, stop:1 #016968);
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #606060, stop:1 #016968);
             }
             
             QPushButton#btnMove360 {
                 background-color: #1E1E1E;
-                color: #03DAC6;
+                color: #A0A0A0;
                 font-size: 14px;
                 font-weight: 900;
-                border: 2px solid #03DAC6;
+                border: 2px solid #A0A0A0;
                 border-radius: 10px;
             }
             
             QPushButton#btnMove360:hover {
-                background-color: #03DAC6;
+                background-color: #A0A0A0;
                 color: #121212;
             }
             
             QPushButton#btnMove360:pressed {
-                background-color: #00BFA5;
+                background-color: #A0A0A0;
                 color: #121212;
             }
             
@@ -383,11 +383,11 @@ class MotorGUI(QWidget):
                 background-color: #1E1E1E;
             }
             QCheckBox::indicator:hover {
-                border: 2px solid #03DAC6;
+                border: 2px solid #A0A0A0;
             }
             QCheckBox::indicator:checked {
-                background-color: #03DAC6;
-                border: 2px solid #03DAC6;
+                background-color: #A0A0A0;
+                border: 2px solid #A0A0A0;
             }
         """
         self.setStyleSheet(style)
@@ -437,7 +437,7 @@ class MotorGUI(QWidget):
         try:
             self.ctrl.step_move(eje, steps_totales, 1, feedrate=feedrate)
             self.status_label.setText(f"Movimiento exitoso: {steps_totales} steps")
-            self.status_label.setStyleSheet("color: #03DAC6;")
+            self.status_label.setStyleSheet("color: #A0A0A0;")
         except Exception:
             self.status_label.setText("Error detectado. Intentando reconexión...")
             self.status_label.setStyleSheet("color: #FFC107;")
@@ -445,7 +445,7 @@ class MotorGUI(QWidget):
             
             if self.ctrl.reconnect():
                 self.status_label.setText("Reconectado.")
-                self.status_label.setStyleSheet("color: #03DAC6;")
+                self.status_label.setStyleSheet("color: #A0A0A0;")
             else:
                 self.status_label.setText("Motor desconectado")
                 self.status_label.setStyleSheet("color: #F44336;")
@@ -458,7 +458,7 @@ class MotorGUI(QWidget):
         try:
             self.ctrl.step_move(eje, steps_totales, 1, feedrate=feedrate)
             self.status_label.setText(f"Giro completo exitoso en {eje}")
-            self.status_label.setStyleSheet("color: #03DAC6;")
+            self.status_label.setStyleSheet("color: #A0A0A0;")
         except Exception:
             self.status_label.setText("Error detectado. Intentando reconexión...")
             self.status_label.setStyleSheet("color: #FFC107;")
@@ -466,7 +466,7 @@ class MotorGUI(QWidget):
             
             if self.ctrl.reconnect():
                 self.status_label.setText("Reconectado.")
-                self.status_label.setStyleSheet("color: #03DAC6;")
+                self.status_label.setStyleSheet("color: #A0A0A0;")
             else:
                 self.status_label.setText("Motor desconectado")
                 self.status_label.setStyleSheet("color: #F44336;")
@@ -500,7 +500,7 @@ class MotorGUI(QWidget):
                 self.status_label.setText("Ya está en el origen")
             else:
                 self.status_label.setText("Regreso al origen completado")
-            self.status_label.setStyleSheet("color: #03DAC6;")
+            self.status_label.setStyleSheet("color: #A0A0A0;")
 
         try:
             _do_home()
@@ -511,7 +511,7 @@ class MotorGUI(QWidget):
             
             if self.ctrl.reconnect():
                 self.status_label.setText("Reconectado.")
-                self.status_label.setStyleSheet("color: #03DAC6;")
+                self.status_label.setStyleSheet("color: #A0A0A0;")
             else:
                 self.status_label.setText("Motor desconectado")
                 self.status_label.setStyleSheet("color: #F44336;")
@@ -524,7 +524,7 @@ class MotorGUI(QWidget):
         exito = self.ctrl.reconnect()
         if exito:
             self.status_label.setText("Reconexión exitosa")
-            self.status_label.setStyleSheet("color: #03DAC6;")
+            self.status_label.setStyleSheet("color: #A0A0A0;")
         else:
             self.status_label.setText("Fallo al Reconectar")
             self.status_label.setStyleSheet("color: #F44336;")
@@ -554,7 +554,7 @@ class MotorPreferencesGUI(QWidget):
 
         title = QLabel("Preferencias de motores")
         title.setAlignment(Qt.AlignCenter)
-        title.setStyleSheet("color: #03DAC6; font-size: 16px; font-weight: bold; margin-bottom: 10px;")
+        title.setStyleSheet("color: #A0A0A0; font-size: 16px; font-weight: bold; margin-bottom: 10px;")
         main_layout.addWidget(title)
 
         scroll = QScrollArea()
@@ -680,7 +680,7 @@ class MotorPreferencesGUI(QWidget):
                 padding: 4px;
             }
             QComboBox:hover, QSpinBox:hover {
-                border: 1px solid #03DAC6;
+                border: 1px solid #A0A0A0;
             }
             QPushButton {
                 background-color: #1E1E1E;

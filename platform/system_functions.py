@@ -443,7 +443,7 @@ class LithographySimulator(
         save_settings(settings)
 
         self.motors_sidebar_status.setText("Conectado (Listo)")
-        self.motors_sidebar_status.setStyleSheet("color: #03DAC6; font-weight: bold;")
+        self.motors_sidebar_status.setStyleSheet("color: #A0A0A0; font-weight: bold;")
         self.log_to_console(f" Hardware Motor conectado en {puerto.device}", "SUCCESS")
 
     def execute_sidebar_motor_move(self, axis, direction):
@@ -465,7 +465,7 @@ class LithographySimulator(
             
             if self.motor_controller_instance.reconnect():
                 self.motors_sidebar_status.setText("Conectado (Listo)")
-                self.motors_sidebar_status.setStyleSheet("color: #03DAC6; font-weight: bold;")
+                self.motors_sidebar_status.setStyleSheet("color: #A0A0A0; font-weight: bold;")
                 # Reintentar el comando
                 self.motor_controller_instance.step_move(axis, steps_base, multiplicador)
             else:

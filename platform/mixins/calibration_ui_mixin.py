@@ -100,7 +100,7 @@ class CalibrationUIMixin:
             # Título de la sección
             source_title = QLabel("📷 Selección de Fuente de Imagen")
             source_title.setStyleSheet(
-                "font-size: 14px; font-weight: bold; margin-bottom: 10px; color: #03DAC6;"
+                "font-size: 14px; font-weight: bold; margin-bottom: 10px; color: #A0A0A0;"
             )
             source_layout.addWidget(source_title)
 
@@ -396,7 +396,7 @@ class CalibrationUIMixin:
             # Título de la sección
             analysis_title = QLabel("Análisis y visualización del brillo")
             analysis_title.setStyleSheet(
-                "font-size: 14px; font-weight: bold; margin-bottom: 10px; color: #03DAC6;"
+                "font-size: 14px; font-weight: bold; margin-bottom: 10px; color: #A0A0A0;"
             )
             analysis_layout.addWidget(analysis_title)
 
@@ -627,7 +627,7 @@ class CalibrationUIMixin:
 
             adjustment_title = QLabel("🔧 Herramientas de Ajuste de Calibración")
             adjustment_title.setStyleSheet(
-                "font-size: 14px; font-weight: bold; margin-bottom: 10px; color: #03DAC6;"
+                "font-size: 14px; font-weight: bold; margin-bottom: 10px; color: #A0A0A0;"
             )
             adjustment_layout.addWidget(adjustment_title)
 

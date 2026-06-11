@@ -27,7 +27,7 @@ class RulerScalePanelBuilder:
         layout.setSpacing(8)
 
         title = QLabel(" Regla de escala")
-        title.setStyleSheet("font-weight: bold; font-size: 13px; color: #03DAC6;")
+        title.setStyleSheet("font-weight: bold; font-size: 13px; color: #A0A0A0;")
         layout.addWidget(title)
 
         # ── Panel informativo ────────────────────────────────────────────

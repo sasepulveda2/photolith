@@ -41,7 +41,7 @@ class PreferencesMixin:
                 border-radius: 4px;
             }
             QMenu::item:selected {
-                background-color: #03DAC6;
+                background-color: #A0A0A0;
                 color: #121212;
             }
         """
@@ -220,7 +220,7 @@ class PreferencesMixin:
         title_label.setStyleSheet(f"""
             font-size: 16px;
             font-weight: bold;
-            color: {'#03DAC6' if self.dark_mode else '#00796B'};
+            color: {'#A0A0A0' if self.dark_mode else '#00796B'};
             padding: 10px 0;
         """)
         layout.addWidget(title_label)
@@ -315,12 +315,12 @@ class PreferencesMixin:
                 background-color: {'#3A3A3A' if self.dark_mode else '#E0E0E0'};
             }}
             QPushButton:default {{
-                background-color: #03DAC6;
+                background-color: #A0A0A0;
                 color: #000000;
-                border: 1px solid #03DAC6;
+                border: 1px solid #A0A0A0;
             }}
             QPushButton:default:hover {{
-                background-color: #00BFA5;
+                background-color: #A0A0A0;
             }}
         """)
 
@@ -391,7 +391,7 @@ class PreferencesMixin:
         title_label.setStyleSheet(f"""
             font-size: 16px;
             font-weight: bold;
-            color: {'#03DAC6' if self.dark_mode else '#00796B'};
+            color: {'#A0A0A0' if self.dark_mode else '#00796B'};
             padding: 10px 0;
         """)
         layout.addWidget(title_label)
@@ -536,12 +536,12 @@ class PreferencesMixin:
                 background-color: {'#3A3A3A' if self.dark_mode else '#E0E0E0'};
             }}
             QPushButton:default {{
-                background-color: #03DAC6;
+                background-color: #A0A0A0;
                 color: #000000;
-                border: 1px solid #03DAC6;
+                border: 1px solid #A0A0A0;
             }}
             QPushButton:default:hover {{
-                background-color: #00BFA5;
+                background-color: #A0A0A0;
             }}
         """)
 
@@ -764,7 +764,7 @@ class PreferencesMixin:
                 font-weight: bold;
             }}
             QPushButton:hover {{
-                background-color: #03DAC6;
+                background-color: #A0A0A0;
                 color: #121212;
             }}
         """

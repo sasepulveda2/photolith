@@ -28,9 +28,9 @@ class MotorsPanelBuilder:
     """Mixin: construye la sección de control de motores."""
 
     def _build_motors_section(self) -> None:
-        """⚙️ CONTROL DE MOTORES — conexión, parámetros de pulso y pad XY+Z."""
+        """CONTROL DE MOTORES — conexión, parámetros de pulso y pad XY+Z."""
         self.motors_sidebar_section = CollapsibleSection(
-            "⚙️ MOTORES (X, Y, Z)", self, expanded=False, section_id="motors"
+            "MOTORES (X, Y, Z)", self, expanded=False, section_id="motors"
         )
         content, layout = create_section_content(spacing=SECTION_CONTENT_SPACING_WIDE)
 
@@ -40,7 +40,7 @@ class MotorsPanelBuilder:
         layout.addWidget(self.motors_sidebar_status)
 
         layout.addWidget(create_modern_button(
-            "🔌 Conectar Hardware", slot=self.connect_motors_sidebar,
+            "Conectar Hardware", slot=self.connect_motors_sidebar,
         ))
 
         # Parámetros de pulso
