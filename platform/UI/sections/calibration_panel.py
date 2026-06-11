@@ -1,5 +1,5 @@
 """
-Sección: 🔍 MONITOREO DE CALIBRACIÓN.
+Sección:  MONITOREO DE CALIBRACIÓN.
 
 Métodos:
     _build_calibration_monitor()          → sección principal
@@ -28,9 +28,9 @@ class CalibrationPanelBuilder:
     """Mixin: construye la sección de monitoreo de calibración."""
 
     def _build_calibration_monitor(self) -> None:
-        """🔍 MONITOREO DE CALIBRACIÓN — estado en tiempo real de efectos y preview."""
+        """ MONITOREO DE CALIBRACIÓN — estado en tiempo real de efectos y preview."""
         self.calibration_monitor_section = CollapsibleSection(
-            "📐 CALIBRACIÓN DE MONITOR", self, expanded=False, section_id="calib_monitor"
+            "CALIBRACIÓN DE MONITOR", self, expanded=False, section_id="calib_monitor"
         )
         content, layout = create_section_content()
 
@@ -62,11 +62,11 @@ class CalibrationPanelBuilder:
         layout.addWidget(self.calib_apply_status_label)
 
         # Parámetros de atenuación
-        layout.addWidget(create_section_title_label("🔧 Parámetros de Atenuación:"))
+        layout.addWidget(create_section_title_label("Parámetros de atenuación:"))
         attenuation_labels = [
-            ("atten_threshold_label", "• Threshold: -"),
-            ("atten_min_label",       "• Valor mínimo: -"),
-            ("atten_max_label",       "• Valor máximo: -"),
+            ("atten_threshold_label", "Threshold: -"),
+            ("atten_min_label",       "Valor mínimo: -"),
+            ("atten_max_label",       "Valor máximo: -"),
         ]
         for attr, text in attenuation_labels:
             lbl = create_info_label(text)
@@ -74,13 +74,13 @@ class CalibrationPanelBuilder:
             layout.addWidget(lbl)
 
         # Efectos activos
-        layout.addWidget(create_section_title_label("⚡ Efectos Activos:"))
+        layout.addWidget(create_section_title_label("Efectos activos:"))
         effect_labels = [
-            ("effect_sigma_label",      "• Sigma (Blur): -"),
-            ("effect_downscale_label",  "• Downscaling: -"),
-            ("effect_brightness_label", "• Brillo: -"),
-            ("effect_binary_label",     "• Modo Binario: -"),
-            ("effect_invert_label",     "• Inversión: -"),
+            ("effect_sigma_label",      "Sigma (Blur): -"),
+            ("effect_downscale_label",  "Downscaling: -"),
+            ("effect_brightness_label", "Brillo: -"),
+            ("effect_binary_label",     "Modo binario: -"),
+            ("effect_invert_label",     "Inversión: -"),
         ]
         for attr, text in effect_labels:
             lbl = create_info_label(text)
@@ -90,8 +90,8 @@ class CalibrationPanelBuilder:
         # Última proyección
         layout.addWidget(create_section_title_label("Última proyección:"))
         projection_labels = [
-            ("last_projection_size_label",   "• Tamaño: -"),
-            ("last_projection_values_label", "• Valores: -"),
+            ("last_projection_size_label",   "Tamaño: -"),
+            ("last_projection_values_label", "Valores: -"),
         ]
         for attr, text in projection_labels:
             lbl = create_info_label(text)
@@ -134,12 +134,12 @@ class CalibrationPanelBuilder:
 
         preview_btns = QHBoxLayout()
         self.calib_show_before_btn = create_modern_button(
-            "👁️ Ver Original",
+            "Ver Original",
             slot=lambda: self.update_calibration_preview(show_mode="before"),
             tooltip="Muestra la imagen sin calibración",
         )
         self.calib_show_after_btn = create_modern_button(
-            "✨ Ver Calibrado",
+            "Ver Calibrado",
             slot=lambda: self.update_calibration_preview(show_mode="after"),
             tooltip="Muestra la imagen con calibración aplicada",
         )

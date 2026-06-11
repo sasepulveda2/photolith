@@ -39,7 +39,7 @@ class CalibrationUIMixin:
             self.calibration_widget.setParent(self)
             calib_layout = QVBoxLayout(self.calibration_widget)
 
-            title = QLabel("🎯 CALIBRACIÓN DE IMAGEN Y UNIFORMIDAD")
+            title = QLabel("CALIBRACIÓN DE IMAGEN Y UNIFORMIDAD")
             title.setObjectName("sectionTitle")
             title.setAlignment(Qt.AlignCenter)
             calib_layout.addWidget(title)
@@ -117,7 +117,7 @@ class CalibrationUIMixin:
             self.source_button_group = QButtonGroup()
 
             # Cámara en vivo
-            self.camera_radio = QRadioButton("📹 Cámara en Vivo")
+            self.camera_radio = QRadioButton("Cámara en vivo")
             self.camera_radio.setChecked(True)
             self.source_button_group.addButton(self.camera_radio, 0)
             source_layout.addWidget(self.camera_radio)
@@ -137,7 +137,7 @@ class CalibrationUIMixin:
             camera_label = QLabel("Cámara:")
             camera_label.setStyleSheet("color: #B0B0B0;")
             self.camera_combo = QComboBox()
-            self.refresh_cameras_button = QPushButton("🔄")
+            self.refresh_cameras_button = QPushButton("Actualizar")
             self.refresh_cameras_button.setMaximumWidth(40)
             self.refresh_cameras_button.clicked.connect(self.refresh_available_cameras)
             camera_selector_layout.addWidget(camera_label)
@@ -148,7 +148,7 @@ class CalibrationUIMixin:
             # Botón para iniciar/detener cámara
             camera_control_layout = QHBoxLayout()
             camera_control_layout.setContentsMargins(40, 5, 0, 10)
-            self.start_camera_button = QPushButton("▶️ Iniciar Cámara")
+            self.start_camera_button = QPushButton("Iniciar cámara")
             self.start_camera_button.clicked.connect(self.toggle_camera_capture)
             camera_control_layout.addWidget(self.start_camera_button)
             camera_control_layout.addStretch()
@@ -158,7 +158,7 @@ class CalibrationUIMixin:
 
             # Cámara Basler (si está disponible)
             if BASLER_AVAILABLE:
-                self.basler_radio = QRadioButton("🎥 Cámara Basler aCA640-750um")
+                self.basler_radio = QRadioButton("Cámara Basler aCA640-750um")
                 self.source_button_group.addButton(self.basler_radio, 1)
                 source_layout.addWidget(self.basler_radio)
 
@@ -174,7 +174,7 @@ class CalibrationUIMixin:
                 # Botón para iniciar/detener cámara Basler
                 basler_control_layout = QHBoxLayout()
                 basler_control_layout.setContentsMargins(40, 5, 0, 10)
-                self.start_basler_button = QPushButton("▶️ Iniciar Cámara Basler")
+                self.start_basler_button = QPushButton("Iniciar cámara Basler")
                 self.start_basler_button.clicked.connect(self.toggle_basler_capture)
                 basler_control_layout.addWidget(self.start_basler_button)
                 basler_control_layout.addStretch()
@@ -182,7 +182,7 @@ class CalibrationUIMixin:
 
                 # Panel de controles Basler (colapsable)
                 self.basler_controls_section = CollapsibleSection(
-                    "⚙️ Controles Avanzados Basler", expanded=False
+                    "Controles avanzados Basler", expanded=False
                 )
                 basler_controls_content = QWidget()
                 basler_controls_layout = QVBoxLayout(basler_controls_content)
@@ -190,7 +190,7 @@ class CalibrationUIMixin:
                 basler_controls_layout.setSpacing(12)
 
                 # Control de Exposición
-                exp_label = QLabel("⏱️ Exposición (μs):")
+                exp_label = QLabel("Exposición (μs):")
                 exp_label.setStyleSheet("font-weight: bold;")
                 basler_controls_layout.addWidget(exp_label)
 
@@ -213,7 +213,7 @@ class CalibrationUIMixin:
                 basler_controls_layout.addLayout(exp_layout)
 
                 # Control de Ganancia
-                gain_label = QLabel("📊 Ganancia (dB):")
+                gain_label = QLabel("Ganancia (dB):")
                 gain_label.setStyleSheet("font-weight: bold;")
                 basler_controls_layout.addWidget(gain_label)
 
@@ -238,7 +238,7 @@ class CalibrationUIMixin:
                 basler_controls_layout.addLayout(gain_layout)
 
                 # Control de Gamma
-                gamma_label = QLabel("🔆 Gamma:")
+                gamma_label = QLabel("Gamma:")
                 gamma_label.setStyleSheet("font-weight: bold;")
                 basler_controls_layout.addWidget(gamma_label)
 
@@ -260,7 +260,7 @@ class CalibrationUIMixin:
                 basler_controls_layout.addLayout(gamma_layout)
 
                 # Control de Black Level
-                black_label = QLabel("⬛ Nivel de Negro:")
+                black_label = QLabel("Nivel de negro:")
                 black_label.setStyleSheet("font-weight: bold;")
                 basler_controls_layout.addWidget(black_label)
 
@@ -282,12 +282,12 @@ class CalibrationUIMixin:
                 basler_controls_layout.addLayout(black_layout)
 
                 # Botón para aplicar cambios
-                apply_basler_btn = QPushButton("✓ Aplicar Configuración")
+                apply_basler_btn = QPushButton("Aplicar configuración")
                 apply_basler_btn.clicked.connect(self.apply_basler_settings)
                 basler_controls_layout.addWidget(apply_basler_btn)
 
                 # Botón para resetear a valores por defecto
-                reset_basler_btn = QPushButton("↺ Valores por Defecto")
+                reset_basler_btn = QPushButton("Valores por defecto")
                 reset_basler_btn.clicked.connect(self.reset_basler_settings)
                 basler_controls_layout.addWidget(reset_basler_btn)
 
@@ -299,7 +299,7 @@ class CalibrationUIMixin:
                 self.basler_radio = None
                 # Mostrar mensaje de que Basler no está disponible
                 basler_unavailable = QLabel(
-                    "ℹ️ Cámara Basler no disponible (pypylon no instalado)"
+                    "Cámara Basler no disponible (pypylon no instalado)"
                 )
                 basler_unavailable.setStyleSheet(
                     "font-size: 11px; color: #666666; font-style: italic;"
@@ -307,7 +307,7 @@ class CalibrationUIMixin:
                 source_layout.addWidget(basler_unavailable)
                 source_layout.addSpacing(10)
 
-            self.image_radio = QRadioButton("🖼️ Imagen Estática")
+            self.image_radio = QRadioButton("Imagen estática")
             self.source_button_group.addButton(
                 self.image_radio, 2 if BASLER_AVAILABLE else 1
             )
@@ -323,7 +323,7 @@ class CalibrationUIMixin:
             # Botón para cargar imagen
             image_loader_layout = QHBoxLayout()
             image_loader_layout.setContentsMargins(40, 5, 0, 5)
-            self.load_calib_image_button = QPushButton("📂 Cargar Imagen...")
+            self.load_calib_image_button = QPushButton("Cargar imagen...")
             self.load_calib_image_button.clicked.connect(self.load_calibration_image)
             image_loader_layout.addWidget(self.load_calib_image_button)
             image_loader_layout.addStretch()
@@ -339,7 +339,7 @@ class CalibrationUIMixin:
             source_layout.addSpacing(20)
 
             # Vista previa
-            preview_label = QLabel("👁️ Vista Previa:")
+            preview_label = QLabel("Vista previa:")
             preview_label.setStyleSheet(
                 "font-size: 13px; font-weight: bold; color: #E0E0E0;"
             )
@@ -381,7 +381,7 @@ class CalibrationUIMixin:
             source_tab_container_layout.setContentsMargins(0, 0, 0, 0)
             source_tab_container_layout.addWidget(source_tab_scroll)
 
-            self.calibration_tabs.addTab(source_tab_container, "1️⃣ Fuente de Imagen")
+            self.calibration_tabs.addTab(source_tab_container, "Fuente de imagen")
 
             # ════════════════════════════════════════════════════════════
             # PESTAÑA 2: Análisis y Visualización del Brillo
@@ -394,7 +394,7 @@ class CalibrationUIMixin:
             analysis_layout.setSpacing(15)
 
             # Título de la sección
-            analysis_title = QLabel("📊 Análisis y Visualización del Brillo")
+            analysis_title = QLabel("Análisis y visualización del brillo")
             analysis_title.setStyleSheet(
                 "font-size: 14px; font-weight: bold; margin-bottom: 10px; color: #03DAC6;"
             )
@@ -417,7 +417,7 @@ class CalibrationUIMixin:
             grayscale_layout = QVBoxLayout(grayscale_group)
             grayscale_layout.setContentsMargins(10, 10, 10, 10)
 
-            gray_title = QLabel("🎞️ Visualización en Escala de Grises")
+            gray_title = QLabel("Visualización en escala de grises")
             gray_title.setStyleSheet(
                 "font-size: 13px; font-weight: bold; color: #E0E0E0;"
             )
@@ -432,7 +432,7 @@ class CalibrationUIMixin:
 
             # Botones de control
             gray_controls = QHBoxLayout()
-            self.show_grayscale_button = QPushButton("👁️ Mostrar Escala de Grises")
+            self.show_grayscale_button = QPushButton("Mostrar escala de grises")
             self.show_grayscale_button.clicked.connect(self.show_grayscale_fullscreen)
             self.show_grayscale_button.setEnabled(
                 False
@@ -440,7 +440,7 @@ class CalibrationUIMixin:
             gray_controls.addWidget(self.show_grayscale_button)
 
             # Botón de inversión (espejo)
-            self.mirror_preview_button = QPushButton("↔️ Espejo")
+            self.mirror_preview_button = QPushButton("Espejo")
             self.mirror_preview_button.setCheckable(True)
             self.mirror_preview_button.clicked.connect(self.toggle_mirror_preview)
             self.mirror_preview_button.setEnabled(False)
@@ -484,7 +484,7 @@ class CalibrationUIMixin:
             intensity_layout = QVBoxLayout(intensity_group)
             intensity_layout.setContentsMargins(10, 10, 10, 10)
 
-            intensity_title = QLabel("📊 Análisis de Intensidad")
+            intensity_title = QLabel("Análisis de intensidad")
             intensity_title.setStyleSheet(
                 "font-size: 13px; font-weight: bold; color: #E0E0E0;"
             )
@@ -522,7 +522,7 @@ class CalibrationUIMixin:
 
             zone_controls_layout.addSpacing(20)
 
-            self.analyze_intensity_button = QPushButton("🔍 Analizar Intensidad")
+            self.analyze_intensity_button = QPushButton("Analizar intensidad")
             self.analyze_intensity_button.clicked.connect(self.analyze_brightness_zones)
             self.analyze_intensity_button.setEnabled(False)
             zone_controls_layout.addWidget(self.analyze_intensity_button)
@@ -616,7 +616,7 @@ class CalibrationUIMixin:
 
             analysis_layout.addStretch()
 
-            self.calibration_tabs.addTab(analysis_tab, "2️⃣ Análisis de Brillo")
+            self.calibration_tabs.addTab(analysis_tab, "Análisis de brillo")
 
             adjustment_tab = QWidget()
             adjustment_tab.setAutoFillBackground(False)
@@ -648,7 +648,7 @@ class CalibrationUIMixin:
             threshold_layout = QVBoxLayout(threshold_group)
             threshold_layout.setContentsMargins(10, 10, 10, 10)
 
-            threshold_title = QLabel("⚖️ Control de Umbral Binario")
+            threshold_title = QLabel("Control de umbral binario")
             threshold_title.setStyleSheet(
                 "font-size: 13px; font-weight: bold; color: #E0E0E0;"
             )
@@ -701,9 +701,9 @@ class CalibrationUIMixin:
             threshold_layout.addLayout(threshold_controls)
 
             threshold_info = QLabel(
-                "• El umbral determina el punto de corte para conversión binaria\n"
-                "• Intensidad ≥ umbral → 100% (Blanco/Expuesto)\n"
-                "• Intensidad < umbral → 0% (Negro/No expuesto)"
+                "El umbral determina el punto de corte para conversión binaria\n"
+                "Intensidad >= umbral -> 100% (Blanco/Expuesto)\n"
+                "Intensidad < umbral -> 0% (Negro/No expuesto)"
             )
             threshold_info.setWordWrap(True)
             threshold_info.setStyleSheet(
@@ -712,7 +712,7 @@ class CalibrationUIMixin:
             threshold_layout.addWidget(threshold_info)
 
             preview_threshold_layout = QHBoxLayout()
-            self.preview_threshold_button = QPushButton("👁️ Previsualizar Conversión")
+            self.preview_threshold_button = QPushButton("Previsualizar conversión")
             self.preview_threshold_button.clicked.connect(
                 self.preview_threshold_conversion
             )
@@ -767,7 +767,7 @@ class CalibrationUIMixin:
             attenuation_layout = QVBoxLayout(attenuation_group)
             attenuation_layout.setContentsMargins(10, 10, 10, 10)
 
-            atten_title = QLabel("🎛️ Matriz de Compensación de Uniformidad")
+            atten_title = QLabel("Matriz de compensación de uniformidad")
             atten_title.setStyleSheet(
                 "font-size: 13px; font-weight: bold; color: #E0E0E0;"
             )
@@ -784,7 +784,7 @@ class CalibrationUIMixin:
             matrix_gen_layout = QHBoxLayout()
 
             self.generate_attenuation_button = QPushButton(
-                "🎯 Generar Matriz de Atenuación"
+                "Generar matriz de atenuación"
             )
             self.generate_attenuation_button.clicked.connect(
                 self.generate_attenuation_matrix
@@ -859,19 +859,19 @@ class CalibrationUIMixin:
             # Botones de acción
             action_layout = QHBoxLayout()
 
-            self.preview_attenuation_button = QPushButton("👁️ Previsualizar Corrección")
+            self.preview_attenuation_button = QPushButton("Previsualizar corrección")
             self.preview_attenuation_button.clicked.connect(
                 self.preview_attenuation_effect
             )
             self.preview_attenuation_button.setEnabled(False)
             action_layout.addWidget(self.preview_attenuation_button)
 
-            self.save_attenuation_button = QPushButton("💾 Guardar Matriz")
+            self.save_attenuation_button = QPushButton("Guardar matriz")
             self.save_attenuation_button.clicked.connect(self.save_attenuation_matrix)
             self.save_attenuation_button.setEnabled(False)
             action_layout.addWidget(self.save_attenuation_button)
 
-            self.load_attenuation_button = QPushButton("📂 Cargar Matriz")
+            self.load_attenuation_button = QPushButton("Cargar matriz")
             self.load_attenuation_button.clicked.connect(self.load_attenuation_matrix)
             action_layout.addWidget(self.load_attenuation_button)
 
@@ -918,7 +918,7 @@ class CalibrationUIMixin:
 
             adjustment_layout.addStretch()
 
-            self.calibration_tabs.addTab(adjustment_tab, "3️⃣ Ajustes y Matriz")
+            self.calibration_tabs.addTab(adjustment_tab, "Ajustes y matriz")
 
             # Crear scroll area para las pestañas de calibración
             calibration_scroll = QScrollArea()

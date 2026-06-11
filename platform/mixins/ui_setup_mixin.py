@@ -191,23 +191,23 @@ class UISetupMixin(
         self.info_layout = QVBoxLayout()
         self.info_layout.setSpacing(SIDEBAR_SPACING)
 
-        self._build_stats_section()            # 📊 DATA
-        self._build_binary_section()           # ⚫⚪ BINARIO
+        self._build_stats_section()            #  DATOS
+        self._build_binary_section()           #  BINARIO
         self.check_second_monitor()            # detecta monitor secundario al inicio
-        self._build_grid_stats_section()       # 📏 ESTADÍSTICAS GRID
-        self._build_basler_section()           # 🎥 CÁMARA BASLER
-        self._build_image_coords_section()     # 🖼️ IMAGEN EN GRID
-        self._build_grid_config_section()      # 📏 CONFIGURACIÓN GRID
-        self._build_segmentation_section()     # ✂️ SEGMENTACIÓN DE IMAGEN
-        self._build_motors_section()           # ⚙️ CONTROL DE MOTORES
+        self._build_grid_stats_section()       #  ESTADÍSTICAS DEL GRID
+        self._build_basler_section()           #  CÁMARA BASLER
+        self._build_image_coords_section()     #  IMAGEN EN EL GRID
+        self._build_grid_config_section()      #  CONFIGURACIÓN DEL GRID
+        self._build_segmentation_section()     #  SEGMENTACIÓN DE IMAGEN
+        self._build_motors_section()           #  CONTROL DE MOTORES
         self.info_layout.addSpacing(SIDEBAR_SECTION_SPACING)
-        self._build_exposure_frequency_tabs()  # ⏱️/〜 Tabs
-        self._build_exposure_section()         # ⏱️ EXPOSICIÓN
-        self._build_frequency_section()        # 〜 FRECUENCIA
-        self._build_projection_section()       # 🎬 CONTROL DE PROYECCIÓN
-        self._build_calibration_monitor()      # 🔍 MONITOREO DE CALIBRACIÓN
+        self._build_exposure_frequency_tabs()  #  Tabs
+        self._build_exposure_section()         #  EXPOSICIÓN
+        self._build_frequency_section()        #  FRECUENCIA
+        self._build_projection_section()       #  CONTROL DE PROYECCIÓN
+        self._build_calibration_monitor()      #  MONITOREO DE CALIBRACIÓN
         self.info_layout.addSpacing(SIDEBAR_SECTION_SPACING)
-        self._build_file_tree()                # 📁 ARCHIVOS
+        self._build_file_tree()                #  ARCHIVOS
 
         info_widget = QWidget()
         info_widget.setLayout(self.info_layout)

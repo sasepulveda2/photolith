@@ -87,7 +87,7 @@ class CrealityController:
         self._write(f"G1 {physical_motor.upper()}{physical_distance:.4f} F{feedrate}\n")
 
         print(
-            f"Lógico: {axis} ➔ Físico: {physical_motor} | Steps: {total_steps} | Dist: {distance:.4f}mm | Deg: {degrees}° | Multi: x{multiplier} | F{feedrate}",
+            f"Lógico: {axis} -> Físico: {physical_motor} | Steps: {total_steps} | Dist: {distance:.4f}mm | Deg: {degrees}° | Multi: x{multiplier} | F{feedrate}",
             end="\r",
         )
         

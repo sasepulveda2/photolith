@@ -32,9 +32,9 @@ class PatternCalibPanelBuilder:
 
         # Botones de selección en lugar de Tabs
         btn_layout = QHBoxLayout()
-        self.btn_mode_spatial = QPushButton("📏 Tamaño")
-        self.btn_mode_exposure = QPushButton("⏱️ Exposición")
-        self.btn_mode_cd = QPushButton("🔍 Test CD")
+        self.btn_mode_spatial = QPushButton(" tamaño")
+        self.btn_mode_exposure = QPushButton(" Exposición")
+        self.btn_mode_cd = QPushButton(" Test CD")
         
         # Estilos para indicar cual está activo (opcional, por ahora simples)
         self.btn_mode_spatial.setCheckable(True)
@@ -55,7 +55,7 @@ class PatternCalibPanelBuilder:
         spatial_layout = QVBoxLayout(spatial_view)
         spatial_layout.setSpacing(15)
 
-        self.btn_toggle_motor_calib = QPushButton("⚙️ Calibración por Solapamiento (Motores)")
+        self.btn_toggle_motor_calib = QPushButton("Calibración por Solapamiento (Motores)")
         self.btn_toggle_motor_calib.setCheckable(True)
         spatial_layout.addWidget(self.btn_toggle_motor_calib)
         

@@ -89,7 +89,7 @@ class MotorGUI(QWidget):
 
         # --- PANEL DE ESTADO E INFO ---
         info_layout = QHBoxLayout()
-        self.status_label = QLabel("🟢 Sistema Listo")
+        self.status_label = QLabel("Sistema listo")
         self.status_label.setObjectName("statusLabel")
         
         self.unit_box = QLabel("Movimiento: 12.5 µm")
@@ -146,12 +146,12 @@ class MotorGUI(QWidget):
         move_layout = QHBoxLayout()
         move_layout.setSpacing(15)
         
-        self.btn_left = QPushButton("⯇   IZQUIERDA (-)")
+        self.btn_left = QPushButton("IZQUIERDA (-)")
         self.btn_left.setObjectName("btnMove")
         self.btn_left.setMinimumHeight(45)
         self.btn_left.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         
-        self.btn_right = QPushButton("DERECHA (+)   ⯈")
+        self.btn_right = QPushButton("DERECHA (+)")
         self.btn_right.setObjectName("btnMove")
         self.btn_right.setMinimumHeight(45)
         self.btn_right.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
@@ -167,13 +167,13 @@ class MotorGUI(QWidget):
         move360_layout = QHBoxLayout()
         move360_layout.setSpacing(15)
 
-        self.btn_360_left = QPushButton("⯇  360° (IZQ)")
+        self.btn_360_left = QPushButton("360° (IZQ)")
         self.btn_360_left.setObjectName("btnMove360")
         self.btn_360_left.setMinimumHeight(35)
         self.btn_360_left.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.btn_360_left.clicked.connect(lambda: self.ejecutar_giro_completo(-1))
 
-        self.btn_360_right = QPushButton("360° (DER)  ⯈")
+        self.btn_360_right = QPushButton("360° (DER)")
         self.btn_360_right.setObjectName("btnMove360")
         self.btn_360_right.setMinimumHeight(35)
         self.btn_360_right.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
@@ -187,17 +187,17 @@ class MotorGUI(QWidget):
         util_layout = QHBoxLayout()
         util_layout.setSpacing(15)
         
-        self.btn_zero = QPushButton("⌖ Set Zero")
+        self.btn_zero = QPushButton("Set Zero")
         self.btn_zero.setObjectName("btnUtil")
         self.btn_zero.setMinimumHeight(35)
         self.btn_zero.clicked.connect(self.set_zero)
         
-        self.btn_home = QPushButton("🏠 Origen")
+        self.btn_home = QPushButton("Origen")
         self.btn_home.setObjectName("btnUtilHome")
         self.btn_home.setMinimumHeight(35)
         self.btn_home.clicked.connect(self.volver_al_origen)
 
-        self.btn_reconnect = QPushButton("🔌 Reconectar")
+        self.btn_reconnect = QPushButton(" Reconectar")
         self.btn_reconnect.setObjectName("btnUtil")
         self.btn_reconnect.setMinimumHeight(35)
         self.btn_reconnect.clicked.connect(self.reconectar)
@@ -436,18 +436,18 @@ class MotorGUI(QWidget):
 
         try:
             self.ctrl.step_move(eje, steps_totales, 1, feedrate=feedrate)
-            self.status_label.setText(f"🟢 Movimiento Exitoso: {steps_totales} steps")
+            self.status_label.setText(f"Movimiento exitoso: {steps_totales} steps")
             self.status_label.setStyleSheet("color: #03DAC6;")
         except Exception:
-            self.status_label.setText("⏳ Error detectado. Intentando Auto-Reconexión...")
+            self.status_label.setText("Error detectado. Intentando reconexión...")
             self.status_label.setStyleSheet("color: #FFC107;")
             self.repaint()
             
             if self.ctrl.reconnect():
-                self.status_label.setText("🟢 Reconectado. Repita el comando por seguridad.")
+                self.status_label.setText("Reconectado.")
                 self.status_label.setStyleSheet("color: #03DAC6;")
             else:
-                self.status_label.setText("🔴 Motor Desconectado (Fallo en puerto)")
+                self.status_label.setText("Motor desconectado")
                 self.status_label.setStyleSheet("color: #F44336;")
 
     def ejecutar_giro_completo(self, direccion):
@@ -457,18 +457,18 @@ class MotorGUI(QWidget):
 
         try:
             self.ctrl.step_move(eje, steps_totales, 1, feedrate=feedrate)
-            self.status_label.setText(f"🟢 Giro Completo Exitoso en {eje}")
+            self.status_label.setText(f"Giro completo exitoso en {eje}")
             self.status_label.setStyleSheet("color: #03DAC6;")
         except Exception:
-            self.status_label.setText("⏳ Error detectado. Intentando Auto-Reconexión...")
+            self.status_label.setText("Error detectado. Intentando reconexión...")
             self.status_label.setStyleSheet("color: #FFC107;")
             self.repaint()
             
             if self.ctrl.reconnect():
-                self.status_label.setText("🟢 Reconectado. Repita el comando por seguridad.")
+                self.status_label.setText("Reconectado.")
                 self.status_label.setStyleSheet("color: #03DAC6;")
             else:
-                self.status_label.setText("🔴 Motor Desconectado (Fallo en puerto)")
+                self.status_label.setText("Motor desconectado")
                 self.status_label.setStyleSheet("color: #F44336;")
 
     def actualizar_pantalla(self):
@@ -490,43 +490,43 @@ class MotorGUI(QWidget):
     def set_zero(self):
         eje = self.axis_sel.currentText()
         self.ctrl.set_zero(eje)
-        self.status_label.setText(f"🟢 Cero establecido en eje {eje}")
+        self.status_label.setText(f"Cero establecido en eje {eje}")
         self.status_label.setStyleSheet("color: #a6e3a1;")
 
     def volver_al_origen(self):
         def _do_home():
             movimientos = self.ctrl.home_all()
             if movimientos == 0:
-                self.status_label.setText("🟢 Ya está en el origen")
+                self.status_label.setText("Ya está en el origen")
             else:
-                self.status_label.setText("🟢 Regreso al origen completado")
+                self.status_label.setText("Regreso al origen completado")
             self.status_label.setStyleSheet("color: #03DAC6;")
 
         try:
             _do_home()
         except Exception:
-            self.status_label.setText("⏳ Error detectado. Intentando Auto-Reconexión...")
+            self.status_label.setText("Error detectado. Intentando reconexión...")
             self.status_label.setStyleSheet("color: #FFC107;")
             self.repaint()
             
             if self.ctrl.reconnect():
-                self.status_label.setText("🟢 Reconectado. Repita el comando por seguridad.")
+                self.status_label.setText("Reconectado.")
                 self.status_label.setStyleSheet("color: #03DAC6;")
             else:
-                self.status_label.setText("🔴 Motor Desconectado (Fallo en puerto)")
+                self.status_label.setText("Motor desconectado")
                 self.status_label.setStyleSheet("color: #F44336;")
 
     def reconectar(self):
-        self.status_label.setText("⏳ Reconectando...")
+        self.status_label.setText("Reconectando...")
         self.status_label.setStyleSheet("color: #FFC107;")
         self.repaint()  # Forzar UI a actualizar texto antes del bloqueo
         
         exito = self.ctrl.reconnect()
         if exito:
-            self.status_label.setText("🟢 Reconexión Exitosa")
+            self.status_label.setText("Reconexión exitosa")
             self.status_label.setStyleSheet("color: #03DAC6;")
         else:
-            self.status_label.setText("🔴 Fallo al Reconectar")
+            self.status_label.setText("Fallo al Reconectar")
             self.status_label.setStyleSheet("color: #F44336;")
 
 
@@ -552,7 +552,7 @@ class MotorPreferencesGUI(QWidget):
         main_layout.setContentsMargins(15, 15, 15, 15)
         main_layout.setSpacing(15)
 
-        title = QLabel("⚙️ Preferencias de Motores")
+        title = QLabel("Preferencias de motores")
         title.setAlignment(Qt.AlignCenter)
         title.setStyleSheet("color: #03DAC6; font-size: 16px; font-weight: bold; margin-bottom: 10px;")
         main_layout.addWidget(title)
