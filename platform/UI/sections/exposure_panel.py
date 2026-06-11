@@ -25,7 +25,7 @@ class ExposurePanelBuilder:
     def _build_exposure_frequency_tabs(self) -> None:
         """Crea los botones de tab para alternar entre Exposición y Frecuencia."""
         tabs_row = QHBoxLayout()
-        self.exposure_tab_button = QPushButton("⏱️ EXPOSICIÓN")
+        self.exposure_tab_button = QPushButton("EXPOSICIÓN")
         self.exposure_tab_button.setCheckable(True)
         self.exposure_tab_button.setChecked(True)
         self.exposure_tab_button.clicked.connect(self.show_exposure_section)
@@ -43,7 +43,7 @@ class ExposurePanelBuilder:
     def _build_exposure_section(self) -> None:
         """⏱️ EXPOSICIÓN — tiempo, intensidad, ciclos y controles de start/stop."""
         self.exposure_section = CollapsibleSection(
-            "⏱️ EXPOSICIÓN", self, expanded=True, section_id="exposure"
+            "EXPOSICIÓN", self, expanded=True, section_id="exposure"
         )
         content, layout = create_section_content()
 
@@ -62,18 +62,18 @@ class ExposurePanelBuilder:
         layout.addLayout(row_cycles)
 
         # Espejo de exposición (Horizontal y Vertical)
-        self.mirror_exposure_checkbox = QCheckBox("🪞 Espejo X (Invertir Horizontal)")
+        self.mirror_exposure_checkbox = QCheckBox("Espejo X (Invertir horizontal)")
         self.mirror_exposure_checkbox.setChecked(False)
         self.mirror_exposure_checkbox.toggled.connect(self.toggle_exposure_mirror)
         layout.addWidget(self.mirror_exposure_checkbox)
 
-        self.mirror_y_exposure_checkbox = QCheckBox("🪞 Espejo Y (Invertir Vertical)")
+        self.mirror_y_exposure_checkbox = QCheckBox("Espejo Y (Invertir vertical)")
         self.mirror_y_exposure_checkbox.setChecked(False)
         self.mirror_y_exposure_checkbox.toggled.connect(self.toggle_exposure_mirror_y)
         layout.addWidget(self.mirror_y_exposure_checkbox)
 
         # Proyectar imagen completa manualmente (toggle)
-        self.project_image_button = QPushButton("🖼️ Proyectar Imagen Completa")
+        self.project_image_button = QPushButton("Proyectar imagen completa")
         self.project_image_button.clicked.connect(self.project_full_image)
         self.project_image_button.setVisible(False)
         self.project_image_button.setToolTip(
@@ -82,12 +82,12 @@ class ExposurePanelBuilder:
         layout.addWidget(self.project_image_button)
 
         # Controles de exposición temporizada
-        self.exposure_button = QPushButton("▶️ Iniciar Exposición")
+        self.exposure_button = QPushButton("Iniciar exposición")
         self.exposure_button.clicked.connect(self.start_timed_exposure)
         self.exposure_button.setVisible(False)
         layout.addWidget(self.exposure_button)
 
-        self.stop_exposure_button = QPushButton("⏹️ Detener")
+        self.stop_exposure_button = QPushButton("Detener")
         self.stop_exposure_button.clicked.connect(self.force_stop_exposure)
         self.stop_exposure_button.setVisible(False)
         layout.addWidget(self.stop_exposure_button)
@@ -125,12 +125,12 @@ class ExposurePanelBuilder:
         )
         layout.addLayout(dur_row)
 
-        self.frequency_button = QPushButton("🌊 Iniciar Modo Frecuencia")
+        self.frequency_button = QPushButton("Iniciar modo frecuencia")
         self.frequency_button.clicked.connect(self.start_frequency_mode)
         self.frequency_button.setVisible(False)
         layout.addWidget(self.frequency_button)
 
-        self.stop_frequency_button = QPushButton("⏹️ Detener Frecuencia")
+        self.stop_frequency_button = QPushButton("Detener frecuencia")
         self.stop_frequency_button.clicked.connect(self.force_stop_frequency)
         self.stop_frequency_button.setVisible(False)
         layout.addWidget(self.stop_frequency_button)

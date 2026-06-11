@@ -105,7 +105,7 @@ class PatternCalibPanelBuilder:
         
         u_layout = QHBoxLayout()
         u_layout.addWidget(QLabel("Distancia U (px):"))
-        self.btn_motor_u_minus = QPushButton("➖")
+        self.btn_motor_u_minus = QPushButton("-")
         self.btn_motor_u_minus.setFixedWidth(30)
         u_layout.addWidget(self.btn_motor_u_minus)
         
@@ -114,17 +114,17 @@ class PatternCalibPanelBuilder:
         self.input_motor_u.setValue(config.get('motor_px_per_mm', 150))
         u_layout.addWidget(self.input_motor_u)
         
-        self.btn_motor_u_plus = QPushButton("➕")
+        self.btn_motor_u_plus = QPushButton("+")
         self.btn_motor_u_plus.setFixedWidth(30)
         u_layout.addWidget(self.btn_motor_u_plus)
         motor_layout.addLayout(u_layout)
         
         mot_ctrl_layout = QHBoxLayout()
-        self.btn_motor_move_mm = QPushButton("↔️ Mover Motor")
+        self.btn_motor_move_mm = QPushButton("Mover motor")
         self.btn_motor_move_mm.setStyleSheet("font-weight: bold; background-color: #00BFA5; color: black;")
         mot_ctrl_layout.addWidget(self.btn_motor_move_mm)
         
-        self.btn_motor_return = QPushButton("🔄 Volver al Origen")
+        self.btn_motor_return = QPushButton("Volver al origen")
         mot_ctrl_layout.addWidget(self.btn_motor_return)
         motor_layout.addLayout(mot_ctrl_layout)
         
@@ -132,15 +132,15 @@ class PatternCalibPanelBuilder:
         self.btn_preview_motor = QPushButton("Proyectar")
         proj_btn_layout.addWidget(self.btn_preview_motor)
         
-        self.btn_expose_motor = QPushButton("▶ Iniciar Exposición")
+        self.btn_expose_motor = QPushButton("Iniciar exposición")
         self.btn_expose_motor.setStyleSheet("font-weight: bold; background-color: #00BFA5; color: black;")
         proj_btn_layout.addWidget(self.btn_expose_motor)
         
-        self.btn_stop_motor_expose = QPushButton("⏹ Detener")
+        self.btn_stop_motor_expose = QPushButton("Detener")
         proj_btn_layout.addWidget(self.btn_stop_motor_expose)
         motor_layout.addLayout(proj_btn_layout)
         
-        self.btn_save_motor_calib = QPushButton("💾 Guardar Factor (Solapamiento)")
+        self.btn_save_motor_calib = QPushButton("Guardar factor (solapamiento)")
         self.btn_save_motor_calib.setStyleSheet("font-weight: bold; color: #FFD700;")
         motor_layout.addWidget(self.btn_save_motor_calib)
         
@@ -157,7 +157,7 @@ class PatternCalibPanelBuilder:
         help_label.setStyleSheet("color: #888888; font-style: italic;")
         manual_layout.addWidget(help_label)
         
-        self.btn_load_pattern_calib = QPushButton("📂 Cargar Patrón de Calibración")
+        self.btn_load_pattern_calib = QPushButton("Cargar patrón de calibración")
         self.btn_load_pattern_calib.clicked.connect(self.load_calibration_pattern)
         manual_layout.addWidget(self.btn_load_pattern_calib)
         
@@ -179,7 +179,7 @@ class PatternCalibPanelBuilder:
         
         manual_layout.addStretch()
         
-        self.btn_save_spatial_calib = QPushButton("💾 Guardar Calibración")
+        self.btn_save_spatial_calib = QPushButton("Guardar calibración")
         self.btn_save_spatial_calib.clicked.connect(self.save_spatial_scale_from_ui)
         manual_layout.addWidget(self.btn_save_spatial_calib)
         
@@ -312,12 +312,12 @@ class PatternCalibPanelBuilder:
         
         exposure_layout.addStretch()
 
-        self.btn_start_exp_matrix = QPushButton("▶ Iniciar Secuencia de Exposición")
+        self.btn_start_exp_matrix = QPushButton("Iniciar secuencia de exposición")
         self.btn_start_exp_matrix.setStyleSheet("font-weight: bold; background-color: #00BFA5; color: black;")
         self.btn_start_exp_matrix.clicked.connect(self.start_exposure_matrix)
         exposure_layout.addWidget(self.btn_start_exp_matrix)
 
-        self.btn_stop_exp_matrix = QPushButton("⏹ Detener")
+        self.btn_stop_exp_matrix = QPushButton("Detener")
         self.btn_stop_exp_matrix.clicked.connect(self.stop_exposure_matrix)
         exposure_layout.addWidget(self.btn_stop_exp_matrix)
 
@@ -328,7 +328,7 @@ class PatternCalibPanelBuilder:
         cd_layout = QVBoxLayout(cd_view)
         cd_layout.setSpacing(10)
         
-        cd_help = QLabel("Proyecta un patrón progresivo para test de dimensión crítica (CD).")
+        cd_help = QLabel("Proyecta un patrón progresivo para test de dimensión crítica.")
         cd_help.setWordWrap(True)
         cd_help.setStyleSheet("color: #888888; font-style: italic;")
         cd_layout.addWidget(cd_help)
@@ -358,27 +358,27 @@ class PatternCalibPanelBuilder:
 
         cd_layout.addLayout(cd_form)
         
-        self.chk_cd_invert = QCheckBox("Invertir Figura y Fondo")
+        self.chk_cd_invert = QCheckBox("Invertir figura y fondo")
         self.chk_cd_invert.setChecked(config.get('cd_invert', False))
         cd_layout.addWidget(self.chk_cd_invert)
         
-        self.btn_save_cd_image = QPushButton("💾 Guardar patrón como imagen")
+        self.btn_save_cd_image = QPushButton("Guardar patrón como imagen")
         self.btn_save_cd_image.clicked.connect(self.save_cd_image)
         cd_layout.addWidget(self.btn_save_cd_image)
         
         cd_layout.addStretch()
 
         cd_btn_layout = QHBoxLayout()
-        self.btn_preview_cd = QPushButton(" Previsualizar")
+        self.btn_preview_cd = QPushButton("Previsualizar")
         self.btn_preview_cd.clicked.connect(self.preview_cd_test)
         cd_btn_layout.addWidget(self.btn_preview_cd)
 
-        self.btn_expose_cd = QPushButton("▶ Iniciar Exposición")
+        self.btn_expose_cd = QPushButton("Iniciar exposición")
         self.btn_expose_cd.setStyleSheet("font-weight: bold; background-color: #00BFA5; color: black;")
         self.btn_expose_cd.clicked.connect(self.expose_cd_test)
         cd_btn_layout.addWidget(self.btn_expose_cd)
         
-        self.btn_stop_cd_expose = QPushButton("⏹ Detener")
+        self.btn_stop_cd_expose = QPushButton("Detener")
         self.btn_stop_cd_expose.clicked.connect(self.stop_cd_exposure)
         cd_btn_layout.addWidget(self.btn_stop_cd_expose)
         

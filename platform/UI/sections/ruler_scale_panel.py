@@ -26,14 +26,14 @@ class RulerScalePanelBuilder:
         layout.setContentsMargins(10, 10, 10, 10)
         layout.setSpacing(8)
 
-        title = QLabel("📏 REGLA DE ESCALA")
+        title = QLabel(" Regla de escala")
         title.setStyleSheet("font-weight: bold; font-size: 13px; color: #03DAC6;")
         layout.addWidget(title)
 
         # ── Panel informativo ────────────────────────────────────────────
         self.ruler_info_resolution = create_stat_label("Resolución: -")
         self.ruler_info_scale = create_stat_label("Escala: -")
-        self.ruler_info_pixel_size = create_stat_label("Tamaño Píxel: -")
+        self.ruler_info_pixel_size = create_stat_label("Tamaño píxel: -")
         self.ruler_info_dim_mm = create_stat_label("Dimensión: -")
         self.ruler_info_dim_um = create_stat_label("Dimensión: -")
 
@@ -161,15 +161,15 @@ class RulerScalePanelBuilder:
         layout.addLayout(proj_row)
 
         # ── Botones de control ───────────────────────────────────────────
-        self.ruler_preview_btn = QPushButton("🔍 Vista Previa")
+        self.ruler_preview_btn = QPushButton("Vista previa")
         self.ruler_preview_btn.clicked.connect(self._on_ruler_preview)
         layout.addWidget(self.ruler_preview_btn)
 
-        self.ruler_start_btn = QPushButton("▶ Iniciar Secuencia de Escala")
+        self.ruler_start_btn = QPushButton("Iniciar secuencia de escala")
         self.ruler_start_btn.clicked.connect(self._on_ruler_start)
         layout.addWidget(self.ruler_start_btn)
 
-        self.ruler_stop_btn = QPushButton("⏹ Detener")
+        self.ruler_stop_btn = QPushButton("Detener")
         self.ruler_stop_btn.clicked.connect(self._on_ruler_stop)
         self.ruler_stop_btn.setVisible(False)
         layout.addWidget(self.ruler_stop_btn)

@@ -277,19 +277,19 @@ CONSOLE_LOG_COLORS = {
 
 TOOLBAR_ACTIONS_TO_REMOVE = ["Save", "Subplots", "Customize"]
 TOOLBAR_TOOLTIPS = {
-    "Home": "🏠 Vista inicial",
-    "Back": "◀ Retroceder vista",
-    "Forward": "▶ Avanzar vista",
-    "Pan": "✋ Mover/Zoom (Click: mover, Arrastrar: zoom)",
+    "Home": "Vista inicial",
+    "Back": "Retroceder vista",
+    "Forward": "Avanzar vista",
+    "Pan": "Mover/Zoom (Click: mover, Arrastrar: zoom)",
 }
 
 EMPTY_CANVAS_TEXT_NORMAL = "Cargue un patrón para comenzar"
 EMPTY_CANVAS_TEXT_GRID = "Presione \"Generar Grid\" para visualizar"
 EMPTY_CANVAS_FONT_SIZE = 14
 
-MONITOR_STATUS_CONNECTED = "✓ Monitor proyección: {}"
-MONITOR_STATUS_CONNECTED_OFF = "✓ Monitor proyección: Conectado (Apagado)"
-MONITOR_STATUS_DISCONNECTED = "⚠️ Monitor externo no detectado"
+MONITOR_STATUS_CONNECTED = "Monitor proyección: {}"
+MONITOR_STATUS_CONNECTED_OFF = "Monitor proyección: Conectado (Apagado)"
+MONITOR_STATUS_DISCONNECTED = "Monitor externo no detectado"
 
 STYLE_MONITOR_CONNECTED_DARK = "color: #00FF00;"
 STYLE_MONITOR_CONNECTED_LIGHT = "color: #008800;"
@@ -298,7 +298,7 @@ STYLE_MONITOR_CONNECTED_OFF_LIGHT = "color: #666666;"
 STYLE_MONITOR_DISCONNECTED = "color: #FF6B6B; font-weight: bold;"
 
 TOOLTIP_PROJECTOR_ENABLE = "Activar/desactivar proyección en monitor secundario"
-TOOLTIP_PROJECTOR_DISABLE = "⚠️ Conecte un monitor secundario para usar la proyección"
+TOOLTIP_PROJECTOR_DISABLE = "Conecte un monitor secundario para usar la proyección"
 
 MSG_MONITOR_DISCONNECTED_TITLE = "Monitor desconectado"
 MSG_MONITOR_DISCONNECTED_BODY = "El monitor secundario se desconectó.\n\nLa proyección se cerrará automáticamente."

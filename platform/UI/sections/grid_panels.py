@@ -25,7 +25,7 @@ class GridPanelsBuilder:
     def _build_image_coords_section(self) -> None:
         """🖼️ IMAGEN EN GRID — posición, modo de arrastre y grabación de movimientos."""
         self.image_coords_section = CollapsibleSection(
-            "📐 COORDENADAS ORIGINALES", self, expanded=True, section_id="image_coords"
+            "Coordenadas originales", self, expanded=True, section_id="image_coords"
         )
         content, layout = create_section_content()
 
@@ -41,20 +41,20 @@ class GridPanelsBuilder:
 
         # Coordenadas de las cuatro esquinas de la imagen
         create_stat_labels_batch(self, [
-            ("coord_top_left_label",     "🔺 Superior Izq: -"),
-            ("coord_top_right_label",    "🔺 Superior Der: -"),
-            ("coord_bottom_left_label",  "🔻 Inferior Izq: -"),
-            ("coord_bottom_right_label", "🔻 Inferior Der: -"),
+            ("coord_top_left_label",     "Superior Izq: -"),
+            ("coord_top_right_label",    "Superior Der: -"),
+            ("coord_bottom_left_label",  "Inferior Izq: -"),
+            ("coord_bottom_right_label", "Inferior Der: -"),
         ], layout)
 
         # Grabación de movimiento
-        self.record_button = QPushButton("⏺️ Grabar Movimiento")
+        self.record_button = QPushButton("Grabar movimiento")
         self.record_button.clicked.connect(self.toggle_recording)
         self.record_button.setObjectName("modernButton")
         self.record_button.setMinimumHeight(BUTTON_MIN_HEIGHT_LARGE)
         layout.addWidget(self.record_button)
 
-        self.play_button = QPushButton("▶️ Reproducir")
+        self.play_button = QPushButton("Reproducir")
         self.play_button.clicked.connect(self.play_movement)
         self.play_button.setEnabled(False)
         layout.addWidget(self.play_button)
@@ -69,7 +69,7 @@ class GridPanelsBuilder:
     def _build_grid_config_section(self) -> None:
         """📏 CONFIGURACIÓN GRID — dimensiones, píxeles por celda, unidad y generación."""
         self.grid_config_section = CollapsibleSection(
-            "🎛️ CONFIGURACIÓN DE GRID", self, expanded=True, section_id="grid_config"
+            "Configuración de grid", self, expanded=True, section_id="grid_config"
         )
         content, layout = create_section_content()
 
@@ -93,14 +93,14 @@ class GridPanelsBuilder:
         layout.addLayout(unit_row)
 
         # Mostrar grid de píxeles
-        self.show_pixel_grid_checkbox = QCheckBox("🔍 Mostrar Grid de Píxeles")
+        self.show_pixel_grid_checkbox = QCheckBox("Mostrar grid de píxeles")
         self.show_pixel_grid_checkbox.setChecked(self.show_pixel_grid)
         self.show_pixel_grid_checkbox.stateChanged.connect(self.toggle_pixel_grid)
         self.show_pixel_grid_checkbox.setObjectName("statLabel")
         layout.addWidget(self.show_pixel_grid_checkbox)
 
         # Generar grid
-        self.generate_grid_button = QPushButton("🎨 Generar Grid")
+        self.generate_grid_button = QPushButton("Generar grid")
         self.generate_grid_button.clicked.connect(self.generate_grid)
         self.generate_grid_button.setObjectName("modernButton")
         self.generate_grid_button.setMinimumHeight(BUTTON_MIN_HEIGHT_XLARGE)

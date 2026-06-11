@@ -102,14 +102,14 @@ class ProjectionWindow(QWidget):
         if segment_image is None:
             if self.parent_simulator:
                 self.parent_simulator.log_to_console(
-                    "❌ ERROR: segment_image es None", "ERROR"
+                    " ERROR: segment_image es None", "ERROR"
                 )
             return
 
         if self.screen_geometry is None:
             if self.parent_simulator:
                 self.parent_simulator.log_to_console(
-                    "❌ ERROR: screen_geometry es None", "ERROR"
+                    " ERROR: screen_geometry es None", "ERROR"
                 )
             return
 

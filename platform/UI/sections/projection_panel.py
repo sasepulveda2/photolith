@@ -34,7 +34,7 @@ class ProjectionPanelBuilder:
     def _build_projection_section(self) -> None:
         """🎬 CONTROL DE PROYECCIÓN — factor de downscaling y consola de secuencias."""
         self.projection_control_section = CollapsibleSection(
-            "🎬 CONTROL DE PROYECCIÓN", self, expanded=False, section_id="projection"
+            " Control de proyección", self, expanded=False, section_id="projection"
         )
         content, layout = create_section_content(spacing=SECTION_CONTENT_SPACING_WIDE)
 
@@ -48,7 +48,7 @@ class ProjectionPanelBuilder:
 
     def _build_downscale_controls(self, layout: QVBoxLayout) -> None:
         """Sub-sección del factor de reducción (downscaling) para la proyección."""
-        ds_title = QLabel("📐 Factor de Reducción (Downscaling)")
+        ds_title = QLabel(" Factor de reducción")
         ds_title.setStyleSheet(STYLE_BOLD_11PX)
         layout.addWidget(ds_title)
 
@@ -80,7 +80,7 @@ class ProjectionPanelBuilder:
 
     def _build_sequence_console(self, layout: QVBoxLayout) -> None:
         """Sub-sección de consola de secuencias: estado, progreso, controles y tiempos."""
-        seq_title = QLabel("🎮 Consola de Secuencias")
+        seq_title = QLabel(" Consola de secuencias")
         seq_title.setStyleSheet(STYLE_BOLD_11PX)
         layout.addWidget(seq_title)
 
@@ -90,7 +90,7 @@ class ProjectionPanelBuilder:
         ))
 
         # Estado y barra de progreso
-        self.sequence_status_label = create_stat_label("Estado: ⏸️ Inactivo")
+        self.sequence_status_label = create_stat_label("Estado: Inactivo")
         layout.addWidget(self.sequence_status_label)
 
         progress_row = QHBoxLayout()
@@ -106,15 +106,15 @@ class ProjectionPanelBuilder:
         # Botones de control
         btns_row = QHBoxLayout()
         self.sequence_start_button = create_modern_button(
-            "▶️ Iniciar", slot=self.start_sequence,
+            " Iniciar", slot=self.start_sequence,
             tooltip="Inicia la secuencia de proyección con los segmentos del grid",
         )
         self.sequence_pause_button = create_modern_button(
-            "⏸️ Pausar", slot=self.pause_sequence,
+            " Pausar", slot=self.pause_sequence,
         )
         self.sequence_pause_button.setEnabled(False)
         self.sequence_stop_button = create_modern_button(
-            "⏹️ Detener", slot=self.stop_sequence,
+            " Detener", slot=self.stop_sequence,
         )
         self.sequence_stop_button.setEnabled(False)
         btns_row.addWidget(self.sequence_start_button)
@@ -141,7 +141,7 @@ class ProjectionPanelBuilder:
 
         # Tiempos de exposición y movimiento
         exp_spin_row, self.exposure_time_spin = create_spin_row(
-            "⏱️ Tiempo de exposición:",
+            " Tiempo de exposición:",
             EXPOSURE_TIME_SPIN_MIN, EXPOSURE_TIME_SPIN_MAX,
             EXPOSURE_TIME_SPIN_DEFAULT, EXPOSURE_TIME_SPIN_STEP,
             EXPOSURE_TIME_SPIN_DECIMALS, " s",
@@ -150,7 +150,7 @@ class ProjectionPanelBuilder:
         layout.addLayout(exp_spin_row)
 
         mov_spin_row, self.movement_time_spin = create_spin_row(
-            "🚀 Tiempo de movimiento:",
+            " Tiempo de movimiento:",
             MOVEMENT_TIME_SPIN_MIN, MOVEMENT_TIME_SPIN_MAX,
             MOVEMENT_TIME_SPIN_DEFAULT, MOVEMENT_TIME_SPIN_STEP,
             MOVEMENT_TIME_SPIN_DECIMALS, " s",

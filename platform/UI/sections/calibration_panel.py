@@ -43,7 +43,7 @@ class CalibrationPanelBuilder:
         self._build_calib_orientation_controls(layout)
 
         update_btn = create_modern_button(
-            "🔄 Actualizar Monitor",
+            "Actualizar monitor",
             slot=self.update_calibration_monitor,
             tooltip="Actualiza la información del monitor de calibración",
         )
@@ -55,10 +55,10 @@ class CalibrationPanelBuilder:
     def _build_calib_status_labels(self, layout: QVBoxLayout) -> None:
         """Labels de estado de calibración, atenuación y efectos activos."""
         # Estado de calibración
-        layout.addWidget(create_section_title_label("📊 Estado de Calibración:"))
-        self.calib_status_label = create_info_label("❌ Sin calibración cargada", "#FF6B6B")
+        layout.addWidget(create_section_title_label("Estado de calibración:"))
+        self.calib_status_label = create_info_label("Sin calibración cargada", "#FF6B6B")
         layout.addWidget(self.calib_status_label)
-        self.calib_apply_status_label = create_info_label("⚪ Aplicación: Inactiva")
+        self.calib_apply_status_label = create_info_label("Aplicación: Inactiva")
         layout.addWidget(self.calib_apply_status_label)
 
         # Parámetros de atenuación
@@ -88,7 +88,7 @@ class CalibrationPanelBuilder:
             layout.addWidget(lbl)
 
         # Última proyección
-        layout.addWidget(create_section_title_label("🖥️ Última Proyección:"))
+        layout.addWidget(create_section_title_label("Última proyección:"))
         projection_labels = [
             ("last_projection_size_label",   "• Tamaño: -"),
             ("last_projection_values_label", "• Valores: -"),
@@ -100,7 +100,7 @@ class CalibrationPanelBuilder:
 
     def _build_calib_preview_canvas(self, layout: QVBoxLayout) -> None:
         """Canvas matplotlib de preview antes/después de calibración con slider de intensidad."""
-        layout.addWidget(create_section_title_label("🔬 Preview Calibración:"))
+        layout.addWidget(create_section_title_label("Preview calibración:"))
 
         self.calib_preview_figure = Figure(
             figsize=CALIB_PREVIEW_FIGSIZE, dpi=CALIB_PREVIEW_DPI,
@@ -149,10 +149,10 @@ class CalibrationPanelBuilder:
 
     def _build_calib_orientation_controls(self, layout: QVBoxLayout) -> None:
         """Checkboxes de orientación (flip X/Y) de la matriz de calibración."""
-        layout.addWidget(create_section_title_label("🔄 Orientación de Matriz:"))
+        layout.addWidget(create_section_title_label("Orientación de matriz:"))
 
         flip_row = QHBoxLayout()
-        self.calib_flip_x_checkbox = QCheckBox("↔️ Invertir X")
+        self.calib_flip_x_checkbox = QCheckBox("Invertir X")
         self.calib_flip_x_checkbox.setObjectName("modernCheckbox")
         self.calib_flip_x_checkbox.setToolTip(
             "Invierte la matriz de calibración horizontalmente (eje X)"
@@ -160,7 +160,7 @@ class CalibrationPanelBuilder:
         self.calib_flip_x_checkbox.setChecked(self.calibration_flip_x)
         self.calib_flip_x_checkbox.stateChanged.connect(self.toggle_calibration_flip_x)
 
-        self.calib_flip_y_checkbox = QCheckBox("↕️ Invertir Y")
+        self.calib_flip_y_checkbox = QCheckBox("Invertir Y")
         self.calib_flip_y_checkbox.setObjectName("modernCheckbox")
         self.calib_flip_y_checkbox.setToolTip(
             "Invierte la matriz de calibración verticalmente (eje Y)"

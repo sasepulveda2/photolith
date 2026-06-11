@@ -23,8 +23,8 @@ class DataPanelsBuilder:
     """Mixin: construye las secciones de datos (stats, binario, grid stats)."""
 
     def _build_stats_section(self) -> None:
-        """📊 DATA — estadísticas de la imagen cargada y del proyector activo."""
-        self.stats_section = CollapsibleSection("📊 DATA", self, expanded=True, section_id="data_stats")
+        """ DATA — estadísticas de la imagen cargada y del proyector activo."""
+        self.stats_section = CollapsibleSection("DATA", self, expanded=True, section_id="data_stats")
         content, layout = create_section_content()
 
         self.resolution_label          = QLabel("Resolución: -")
@@ -47,7 +47,7 @@ class DataPanelsBuilder:
         # Actualizar estado de calibración si ya está disponible
         if hasattr(self, "apply_attenuation_to_grid"):
             self.calibration_status_label.setText(
-                f"Calibración: {'✓ Activa' if self.apply_attenuation_to_grid else 'Inactiva'}"
+                f"Calibración: {'Activa' if self.apply_attenuation_to_grid else 'Inactiva'}"
             )
 
         for lbl in (
@@ -63,19 +63,19 @@ class DataPanelsBuilder:
         self.info_layout.addWidget(self.stats_section)
 
     def _build_binary_section(self) -> None:
-        """⚫⚪ BINARIO — modo binario estricto (0/1) e inversión de intensidad."""
-        self.binary_section = CollapsibleSection("⚫⚪ BINARIO", self, expanded=True, section_id="data_binary")
+        """ BINARIO — modo binario estricto (0/1) e inversión de intensidad."""
+        self.binary_section = CollapsibleSection(" BINARIO", self, expanded=True, section_id="data_binary")
         content, layout = create_section_content(spacing=SECTION_CONTENT_SPACING_EXTRA)
 
         # Activar modo binario
-        self.binary_mode_check = QCheckBox("Activar Modo Binario (0/1)")
+        self.binary_mode_check = QCheckBox("Activar modo binario (0/1)")
         self.binary_mode_check.setChecked(self.binary_mode_enabled)
         self.binary_mode_check.stateChanged.connect(self.toggle_binary_mode)
         self.binary_mode_check.setObjectName("statLabel")
         layout.addWidget(self.binary_mode_check)
 
         self.binary_status_label = create_stat_label(
-            f"Estado: {'✓ Activo' if self.binary_mode_enabled else '✗ Inactivo'}"
+            f"Estado: {'Activo' if self.binary_mode_enabled else 'Inactivo'}"
         )
         layout.addWidget(self.binary_status_label)
 
@@ -111,9 +111,9 @@ class DataPanelsBuilder:
         self.info_layout.addWidget(self.binary_section)
 
     def _build_grid_stats_section(self) -> None:
-        """📏 ESTADÍSTICAS GRID — info de solo lectura del grid activo (oculta por defecto)."""
+        """ ESTADÍSTICAS GRID — info de solo lectura del grid activo (oculta por defecto)."""
         self.grid_stats_section = CollapsibleSection(
-            "📊 ESTADÍSTICAS DEL GRID", self, expanded=False, section_id="grid_stats"
+            "ESTADÍSTICAS DEL GRID", self, expanded=False, section_id="grid_stats"
         )
         content, layout = create_section_content()
 

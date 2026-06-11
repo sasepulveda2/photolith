@@ -31,7 +31,7 @@ class SegmentationPanelBuilder:
     def _build_segmentation_section(self) -> None:
         """✂️ SEGMENTACIÓN — modo de corte, transformaciones geométricas y aplicación."""
         self.segmentation_section = CollapsibleSection(
-            "🔲 SEGMENTACIÓN AVANZADA", self, expanded=False, section_id="segmentation"
+            " Segmentación ", self, expanded=False, section_id="segmentation"
         )
         content, layout = create_section_content(spacing=SECTION_CONTENT_SPACING_WIDE)
 
@@ -61,7 +61,7 @@ class SegmentationPanelBuilder:
 
     def _build_segmentation_transforms(self, layout: QVBoxLayout) -> None:
         """Sub-sección de transformaciones geométricas (rotación + espejos)."""
-        transform_lbl = create_stat_label("🔄 Transformaciones:")
+        transform_lbl = create_stat_label(" Transformaciones:")
         transform_lbl.setStyleSheet(STYLE_BOLD_MARGIN_TOP)
         layout.addWidget(transform_lbl)
 
@@ -88,12 +88,12 @@ class SegmentationPanelBuilder:
         layout.addLayout(rot_col)
 
         # Espejos
-        self.mirror_horizontal_checkbox = QCheckBox("↔️ Espejo Horizontal")
+        self.mirror_horizontal_checkbox = QCheckBox(" Espejo horizontal")
         self.mirror_horizontal_checkbox.setObjectName("statLabel")
         self.mirror_horizontal_checkbox.stateChanged.connect(self.update_image_transform)
         layout.addWidget(self.mirror_horizontal_checkbox)
 
-        self.mirror_vertical_checkbox = QCheckBox("↕️ Espejo Vertical")
+        self.mirror_vertical_checkbox = QCheckBox(" Espejo vertical")
         self.mirror_vertical_checkbox.setObjectName("statLabel")
         self.mirror_vertical_checkbox.stateChanged.connect(self.update_image_transform)
         layout.addWidget(self.mirror_vertical_checkbox)
@@ -136,7 +136,7 @@ class SegmentationPanelBuilder:
         layout.addWidget(self.segment_overlap_label)
 
         # Aplicar segmentación
-        self.apply_segmentation_button = QPushButton("✂️ Aplicar Segmentación")
+        self.apply_segmentation_button = QPushButton(" Aplicar segmentación")
         self.apply_segmentation_button.setObjectName("modernButton")
         self.apply_segmentation_button.clicked.connect(self.apply_image_segmentation)
         self.apply_segmentation_button.setToolTip(

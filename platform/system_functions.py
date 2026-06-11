@@ -296,7 +296,9 @@ class LithographySimulator(
                     steps_360=settings.get("steps_360"),
                     on_steps_360_changed=guardar_steps_360
                 )
-                self.motor_central_layout.addWidget(self.motor_gui)
+                from PyQt5.QtCore import Qt
+                self.motor_gui.setMaximumWidth(900)
+                self.motor_central_layout.addWidget(self.motor_gui, alignment=Qt.AlignCenter)
                 
                 # Instanciamos el MotorPreferencesGUI en el sidebar
                 self.motor_prefs_gui = MotorPreferencesGUI(
@@ -313,7 +315,7 @@ class LithographySimulator(
             # Activar Vista Motores
             self._motors_view_active = True
             if hasattr(self, "motors_button"):
-                self.motors_button.setText("⚙️ Volver al Editor")
+                self.motors_button.setText("Volver al editor")
 
             # Desactivar otras vistas
             if getattr(self, "grid_view_active", False):
@@ -341,7 +343,7 @@ class LithographySimulator(
             # Desactivar Vista Motores
             self._motors_view_active = False
             if hasattr(self, "motors_button"):
-                self.motors_button.setText("⚙️ Motores")
+                self.motors_button.setText("Motores")
             
             # Ocultar panels de motores
             if hasattr(self, "motor_central_widget"):
@@ -442,7 +444,7 @@ class LithographySimulator(
 
         self.motors_sidebar_status.setText("Conectado (Listo)")
         self.motors_sidebar_status.setStyleSheet("color: #03DAC6; font-weight: bold;")
-        self.log_to_console(f"✅ Hardware Motor conectado en {puerto.device}", "SUCCESS")
+        self.log_to_console(f" Hardware Motor conectado en {puerto.device}", "SUCCESS")
 
     def execute_sidebar_motor_move(self, axis, direction):
         """Ejecuta un movimiento utilizando la configuración de pasos fluida."""

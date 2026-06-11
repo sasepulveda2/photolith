@@ -65,8 +65,8 @@ class MotorGUI(QWidget):
         self.setMinimumSize(500, 480)
         
         main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(25, 25, 25, 25)
-        main_layout.setSpacing(15)
+        main_layout.setContentsMargins(15, 15, 15, 15)
+        main_layout.setSpacing(10)
 
         # --- PANTALLA PRINCIPAL (ODÓMETRO) ---
         self.screen_frame = QFrame()
@@ -113,7 +113,7 @@ class MotorGUI(QWidget):
         self.axis_sel = QComboBox()
         self.axis_sel.addItems(["X", "Y", "Z", "E"])
         self.axis_sel.currentTextChanged.connect(self.actualizar_pantalla)
-        self.axis_sel.setMinimumHeight(45)
+        self.axis_sel.setMinimumHeight(35)
 
         multi_label = QLabel("CANTIDAD A MOVER")
         multi_label.setObjectName("controlLabel")
@@ -124,12 +124,12 @@ class MotorGUI(QWidget):
         self.multi_sel.setRange(0.001, 10000)
         self.multi_sel.setValue(1.0)
         self.multi_sel.setDecimals(3)
-        self.multi_sel.setMinimumHeight(45)
+        self.multi_sel.setMinimumHeight(35)
         self.multi_sel.valueChanged.connect(self.update_unit_display)
         
         self.unit_sel = QComboBox()
         self.unit_sel.addItems(["Steps", "mm", "Grados"])
-        self.unit_sel.setMinimumHeight(45)
+        self.unit_sel.setMinimumHeight(35)
         self.unit_sel.currentTextChanged.connect(self.update_unit_display)
         
         multi_layout.addWidget(self.multi_sel, stretch=2)
@@ -148,12 +148,12 @@ class MotorGUI(QWidget):
         
         self.btn_left = QPushButton("⯇   IZQUIERDA (-)")
         self.btn_left.setObjectName("btnMove")
-        self.btn_left.setMinimumHeight(70)
+        self.btn_left.setMinimumHeight(45)
         self.btn_left.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         
         self.btn_right = QPushButton("DERECHA (+)   ⯈")
         self.btn_right.setObjectName("btnMove")
-        self.btn_right.setMinimumHeight(70)
+        self.btn_right.setMinimumHeight(45)
         self.btn_right.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
         self.btn_left.clicked.connect(lambda: self.ejecutar_movimiento(-1))
@@ -169,13 +169,13 @@ class MotorGUI(QWidget):
 
         self.btn_360_left = QPushButton("⯇  360° (IZQ)")
         self.btn_360_left.setObjectName("btnMove360")
-        self.btn_360_left.setMinimumHeight(50)
+        self.btn_360_left.setMinimumHeight(35)
         self.btn_360_left.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.btn_360_left.clicked.connect(lambda: self.ejecutar_giro_completo(-1))
 
         self.btn_360_right = QPushButton("360° (DER)  ⯈")
         self.btn_360_right.setObjectName("btnMove360")
-        self.btn_360_right.setMinimumHeight(50)
+        self.btn_360_right.setMinimumHeight(35)
         self.btn_360_right.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.btn_360_right.clicked.connect(lambda: self.ejecutar_giro_completo(1))
 
@@ -189,17 +189,17 @@ class MotorGUI(QWidget):
         
         self.btn_zero = QPushButton("⌖ Set Zero")
         self.btn_zero.setObjectName("btnUtil")
-        self.btn_zero.setMinimumHeight(45)
+        self.btn_zero.setMinimumHeight(35)
         self.btn_zero.clicked.connect(self.set_zero)
         
         self.btn_home = QPushButton("🏠 Origen")
         self.btn_home.setObjectName("btnUtilHome")
-        self.btn_home.setMinimumHeight(45)
+        self.btn_home.setMinimumHeight(35)
         self.btn_home.clicked.connect(self.volver_al_origen)
 
         self.btn_reconnect = QPushButton("🔌 Reconectar")
         self.btn_reconnect.setObjectName("btnUtil")
-        self.btn_reconnect.setMinimumHeight(45)
+        self.btn_reconnect.setMinimumHeight(35)
         self.btn_reconnect.clicked.connect(self.reconectar)
 
         util_layout.addWidget(self.btn_reconnect)
@@ -235,9 +235,9 @@ class MotorGUI(QWidget):
             QLabel#odoLabel {
                 color: #03DAC6;
                 font-family: "Consolas", "Courier New", monospace;
-                font-size: 32px;
+                font-size: 24px;
                 font-weight: bold;
-                line-height: 1.5;
+                line-height: 1.2;
             }
             
             QLabel#statusLabel {
@@ -432,8 +432,10 @@ class MotorGUI(QWidget):
         elif unidad == "Grados":
             steps_totales = int(valor / (360.0 / steps_per_rev)) * direccion
 
+        feedrate = self.feedrates.get(eje, 5000)
+
         try:
-            self.ctrl.step_move(eje, steps_totales, 1)
+            self.ctrl.step_move(eje, steps_totales, 1, feedrate=feedrate)
             self.status_label.setText(f"🟢 Movimiento Exitoso: {steps_totales} steps")
             self.status_label.setStyleSheet("color: #03DAC6;")
         except Exception:
@@ -451,9 +453,10 @@ class MotorGUI(QWidget):
     def ejecutar_giro_completo(self, direccion):
         eje = self.axis_sel.currentText()
         steps_totales = self.steps_360[eje] * direccion
+        feedrate = self.feedrates.get(eje, 5000)
 
         try:
-            self.ctrl.step_move(eje, steps_totales, 1)
+            self.ctrl.step_move(eje, steps_totales, 1, feedrate=feedrate)
             self.status_label.setText(f"🟢 Giro Completo Exitoso en {eje}")
             self.status_label.setStyleSheet("color: #03DAC6;")
         except Exception:

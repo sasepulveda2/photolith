@@ -1,3 +1,4 @@
+
 """
 Mixin: Herramienta de calibración de patrón (tamaño y exposición).
 Integra la calibración directamente en la vista principal usando la barra lateral de Pattern Calib.
@@ -608,12 +609,10 @@ class SpatialCalibrationMixin:
 
         self._exp_step_ms = int(step_time_s * 1000)
         
-        self._exp_current_stripe = 0
+        self._exp_current_stripe = -1 if base_time_s > 0 else 0
         self._exp_matrix = self._draw_current_stripe()
 
-        matrix_to_send = self._exp_matrix.copy()
-        if getattr(self, "invert_projection", False):
-            matrix_to_send = 255 - matrix_to_send
+        matrix_to_send = self._prepare_exp_matrix_to_send(self._exp_matrix)
             
         proj.update_segment(matrix_to_send)
         
@@ -644,6 +643,31 @@ class SpatialCalibrationMixin:
         start_interval_ms = int(base_time_s * 1000) if base_time_s > 0 else self._exp_step_ms
         self._exp_timer.start(start_interval_ms)
 
+    def _prepare_exp_matrix_to_send(self, exp_matrix):
+        matrix_to_send = exp_matrix.copy()
+        if getattr(self, "pattern", None) is not None:
+            pattern_img = self._apply_effects_to_segment(self.pattern)
+            import cv2
+            import numpy as np
+            
+            # Ensure pattern_img matches matrix_to_send in size
+            h, w = matrix_to_send.shape[:2]
+            ph, pw = pattern_img.shape[:2]
+            if (ph, pw) != (h, w):
+                pattern_img = cv2.resize(pattern_img, (w, h), interpolation=cv2.INTER_NEAREST)
+                
+            # Ensure pattern_img is uint8 [0, 255]
+            if pattern_img.dtype in (np.float32, np.float64):
+                pattern_img = (pattern_img * 255.0 if pattern_img.max() <= 1.0 else pattern_img).astype(np.uint8)
+            else:
+                pattern_img = pattern_img.astype(np.uint8)
+                
+            matrix_to_send = cv2.bitwise_and(pattern_img, matrix_to_send)
+        else:
+            if getattr(self, "invert_projection", False):
+                matrix_to_send = 255 - matrix_to_send
+        return matrix_to_send
+
     def _update_exp_time_ui(self):
         """actualiza la etiqueta de tiempo transcurrido en tiempo real."""
         if hasattr(self, "lbl_exp_time"):
@@ -668,6 +692,12 @@ class SpatialCalibrationMixin:
         cx, cy = w // 2, h // 2
         
         matrix = np.zeros((h, w), dtype=np.uint8)
+        
+        if self._exp_current_stripe == -1:
+            matrix[:, :] = 255
+            if getattr(self, "_exp_invert_colors", False):
+                matrix = 255 - matrix
+            return matrix
         
         is_decrement = "Decremento" in self._exp_mode
         
@@ -773,11 +803,12 @@ class SpatialCalibrationMixin:
                     self.canvas.draw_idle()
             return
 
+        if self._exp_timer.interval() != self._exp_step_ms:
+            self._exp_timer.setInterval(self._exp_step_ms)
+
         self._exp_matrix = self._draw_current_stripe()
 
-        matrix_to_send = self._exp_matrix.copy()
-        if getattr(self, "invert_projection", False):
-            matrix_to_send = 255 - matrix_to_send
+        matrix_to_send = self._prepare_exp_matrix_to_send(self._exp_matrix)
             
         self.projection_window.update_segment(matrix_to_send)
         

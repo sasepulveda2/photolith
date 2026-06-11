@@ -63,7 +63,7 @@ class CrealityController:
             self.close()
             raise RuntimeError("Se perdió la conexión con el controlador") from exc
 
-    def step_move(self, axis, steps, multiplier=1):
+    def step_move(self, axis, steps, multiplier=1, feedrate=150):
         """Envía el comando de movimiento y actualiza la odometría."""
         if not self.ser:
             raise RuntimeError("Puerto serial no disponible")
@@ -84,10 +84,10 @@ class CrealityController:
         degrees = total_steps * 1.8
 
         # Comando G-Code dirigido al motor físico mapeado
-        self._write(f"G1 {physical_motor.upper()}{physical_distance:.4f} F150\n")
+        self._write(f"G1 {physical_motor.upper()}{physical_distance:.4f} F{feedrate}\n")
 
         print(
-            f"Lógico: {axis} ➔ Físico: {physical_motor} | Steps: {total_steps} | Dist: {distance:.4f}mm | Deg: {degrees}° | Multi: x{multiplier}",
+            f"Lógico: {axis} ➔ Físico: {physical_motor} | Steps: {total_steps} | Dist: {distance:.4f}mm | Deg: {degrees}° | Multi: x{multiplier} | F{feedrate}",
             end="\r",
         )
         

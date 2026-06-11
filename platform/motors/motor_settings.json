@@ -7,16 +7,16 @@
   },
   "baud": 250000,
   "positions": {
-    "X": 1,
+    "X": -15999,
     "Y": -24398,
     "Z": -26465,
     "E": 0
   },
   "last_movement": {
-    "axis": "Z",
-    "delta_steps": 640,
-    "multiplier": 640,
-    "position_after": -26465
+    "axis": "X",
+    "delta_steps": -6400,
+    "multiplier": 1,
+    "position_after": -15999
   },
   "mapping": {
     "X": {

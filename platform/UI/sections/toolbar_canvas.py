@@ -31,29 +31,29 @@ class ToolbarCanvasBuilder:
         layout = QHBoxLayout()
 
         # ── Botones de acción principal ───────────────────────────────────────
-        self.load_button = QPushButton("📂 Cargar patrón")
+        self.load_button = QPushButton(" Cargar patrón")
         self.load_button.clicked.connect(self.load_pattern)
 
-        self.toggle_view_button = QPushButton("📏 Vista Grid")
+        self.toggle_view_button = QPushButton(" Vista Grid")
         self.toggle_view_button.clicked.connect(self.toggle_grid_view)
 
         self.calibration_button = QPushButton(" Calibración Óptica")
         self.calibration_button.clicked.connect(self.toggle_calibration_view)
 
-        self.pattern_calib_button = QPushButton("📏 Calibración de Patrón")
+        self.pattern_calib_button = QPushButton(" Calibración de Patrón")
         self.pattern_calib_button.clicked.connect(self.toggle_pattern_calibration_view)
         self.pattern_calib_button.setToolTip("Pestaña para calibración de tamaño espacial y exposición")
 
         self.preferences_button = QPushButton(" Preferencias")
         self.preferences_button.clicked.connect(self.show_preferences_menu)
 
-        self.motors_button = QPushButton("⚙️ Motores")
+        self.motors_button = QPushButton(" Motores")
         self.motors_button.clicked.connect(self.toggle_motors_view)
 
-        self.projector_button = QPushButton("🎬 Proyectar")
+        self.projector_button = QPushButton(" Proyectar")
         self.projector_button.clicked.connect(self.toggle_projector)
 
-        self.ruler_scale_button = QPushButton("📏 Regla de Escala")
+        self.ruler_scale_button = QPushButton(" Regla de Escala")
         self.ruler_scale_button.clicked.connect(self.toggle_ruler_scale_view)
         self.ruler_scale_button.setToolTip(
             "Genera y proyecta líneas de escala calibradas con desplazamiento motorizado"
@@ -70,7 +70,7 @@ class ToolbarCanvasBuilder:
         self.sigma_slider.setVisible(False)
 
         # ── Brillo de proyección — oculto hasta que el proyector está activo ─
-        self.brightness_label = QLabel(f"Brillo Proyección: {self.brightness}%")
+        self.brightness_label = QLabel(f"Brillo proyección: {self.brightness}%")
         self.brightness_slider = QSlider(Qt.Horizontal)
         self.brightness_slider.setMinimum(BRIGHTNESS_SLIDER_MIN)
         self.brightness_slider.setMaximum(BRIGHTNESS_SLIDER_MAX)
@@ -80,7 +80,7 @@ class ToolbarCanvasBuilder:
         self.brightness_label.setVisible(False)
 
         # ── Guardar imagen ────────────────────────────────────────────────────
-        self.save_button = QPushButton("💾 Guardar imagen")
+        self.save_button = QPushButton(" Guardar imagen")
         self.save_button.clicked.connect(self.save_image)
 
         self.format_combo = QComboBox()

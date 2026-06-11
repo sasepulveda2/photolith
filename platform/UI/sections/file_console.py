@@ -20,8 +20,8 @@ class FileConsolePanelBuilder:
     """Mixin: construye el árbol de archivos y la consola del sistema."""
 
     def _build_file_tree(self) -> None:
-        """📁 ARCHIVOS — árbol de navegación de archivos del proyecto."""
-        self.files_section = CollapsibleSection("📁 ARCHIVOS", self, expanded=True, section_id="files")
+        """ ARCHIVOS — árbol de navegación de archivos del proyecto."""
+        self.files_section = CollapsibleSection("Archivos", self, expanded=True, section_id="files")
         
         container = QWidget()
         layout = QVBoxLayout(container)
@@ -44,7 +44,7 @@ class FileConsolePanelBuilder:
         self.info_layout.addWidget(self.files_section, stretch=1)
 
     def _build_console_section(self) -> QWidget:
-        """📋 Consola del Sistema — log de mensajes en el pie de la ventana."""
+        """ Consola del Sistema — log de mensajes en el pie de la ventana."""
         class ConsoleWidget(QWidget):
             def __init__(self, parent=None):
                 super().__init__(parent)
@@ -60,7 +60,7 @@ class FileConsolePanelBuilder:
         console_layout = QVBoxLayout(console_widget)
         console_layout.setContentsMargins(*CONSOLE_CONTENT_MARGINS)
 
-        title = QLabel("📋 Consola del Sistema")
+        title = QLabel("Consola del sistema")
         title.setStyleSheet("font-weight: bold; color: #A6E3A1; margin-bottom: 5px;")
         console_layout.addWidget(title)
 
@@ -89,7 +89,7 @@ class FileConsolePanelBuilder:
             # Fallback connection if method not added yet
             self.console_input.returnPressed.connect(lambda: self.log_to_console("Ejecución de comandos en preparación...", "WARNING"))
 
-        clear_btn = QPushButton("🗑️ Limpiar Consola")
+        clear_btn = QPushButton("Limpiar consola")
         clear_btn.clicked.connect(self.clear_console)
 
         # Input and clear button in a horizontal layout
