@@ -585,3 +585,17 @@ QScrollBar::sub-page:horizontal {
 *:focus { border-color: transparent; outline: none; }
 QScrollArea, QScrollArea > QWidget > QWidget, QSplitter { border: none; outline: none; }
 QPushButton::indicator, QPushButton::menu-indicator { width: 0px; height: 0px; border: none; background: transparent; image: none; }
+
+/* ── Splitter Handle ────────────────────────────────────────── */
+QSplitter::handle {
+    background-color: #3B4252;
+    height: 6px;
+    margin: 2px 0px;
+    border-radius: 3px;
+}
+QSplitter::handle:hover {
+    background-color: #A0A0A0;
+}
+QSplitter::handle:!enabled {
+    background-color: transparent;
+}

@@ -50,28 +50,6 @@ class CalibrationUIMixin:
             self.calibration_tabs = QTabWidget()
             self.calibration_tabs.setObjectName("calibrationTabs")
 
-            self.calibration_tabs.setStyleSheet(
-                """
-                QTabWidget::pane {
-                    background-color: #1E1E1E;
-                    border: none;
-                }
-                QTabWidget > QWidget {
-                    background-color: #1E1E1E;
-                }
-            """
-                if self.dark_mode
-                else """
-                QTabWidget::pane {
-                    background-color: #FFFFFF;
-                    border: none;
-                }
-                QTabWidget > QWidget {
-                    background-color: #FFFFFF;
-                }
-            """
-            )
-
             # ════════════════════════════════════════════════════════════
             # PESTAÑA Fuente de Imagen
             # ════════════════════════════════════════════════════════════
@@ -100,7 +78,7 @@ class CalibrationUIMixin:
             # Título de la sección
             source_title = QLabel(" Selección de Fuente de Imagen")
             source_title.setStyleSheet(
-                "font-size: 14px; font-weight: bold; margin-bottom: 10px; color: #A0A0A0;"
+                "font-size: 14px; font-weight: bold; margin-bottom: 10px; "
             )
             source_layout.addWidget(source_title)
 
@@ -108,7 +86,7 @@ class CalibrationUIMixin:
                 "Seleccione la fuente de imagen para realizar la calibración:"
             )
             source_desc.setWordWrap(True)
-            source_desc.setStyleSheet("color: #B0B0B0;")
+            source_desc.setStyleSheet("")
             source_layout.addWidget(source_desc)
 
             source_layout.addSpacing(10)
@@ -126,7 +104,7 @@ class CalibrationUIMixin:
                 "     Captura imágenes en tiempo real desde la cámara conectada"
             )
             camera_info.setStyleSheet(
-                "font-size: 11px; color: #888888; margin-left: 20px;"
+                "font-size: 11px; margin-left: 20px;"
             )
             camera_info.setWordWrap(True)
             source_layout.addWidget(camera_info)
@@ -135,10 +113,10 @@ class CalibrationUIMixin:
             camera_selector_layout = QHBoxLayout()
             camera_selector_layout.setContentsMargins(40, 5, 0, 5)
             camera_label = QLabel("Cámara:")
-            camera_label.setStyleSheet("color: #B0B0B0;")
+            camera_label.setStyleSheet("")
             self.camera_combo = QComboBox()
             self.refresh_cameras_button = QPushButton("Actualizar")
-            self.refresh_cameras_button.setMaximumWidth(40)
+            self.refresh_cameras_button.setMinimumWidth(80)
             self.refresh_cameras_button.clicked.connect(self.refresh_available_cameras)
             camera_selector_layout.addWidget(camera_label)
             camera_selector_layout.addWidget(self.camera_combo, stretch=1)
@@ -166,7 +144,7 @@ class CalibrationUIMixin:
                     "     Cámara industrial con controles avanzados de exposición y ganancia"
                 )
                 basler_info.setStyleSheet(
-                    "font-size: 11px; color: #888888; margin-left: 20px;"
+                    "font-size: 11px; margin-left: 20px;"
                 )
                 basler_info.setWordWrap(True)
                 source_layout.addWidget(basler_info)
@@ -302,7 +280,7 @@ class CalibrationUIMixin:
                     "Cámara Basler no disponible (pypylon no instalado)"
                 )
                 basler_unavailable.setStyleSheet(
-                    "font-size: 11px; color: #666666; font-style: italic;"
+                    "font-size: 11px; font-style: italic;"
                 )
                 source_layout.addWidget(basler_unavailable)
                 source_layout.addSpacing(10)
@@ -315,7 +293,7 @@ class CalibrationUIMixin:
 
             image_info = QLabel("     Carga una imagen preexistente desde el disco")
             image_info.setStyleSheet(
-                "font-size: 11px; color: #888888; margin-left: 20px;"
+                "font-size: 11px; margin-left: 20px;"
             )
             image_info.setWordWrap(True)
             source_layout.addWidget(image_info)
@@ -332,7 +310,7 @@ class CalibrationUIMixin:
             # Label para mostrar imagen cargada
             self.calib_image_status = QLabel("   Sin imagen cargada")
             self.calib_image_status.setStyleSheet(
-                "font-size: 11px; color: #666666; margin-left: 40px;"
+                "font-size: 11px; margin-left: 40px;"
             )
             source_layout.addWidget(self.calib_image_status)
 
@@ -341,7 +319,7 @@ class CalibrationUIMixin:
             # Vista previa
             preview_label = QLabel("Vista previa:")
             preview_label.setStyleSheet(
-                "font-size: 13px; font-weight: bold; color: #E0E0E0;"
+                "font-size: 13px; font-weight: bold; "
             )
             source_layout.addWidget(preview_label)
 
@@ -396,7 +374,7 @@ class CalibrationUIMixin:
             # Título de la sección
             analysis_title = QLabel("Análisis y visualización del brillo")
             analysis_title.setStyleSheet(
-                "font-size: 14px; font-weight: bold; margin-bottom: 10px; color: #A0A0A0;"
+                "font-size: 14px; font-weight: bold; margin-bottom: 10px; "
             )
             analysis_layout.addWidget(analysis_title)
 
@@ -404,7 +382,7 @@ class CalibrationUIMixin:
                 "Análisis de intensidad y uniformidad de la imagen capturada:"
             )
             analysis_desc.setWordWrap(True)
-            analysis_desc.setStyleSheet("color: #B0B0B0;")
+            analysis_desc.setStyleSheet("")
             analysis_layout.addWidget(analysis_desc)
 
             analysis_layout.addSpacing(10)
@@ -419,7 +397,7 @@ class CalibrationUIMixin:
 
             gray_title = QLabel("Visualización en escala de grises")
             gray_title.setStyleSheet(
-                "font-size: 13px; font-weight: bold; color: #E0E0E0;"
+                "font-size: 13px; font-weight: bold; "
             )
             grayscale_layout.addWidget(gray_title)
 
@@ -427,7 +405,7 @@ class CalibrationUIMixin:
                 "Vista de la imagen en escala de grises para análisis de intensidad:"
             )
             gray_desc.setWordWrap(True)
-            gray_desc.setStyleSheet("font-size: 11px; color: #888888;")
+            gray_desc.setStyleSheet("font-size: 11px; ")
             grayscale_layout.addWidget(gray_desc)
 
             # Botones de control
@@ -486,7 +464,7 @@ class CalibrationUIMixin:
 
             intensity_title = QLabel("Análisis de intensidad")
             intensity_title.setStyleSheet(
-                "font-size: 13px; font-weight: bold; color: #E0E0E0;"
+                "font-size: 13px; font-weight: bold; "
             )
             intensity_layout.addWidget(intensity_title)
 
@@ -494,14 +472,14 @@ class CalibrationUIMixin:
                 "Análisis zonal de brillo/atenuación con mapa de calor:"
             )
             intensity_desc.setWordWrap(True)
-            intensity_desc.setStyleSheet("font-size: 11px; color: #888888;")
+            intensity_desc.setStyleSheet("font-size: 11px; ")
             intensity_layout.addWidget(intensity_desc)
 
             # Controles de análisis zonal
             zone_controls_layout = QHBoxLayout()
 
             zone_label = QLabel("División de Zonas:")
-            zone_label.setStyleSheet("color: #B0B0B0;")
+            zone_label.setStyleSheet("")
             zone_controls_layout.addWidget(zone_label)
 
             self.zone_grid_combo = QComboBox()
@@ -601,12 +579,12 @@ class CalibrationUIMixin:
 
             self.uniformity_indicator = QLabel("--- %")
             self.uniformity_indicator.setStyleSheet(
-                "font-size: 16px; font-weight: bold; color: #888888;"
+                "font-size: 16px; font-weight: bold; "
             )
             uniformity_layout.addWidget(self.uniformity_indicator)
 
             self.uniformity_status = QLabel("Sin datos")
-            self.uniformity_status.setStyleSheet("font-size: 11px; color: #888888;")
+            self.uniformity_status.setStyleSheet("font-size: 11px; ")
             uniformity_layout.addWidget(self.uniformity_status)
 
             uniformity_layout.addStretch()
@@ -627,7 +605,7 @@ class CalibrationUIMixin:
 
             adjustment_title = QLabel("Herramientas de Ajuste de Calibración")
             adjustment_title.setStyleSheet(
-                "font-size: 14px; font-weight: bold; margin-bottom: 10px; color: #A0A0A0;"
+                "font-size: 14px; font-weight: bold; margin-bottom: 10px; "
             )
             adjustment_layout.addWidget(adjustment_title)
 
@@ -635,7 +613,7 @@ class CalibrationUIMixin:
                 "Ajuste del umbral y generación de matriz de atenuación:"
             )
             adjustment_desc.setWordWrap(True)
-            adjustment_desc.setStyleSheet("color: #B0B0B0;")
+            adjustment_desc.setStyleSheet("")
             adjustment_layout.addWidget(adjustment_desc)
 
             adjustment_layout.addSpacing(10)
@@ -650,7 +628,7 @@ class CalibrationUIMixin:
 
             threshold_title = QLabel("Control de umbral binario")
             threshold_title.setStyleSheet(
-                "font-size: 13px; font-weight: bold; color: #E0E0E0;"
+                "font-size: 13px; font-weight: bold; "
             )
             threshold_layout.addWidget(threshold_title)
 
@@ -658,14 +636,14 @@ class CalibrationUIMixin:
                 "Ajuste del punto de corte para conversión binaria de la imagen:"
             )
             threshold_desc.setWordWrap(True)
-            threshold_desc.setStyleSheet("font-size: 11px; color: #888888;")
+            threshold_desc.setStyleSheet("font-size: 11px; ")
             threshold_layout.addWidget(threshold_desc)
 
             # Control de umbral con slider e input
             threshold_controls = QHBoxLayout()
 
             threshold_label = QLabel("Umbral de Intensidad:")
-            threshold_label.setStyleSheet("color: #B0B0B0;")
+            threshold_label.setStyleSheet("")
             threshold_controls.addWidget(threshold_label)
 
             self.calib_threshold_slider = QSlider(Qt.Horizontal)
@@ -694,7 +672,7 @@ class CalibrationUIMixin:
             threshold_controls.addWidget(self.calib_threshold_input)
 
             threshold_unit_label = QLabel("%")
-            threshold_unit_label.setStyleSheet("color: #B0B0B0;")
+            threshold_unit_label.setStyleSheet("")
             threshold_controls.addWidget(threshold_unit_label)
 
             threshold_controls.addStretch()
@@ -707,7 +685,7 @@ class CalibrationUIMixin:
             )
             threshold_info.setWordWrap(True)
             threshold_info.setStyleSheet(
-                "font-size: 10px; color: #888888; margin-left: 10px;"
+                "font-size: 10px; margin-left: 10px;"
             )
             threshold_layout.addWidget(threshold_info)
 
@@ -769,7 +747,7 @@ class CalibrationUIMixin:
 
             atten_title = QLabel("Matriz de compensación de uniformidad")
             atten_title.setStyleSheet(
-                "font-size: 13px; font-weight: bold; color: #E0E0E0;"
+                "font-size: 13px; font-weight: bold; "
             )
             attenuation_layout.addWidget(atten_title)
 
@@ -777,7 +755,7 @@ class CalibrationUIMixin:
                 "Corrección automática de variaciones de brillo en la proyección:"
             )
             atten_desc.setWordWrap(True)
-            atten_desc.setStyleSheet("font-size: 11px; color: #888888;")
+            atten_desc.setStyleSheet("font-size: 11px; ")
             attenuation_layout.addWidget(atten_desc)
 
             # Controles de generación de matriz
@@ -807,7 +785,7 @@ class CalibrationUIMixin:
             # Método de compensación
             method_layout = QHBoxLayout()
             method_label = QLabel("Método de Compensación:")
-            method_label.setStyleSheet("color: #B0B0B0;")
+            method_label.setStyleSheet("")
             method_layout.addWidget(method_label)
 
             self.attenuation_method_combo = QComboBox()
@@ -833,7 +811,7 @@ class CalibrationUIMixin:
             # Intensidad de corrección
             intensity_layout = QHBoxLayout()
             intensity_label = QLabel("Intensidad de Corrección:")
-            intensity_label.setStyleSheet("color: #B0B0B0;")
+            intensity_label.setStyleSheet("")
             intensity_layout.addWidget(intensity_label)
 
             self.attenuation_strength_slider = QSlider(Qt.Horizontal)
@@ -850,7 +828,7 @@ class CalibrationUIMixin:
             intensity_layout.addWidget(self.attenuation_strength_slider)
 
             self.attenuation_strength_label = QLabel(f"{self.attenuation_strength}%")
-            self.attenuation_strength_label.setStyleSheet("color: #B0B0B0;")
+            self.attenuation_strength_label.setStyleSheet("")
             intensity_layout.addWidget(self.attenuation_strength_label)
 
             intensity_layout.addStretch()
@@ -1007,4 +985,28 @@ class CalibrationUIMixin:
                 self.start_basler_button.setEnabled(False)
             self.load_calib_image_button.setEnabled(True)
 
+    def _update_calibration_theme(self):
+        """Actualiza los colores de las figuras de matplotlib en calibración al cambiar de tema."""
+        if not hasattr(self, "calibration_widget"):
+            return
+            
+        bg_color = "#121212" if self.dark_mode else "#FFFFFF"
+        ax_bg = "#1E1E1E" if self.dark_mode else "#F5F5F5"
+        text_color = "#E0E0E0" if self.dark_mode else "#000000"
+        
+        figures = [
+            (getattr(self, "calib_preview_figure", None), getattr(self, "calib_preview_ax", None), getattr(self, "calib_preview_canvas", None)),
+            (getattr(self, "gray_preview_figure", None), getattr(self, "gray_preview_ax", None), getattr(self, "gray_preview_canvas", None)),
+            (getattr(self, "intensity_map_figure", None), getattr(self, "intensity_map_ax", None), getattr(self, "intensity_map_canvas", None)),
+            (getattr(self, "threshold_preview_figure", None), getattr(self, "threshold_preview_ax", None), getattr(self, "threshold_preview_canvas", None)),
+            (getattr(self, "attenuation_preview_figure", None), getattr(self, "attenuation_preview_ax", None), getattr(self, "attenuation_preview_canvas", None))
+        ]
+        
+        for fig, ax, canvas in figures:
+            if fig and ax and canvas:
+                fig.set_facecolor(bg_color)
+                ax.set_facecolor(ax_bg)
+                for txt in ax.texts:
+                    txt.set_color(text_color)
+                canvas.draw()
  

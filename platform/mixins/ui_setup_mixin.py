@@ -133,13 +133,33 @@ class UISetupMixin(
         v_splitter.addWidget(canvas_widget)
         v_splitter.addWidget(console_section)
         
+        v_splitter._saved_sizes = [1000, 150] # Tamaños por defecto para restaurar
+        
+        # Deshabilitar el handle del splitter si la consola está cerrada
+        def _update_splitter_handle(expanded):
+            handle = v_splitter.handle(1)
+            if handle:
+                handle.setEnabled(expanded)
+            
+            if expanded:
+                # Restaurar el tamaño guardado de la consola
+                v_splitter.setSizes(v_splitter._saved_sizes)
+            else:
+                # Guardar el tamaño actual antes de colapsar (si es visible)
+                current_sizes = v_splitter.sizes()
+                if current_sizes[1] > 30:
+                    v_splitter._saved_sizes = current_sizes
+                # Forzar el colapso al fondo empujando todo el espacio al canvas
+                v_splitter.setSizes([100000, 0])
+                
+        console_section.toggle_button.toggled.connect(_update_splitter_handle)
+        
+        # Estado inicial
+        _update_splitter_handle(console_section.toggle_button.isChecked())
+        
         # Mejoras de fluidez y visuales
         v_splitter.setOpaqueResize(True)
         v_splitter.setCollapsible(1, False) # Impide que la consola colapse por completo
-        v_splitter.setStyleSheet(
-            "QSplitter::handle { background: #3B4252; height: 6px; margin: 2px 0px; border-radius: 3px; }"
-            "QSplitter::handle:hover { background: #A6E3A1; }"
-        )
         
         # Asignar prioridad de expansión al canvas (índice 0)
         v_splitter.setStretchFactor(0, 1)

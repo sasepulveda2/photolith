@@ -156,6 +156,10 @@ class ThemeMixin:
         qss = load_theme("dark")
         qss = self._apply_appearance_preferences(qss)
         self.setStyleSheet(qss)
+        app.setStyleSheet(qss)
+        
+        if hasattr(self, "_update_calibration_theme"):
+            self._update_calibration_theme()
 
     def apply_light_theme(self) -> None:
         """Aplica la paleta y hoja de estilos del tema claro con personalización."""
@@ -172,6 +176,10 @@ class ThemeMixin:
         qss = load_theme("light")
         qss = self._apply_appearance_preferences(qss)
         self.setStyleSheet(qss)
+        app.setStyleSheet(qss)
+        
+        if hasattr(self, "_update_calibration_theme"):
+            self._update_calibration_theme()
 
     def _apply_appearance_preferences(self, qss: str) -> str:
         """Aplica la fuente seleccionada y el gradiente de acento al QSS cargado."""

@@ -231,14 +231,14 @@ QLabel#statLabel {
 }
 
 QWidget#statsContainer {
-    background-color: #E8E8E8;
-    border: none;
+    background-color: #EFEFEF;
+    border: 1px solid #E0E0E0;
     border-radius: 8px;
 }
 
 /* ── Sliders ────────────────────────────────────────────────── */
 QSlider::groove:horizontal {
-    background: #CCCCCC;
+    background: #E0E0E0;
     height: 6px;
     border-radius: 3px;
 }
@@ -251,7 +251,12 @@ QSlider::handle:horizontal {
 }
 
 QSlider::handle:horizontal:hover {
-    background: #A0A0A0;
+    background: #808080;
+}
+
+QSlider::sub-page:horizontal {
+    background: #C0C0C0;
+    border-radius: 3px;
 }
 
 /* ── File Tree ──────────────────────────────────────────────── */
@@ -585,3 +590,17 @@ QScrollBar::sub-page:horizontal {
 *:focus { border-color: transparent; outline: none; }
 QScrollArea, QScrollArea > QWidget > QWidget, QSplitter { border: none; outline: none; }
 QPushButton::indicator, QPushButton::menu-indicator { width: 0px; height: 0px; border: none; background: transparent; image: none; }
+
+/* ── Splitter Handle ────────────────────────────────────────── */
+QSplitter::handle {
+    background-color: #D0D0D0;
+    height: 6px;
+    margin: 2px 0px;
+    border-radius: 3px;
+}
+QSplitter::handle:hover {
+    background-color: #A0A0A0;
+}
+QSplitter::handle:!enabled {
+    background-color: transparent;
+}
