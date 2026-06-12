@@ -65,7 +65,7 @@ class RulerScaleMixin:
             self._show_warning(
                 "Sin Calibración Espacial",
                 "Debe calibrar primero el tamaño de los píxeles\n"
-                "(botón 'Calibrar Tamaño') antes de usar la Regla de Escala.",
+                "(botón 'Calibrar Tamaño') antes de usar la Regla de escala.",
             )
             return
 
@@ -121,7 +121,7 @@ class RulerScaleMixin:
             self._ruler_prev_proj_visible = self.projector_button.isVisible()
             self.projector_button.setVisible(True)
 
-        self.log_to_console("Modo Regla de Escala activado.", "INFO")
+        self.log_to_console("Modo Regla de escala activado.", "INFO")
 
     def _deactivate_ruler_view(self):
         """Desactiva la vista de Regla de Escala: muestra sidebar normal."""
@@ -133,7 +133,7 @@ class RulerScaleMixin:
 
         # Restaurar botón de la toolbar
         if hasattr(self, "ruler_scale_button"):
-            self.ruler_scale_button.setText("Regla de Escala")
+            self.ruler_scale_button.setText("Regla de escala")
         if hasattr(self, "projector_button"):
             self.projector_button.setVisible(getattr(self, "_ruler_prev_proj_visible", False))
 

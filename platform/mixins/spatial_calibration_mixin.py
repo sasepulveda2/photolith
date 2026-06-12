@@ -161,7 +161,7 @@ class SpatialCalibrationMixin:
             self._main_sidebar.setVisible(True)
 
         if hasattr(self, "pattern_calib_button"):
-            self.pattern_calib_button.setText("Calibración de Patrón")
+            self.pattern_calib_button.setText("Calibración de patrón")
 
         # Desconectar eventos y limpiar cursor
         for cid in self._spatial_cids:
@@ -195,7 +195,7 @@ class SpatialCalibrationMixin:
 
 
 
-        self.log_to_console("Modo Calibración de Patrón desactivado.", "INFO")
+        self.log_to_console("Modo calibración de patrón desactivado.", "INFO")
 
     # ═══════════════════════════════════════════════════════════════════════
     # LOGICA DE CALIBRACIÓN ESPACIAL
@@ -558,7 +558,7 @@ class SpatialCalibrationMixin:
                 matrix_to_send = 255 - matrix_to_send
                 
             self.ax.clear()
-            self.ax.imshow(matrix, cmap='gray')
+            self.ax.imshow(matrix, cmap='gray', vmin=0, vmax=255)
             self.ax.axis('off')
             if hasattr(self, "canvas"):
                 self.canvas.draw_idle()
@@ -609,10 +609,15 @@ class SpatialCalibrationMixin:
 
         self._exp_step_ms = int(step_time_s * 1000)
         
-        self._exp_current_stripe = -1 if base_time_s > 0 else 0
+        # El tiempo base simplemente es el tiempo que se mantiene la franja 0.
+        self._exp_current_stripe = 0
         self._exp_matrix = self._draw_current_stripe()
 
         matrix_to_send = self._prepare_exp_matrix_to_send(self._exp_matrix)
+        
+        if hasattr(self, "log_to_console"):
+            self.log_to_console(f"DEBUG start_exposure_matrix: exp_matrix min={self._exp_matrix.min()}, max={self._exp_matrix.max()}, mean={self._exp_matrix.mean()}", "INFO")
+            self.log_to_console(f"DEBUG start_exposure_matrix: matrix_to_send min={matrix_to_send.min()}, max={matrix_to_send.max()}, mean={matrix_to_send.mean()}", "INFO")
             
         proj.update_segment(matrix_to_send)
         
@@ -620,7 +625,7 @@ class SpatialCalibrationMixin:
         if hasattr(self, "ax"):
             if not hasattr(self, "_exp_image_artist") or self._exp_image_artist not in self.ax.images:
                 self.ax.clear()
-                self._exp_image_artist = self.ax.imshow(matrix_to_send, cmap='gray')
+                self._exp_image_artist = self.ax.imshow(matrix_to_send, cmap='gray', vmin=0, vmax=255)
                 self.ax.axis('off')
             else:
                 self._exp_image_artist.set_data(matrix_to_send)
@@ -664,8 +669,11 @@ class SpatialCalibrationMixin:
                 
             matrix_to_send = cv2.bitwise_and(pattern_img, matrix_to_send)
         else:
-            if getattr(self, "invert_projection", False):
-                matrix_to_send = 255 - matrix_to_send
+            # Si no hay patrón, la matriz de exposición ES el patrón.
+            # No debemos invertirla con invert_projection global porque eso invertiría 
+            # la dirección geométrica del barrido (ej. que parta de abajo hacia arriba).
+            # Para invertir la matriz de exposición existe su propio checkbox local.
+            pass
         return matrix_to_send
 
     def _update_exp_time_ui(self):
@@ -692,12 +700,6 @@ class SpatialCalibrationMixin:
         cx, cy = w // 2, h // 2
         
         matrix = np.zeros((h, w), dtype=np.uint8)
-        
-        if self._exp_current_stripe == -1:
-            matrix[:, :] = 255
-            if getattr(self, "_exp_invert_colors", False):
-                matrix = 255 - matrix
-            return matrix
         
         is_decrement = "Decremento" in self._exp_mode
         
@@ -816,7 +818,7 @@ class SpatialCalibrationMixin:
         if hasattr(self, "ax"):
             if not hasattr(self, "_exp_image_artist") or self._exp_image_artist not in self.ax.images:
                 self.ax.clear()
-                self._exp_image_artist = self.ax.imshow(matrix_to_send, cmap='gray')
+                self._exp_image_artist = self.ax.imshow(matrix_to_send, cmap='gray', vmin=0, vmax=255)
                 self.ax.axis('off')
             else:
                 self._exp_image_artist.set_data(matrix_to_send)

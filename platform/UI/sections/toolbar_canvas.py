@@ -105,6 +105,14 @@ class ToolbarCanvasBuilder:
         for widget in (
             self.load_button, self.toggle_view_button, self.pattern_calib_button, self.calibration_button,
             self.ruler_scale_button, self.preferences_button, self.motors_button, self.projector_button,
+        ):
+            layout.addWidget(widget)
+            
+        # El expansor absorbe el espacio extra, anclando los botones a la izquierda 
+        # y evitando que se muevan cuando aparecen/desaparecen los controles de la derecha.
+        layout.addStretch()
+
+        for widget in (
             self.sigma_label, self.sigma_slider,
             self.brightness_label, self.brightness_slider,
             self.save_widget,
