@@ -15,7 +15,13 @@ def load_theme(theme_name: str) -> str:
     
     try:
         with open(theme_file, 'r', encoding='utf-8') as f:
-            return f.read()
+            qss = f.read()
+        # Reemplazar el placeholder __THEME_DIR__ con la ruta real
+        # Usar forward slashes para compatibilidad con Qt stylesheet url()
+        theme_dir_path = current_dir.replace("\\", "/")
+        qss = qss.replace("__THEME_DIR__", theme_dir_path)
+        return qss
     except Exception as e:
         print(f"Error cargando el tema {theme_name}: {e}")
         return ""
+

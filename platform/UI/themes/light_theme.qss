@@ -99,29 +99,40 @@ QComboBox::drop-down {
     width: 30px;
 }
 QComboBox::down-arrow {
-    image: none;
-    width: 0;
-    height: 0;
-    border-left: 6px solid transparent;
-    border-right: 6px solid transparent;
-    border-top: 8px solid #666666;
+    image: url("__THEME_DIR__/arrow_down_light.svg");
+    width: 12px;
+    height: 8px;
     margin-right: 8px;
 }
+
 QComboBox QAbstractItemView {
-    background-color: #FFFFFF;
+    background-color: #F8F8F8;
     border: 1px solid #CCCCCC;
     border-radius: 8px;
-    selection-background-color: #A0A0A0;
+    selection-background-color: #C0C0C0;
     selection-color: #000000;
     padding: 4px;
     color: #000000;
+    outline: none;
 }
 QComboBox QAbstractItemView::item {
-    padding: 8px;
-    border-radius: 4px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    color: #000000;
+    background-color: transparent;
+    margin: 2px 4px;
 }
 QComboBox QAbstractItemView::item:hover {
-    background-color: #F0F0F0;
+    background-color: #A0A0A0;
+    color: #FFFFFF;
+}
+QComboBox QAbstractItemView::item:selected {
+    background-color: #A0A0A0;
+    color: #FFFFFF;
+}
+QComboBox QFrame {
+    border: none;
+    background-color: #F5F5F5; /* Color base para esconder las esquinas nativas */
 }
 
 /* ── CheckBox ───────────────────────────────────────────────── */
@@ -520,4 +531,57 @@ QGroupBox::title {
 }
 
 
+/* ── ScrollBar ─────────────────────────────────────────────── */
+QScrollBar:vertical {
+    background: transparent;
+    width: 8px;
+    margin: 0;
+    border: none;
+}
+QScrollBar::handle:vertical {
+    background: #C0C0C0;
+    min-height: 30px;
+    border-radius: 4px;
+}
+QScrollBar::handle:vertical:hover {
+    background: #A0A0A0;
+}
+QScrollBar::add-line:vertical,
+QScrollBar::sub-line:vertical {
+    height: 0px;
+    background: transparent;
+    border: none;
+}
+QScrollBar::add-page:vertical,
+QScrollBar::sub-page:vertical {
+    background: transparent;
+}
+QScrollBar:horizontal {
+    background: transparent;
+    height: 8px;
+    margin: 0;
+    border: none;
+}
+QScrollBar::handle:horizontal {
+    background: #C0C0C0;
+    min-width: 30px;
+    border-radius: 4px;
+}
+QScrollBar::handle:horizontal:hover {
+    background: #A0A0A0;
+}
+QScrollBar::add-line:horizontal,
+QScrollBar::sub-line:horizontal {
+    width: 0px;
+    background: transparent;
+    border: none;
+}
+QScrollBar::add-page:horizontal,
+QScrollBar::sub-page:horizontal {
+    background: transparent;
+}
+
 * { outline: none; }
+*:focus { border-color: transparent; outline: none; }
+QScrollArea, QScrollArea > QWidget > QWidget, QSplitter { border: none; outline: none; }
+QPushButton::indicator, QPushButton::menu-indicator { width: 0px; height: 0px; border: none; background: transparent; image: none; }

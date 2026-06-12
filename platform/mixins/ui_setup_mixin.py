@@ -99,8 +99,11 @@ class UISetupMixin(
         self._connect_screen_signals()
 
         canvas_layout = QHBoxLayout()
+        canvas_layout.setSpacing(0)
+        canvas_layout.setContentsMargins(0, 0, 0, 0)
         
         self.canvas_container = QWidget()
+        self.canvas_container.setFocusPolicy(Qt.NoFocus)
         self.canvas_container.setLayout(self.canvas_with_toolbar)
         
         self.motor_central_widget = QWidget()
@@ -121,10 +124,12 @@ class UISetupMixin(
         canvas_layout.addWidget(self.motors_panel_widget, stretch=1)
 
         canvas_widget = QWidget()
+        canvas_widget.setFocusPolicy(Qt.NoFocus)
         canvas_widget.setLayout(canvas_layout)
 
         from PyQt5.QtWidgets import QSplitter
         v_splitter = QSplitter(Qt.Vertical)
+        v_splitter.setFocusPolicy(Qt.NoFocus)
         v_splitter.addWidget(canvas_widget)
         v_splitter.addWidget(console_section)
         
@@ -146,6 +151,13 @@ class UISetupMixin(
         main_layout.addLayout(control_layout)
         main_layout.addWidget(v_splitter)
         self.setLayout(main_layout)
+
+        # Forzar QListView en todos los combobox para habilitar
+        # el renderizado QSS completo (bordes curvos en items, margenes, etc)
+        from PyQt5.QtWidgets import QComboBox, QListView
+        for cb in self.findChildren(QComboBox):
+            view = QListView()
+            cb.setView(view)
 
         self.apply_theme()
 
@@ -214,12 +226,16 @@ class UISetupMixin(
 
         info_widget = QWidget()
         info_widget.setLayout(self.info_layout)
+        info_widget.setFocusPolicy(Qt.NoFocus)
 
         scroll_area = QScrollArea()
         scroll_area.setWidget(info_widget)
         scroll_area.setWidgetResizable(True)
         scroll_area.setFrameShape(QFrame.NoFrame)
+        scroll_area.setFrameShadow(QFrame.Plain)
+        scroll_area.setLineWidth(0)
         scroll_area.setFocusPolicy(Qt.NoFocus)
+        scroll_area.viewport().setFocusPolicy(Qt.NoFocus)
         scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         scroll_area.setMinimumWidth(SIDEBAR_MIN_WIDTH)
         scroll_area.setMaximumWidth(SIDEBAR_MAX_WIDTH)

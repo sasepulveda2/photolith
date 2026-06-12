@@ -143,6 +143,13 @@ class ThemeMixin:
 
     def apply_dark_theme(self) -> None:
         """Aplica la paleta y hoja de estilos del tema oscuro con personalización."""
+        from PyQt5.QtGui import QPalette, QColor
+        app = QApplication.instance()
+        palette = app.palette()
+        palette.setColor(QPalette.Window, QColor("#1E1E1E"))
+        palette.setColor(QPalette.Base, QColor("#1E1E1E"))
+        app.setPalette(palette)
+        
         self.figure.set_facecolor(DARK_BG_PRIMARY)
         self.canvas.draw()
         
@@ -152,6 +159,13 @@ class ThemeMixin:
 
     def apply_light_theme(self) -> None:
         """Aplica la paleta y hoja de estilos del tema claro con personalización."""
+        from PyQt5.QtGui import QPalette, QColor
+        app = QApplication.instance()
+        palette = app.palette()
+        palette.setColor(QPalette.Window, QColor("#F5F5F5"))
+        palette.setColor(QPalette.Base, QColor("#F5F5F5"))
+        app.setPalette(palette)
+        
         self.figure.set_facecolor(LIGHT_BG_PRIMARY)
         self.canvas.draw()
         
@@ -515,6 +529,17 @@ class ThemeMixin:
     def showEvent(self, event) -> None:
         super().showEvent(event)
         self._set_titlebar_dark_mode(getattr(self, "dark_mode", True))
+        # Limpiar el foco de todos los widgets al abrir para evitar
+        # que Windows dibuje rectángulos de foco fantasma
+        from PyQt5.QtCore import QTimer
+        QTimer.singleShot(0, self._clear_startup_focus)
+
+    def _clear_startup_focus(self):
+        """Elimina el foco de cualquier widget al iniciar la aplicación."""
+        focused = self.focusWidget()
+        if focused:
+            focused.clearFocus()
+        self.setFocus()  # El foco va al widget principal (no dibuja rect)
 
     def closeEvent(self, event) -> None:
         if getattr(self, "projection_window", None) is not None:
