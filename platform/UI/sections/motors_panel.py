@@ -6,7 +6,7 @@ Métodos:
     _build_motor_pulse_controls()    → steps + velocidad
     _build_motor_direction_pad()     → pad XY en cruz + columna Z
 """
-from PyQt5.QtWidgets import QVBoxLayout, QHBoxLayout, QSpinBox
+from PyQt5.QtWidgets import QVBoxLayout, QHBoxLayout, QSpinBox, QWidget
 from PyQt5.QtCore import Qt
 from UI.collapsible_section import CollapsibleSection
 from UI.widget_helpers import (
@@ -110,7 +110,11 @@ class MotorsPanelBuilder:
         row_mid = QHBoxLayout()
         row_mid.addStretch()
         row_mid.addWidget(buttons["X-"])
-        row_mid.addSpacing(MOTOR_PAD_SPACING)
+        
+        center_spacer = QWidget()
+        center_spacer.setFixedSize(MOTOR_PAD_BUTTON_SIZE, MOTOR_PAD_BUTTON_SIZE)
+        row_mid.addWidget(center_spacer)
+        
         row_mid.addWidget(buttons["X+"])
         row_mid.addStretch()
 
@@ -120,6 +124,7 @@ class MotorsPanelBuilder:
         row_bot.addStretch()
 
         xy_pad = QVBoxLayout()
+        xy_pad.setSpacing(MOTOR_PAD_SPACING)
         xy_pad.addLayout(row_top)
         xy_pad.addLayout(row_mid)
         xy_pad.addLayout(row_bot)
@@ -131,18 +136,19 @@ class MotorsPanelBuilder:
 
         z_col = QVBoxLayout()
         z_col.setAlignment(Qt.AlignCenter)
+        z_col.setSpacing(MOTOR_PAD_SPACING)
         z_col.addWidget(z_lbl)
         z_col.addWidget(buttons["Z+"])
         z_col.addWidget(buttons["Z-"])
 
         controls_row = QHBoxLayout()
         controls_row.addLayout(xy_pad)
-        controls_row.addSpacing(MOTOR_PAD_SPACING)
+        controls_row.addSpacing(20)  # Separación explícita entre pad XY y columna Z
         controls_row.addLayout(z_col)
         layout.addLayout(controls_row)
 
         # Botón de Parada de Emergencia en el sidebar
-        stop_btn = create_modern_button("PARADA EMERGENCIA", slot=self.emergency_stop_sidebar)
+        stop_btn = create_modern_button("STOP", slot=self.emergency_stop_sidebar)
         stop_btn.setStyleSheet("""
             QPushButton {
                 background-color: #D32F2F;

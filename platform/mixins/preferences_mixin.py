@@ -20,18 +20,19 @@ class PreferencesMixin:
     """Mixin: Preferences functionality."""
 
     def show_preferences_menu(self):
-        menu = QMenu(self)
+        menu = self.preferences_menu
+        menu.clear()
         menu.setStyleSheet(
             """
             QMenu {
                 background-color: """
-            + ("#1E1E1E" if self.dark_mode else "#FFFFFF")
+            + ("#1E1E1E" if getattr(self, "dark_mode", True) else "#FFFFFF")
             + """;
                 color: """
-            + ("#E0E0E0" if self.dark_mode else "#000000")
+            + ("#E0E0E0" if getattr(self, "dark_mode", True) else "#000000")
             + """;
                 border: 1px solid """
-            + ("#2E2E2E" if self.dark_mode else "#CCCCCC")
+            + ("#2E2E2E" if getattr(self, "dark_mode", True) else "#CCCCCC")
             + """;
                 border-radius: 8px;
                 padding: 8px;
@@ -47,47 +48,41 @@ class PreferencesMixin:
         """
         )
 
-        if self.dark_mode:
-            theme_action = menu.addAction("Modo Claro")
+        if getattr(self, "dark_mode", True):
+            theme_action = menu.addAction("Modo claro")
         else:
-            theme_action = menu.addAction("Modo Oscuro")
+            theme_action = menu.addAction("Modo oscuro")
 
         theme_action.triggered.connect(self.toggle_theme)
 
-        scale_action = menu.addAction("Configuración de Escala")
+        scale_action = menu.addAction("Configuración de escala")
         scale_action.triggered.connect(self.show_scale_config)
 
-        appearance_action = menu.addAction("Apariencia y Estilo")
+        appearance_action = menu.addAction("Apariencia y estilo")
         appearance_action.triggered.connect(self.show_appearance_config)
 
-        exposure_config_action = menu.addAction("Configuración de Exposición")
+        exposure_config_action = menu.addAction("Configuración de exposición")
         exposure_config_action.triggered.connect(self.show_exposure_config)
 
-        grid_config_action = menu.addAction("Configuración de Grid")
+        grid_config_action = menu.addAction("Configuración de grid")
         grid_config_action.triggered.connect(self.show_grid_color_config)
 
         effects_action = menu.addAction(
-            "Aplicar Efectos en Grid"
-            if not self.apply_effects_to_grid
-            else "Desactivar Efectos en Grid"
+            "Aplicar efectos en grid"
+            if not getattr(self, "apply_effects_to_grid", True)
+            else "Desactivar efectos en grid"
         )
         effects_action.triggered.connect(self.toggle_grid_effects)
 
         # Opción para mostrar/ocultar heatmap
         heatmap_action = menu.addAction(
-            "Ocultar Heatmap en vista principal" if getattr(self, "show_heatmap", False) else "Mostrar Heatmap en vista principal"
+            "Ocultar heatmap en vista principal" if getattr(self, "show_heatmap", False) else "Mostrar heatmap en vista principal"
         )
         heatmap_action.triggered.connect(self.toggle_heatmap_visibility)
 
         # Opción para limpiar cache de segmentación
-        clear_cache_action = menu.addAction("Limpiar Cache de Segmentación")
+        clear_cache_action = menu.addAction("Limpiar cache de segmentación")
         clear_cache_action.triggered.connect(self.clear_segmentation_cache)
-
-        menu.exec_(
-            self.preferences_button.mapToGlobal(
-                self.preferences_button.rect().bottomLeft()
-            )
-        )
 
 
     def toggle_theme(self):
@@ -132,7 +127,7 @@ class PreferencesMixin:
         status = "activados" if self.apply_effects_to_grid else "desactivados"
         QMessageBox.information(
             self,
-            "Efectos en Grid",
+            "Efectos en grid",
             f"Los efectos de intensidad y desenfoque han sido {status} para la vista grid.\n\n"
             f"Los sliders ahora {'aplicarán' if self.apply_effects_to_grid else 'NO aplicarán'} los cambios en tiempo real al grid.",
         )
@@ -151,7 +146,7 @@ class PreferencesMixin:
 
         if not has_cache:
             QMessageBox.information(
-                self, "Cache Vacío", "No hay cache de segmentación activo para limpiar."
+                self, "Cache vacío", "No hay cache de segmentación activo para limpiar."
             )
             return
 
@@ -191,13 +186,13 @@ class PreferencesMixin:
             info_msg += f"    Bounds: X[{old_bounds['start_x']}-{old_bounds['end_x']}] Y[{old_bounds['start_y']}-{old_bounds['end_y']}]\n"
         info_msg += "\nLa próxima segmentación recalculará desde cero."
 
-        QMessageBox.information(self, "Cache Limpiado", info_msg)
+        QMessageBox.information(self, "Cache limpiado", info_msg)
 
 
     def show_scale_config(self):
 
         dialog = QDialog(self)
-        dialog.setWindowTitle("Configuración de Escala de Proyección")
+        dialog.setWindowTitle("Configuración de escala de proyección")
         dialog.setFixedWidth(450)
         dialog.setWindowFlags(dialog.windowFlags() & ~Qt.WindowContextHelpButtonHint)
 
@@ -219,7 +214,7 @@ class PreferencesMixin:
         layout.setSpacing(16)
         layout.setContentsMargins(20, 20, 20, 20)
 
-        title_label = QLabel("Escala de Imagen Proyectada")
+        title_label = QLabel("Escala de imagen proyectada")
         title_label.setStyleSheet(f"""
             font-size: 16px;
             font-weight: bold;
@@ -230,11 +225,11 @@ class PreferencesMixin:
 
         mode_group = QButtonGroup(dialog)
 
-        automatic_radio = QRadioButton("Automático (Ajustar al monitor)")
+        automatic_radio = QRadioButton("Automático (ajustar al monitor)")
         automatic_radio.setChecked(self.scale_mode == "automatic")
         mode_group.addButton(automatic_radio, 0)
 
-        manual_radio = QRadioButton("Manual (Porcentaje personalizado)")
+        manual_radio = QRadioButton("Manual (porcentaje personalizado)")
         manual_radio.setChecked(self.scale_mode == "manual")
         mode_group.addButton(manual_radio, 1)
 
@@ -527,7 +522,7 @@ class PreferencesMixin:
     def show_exposure_config(self):
 
         dialog = QDialog(self)
-        dialog.setWindowTitle("Configuración de Exposición")
+        dialog.setWindowTitle("Configuración de exposición")
         dialog.setFixedWidth(500)
         dialog.setWindowFlags(dialog.windowFlags() & ~Qt.WindowContextHelpButtonHint)
 
@@ -558,7 +553,7 @@ class PreferencesMixin:
         """)
         layout.addWidget(title_label)
 
-        brightness_title = QLabel("Brillo Final al Completar")
+        brightness_title = QLabel("Brillo final al completar")
         brightness_title.setStyleSheet(
             "font-size: 14px; font-weight: bold; margin-top: 10px;"
         )

@@ -317,7 +317,7 @@ class ThemeMixin:
             self.toggle_ruler_scale_view()
 
         if hasattr(self, "toggle_view_button"):
-            self.toggle_view_button.setText("Vista Grid")
+            self.toggle_view_button.setText("Vista grid")
         
         # Ocultar componentes del grid
         if hasattr(self, "grid_config_section"):

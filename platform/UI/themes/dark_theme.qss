@@ -4,10 +4,13 @@
 
 /* ── Base ───────────────────────────────────────────────────── */
 QWidget {
-    background-color: #121212;
-    color: #f0f0f0;
+    color: #E0E0E0;
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     font-size: 13px;
+}
+
+QMainWindow, QDialog, QMessageBox {
+    background-color: #121212;
 }
 
 QLabel {
@@ -17,17 +20,23 @@ QLabel {
 /* ── Botones ────────────────────────────────────────────────── */
 QPushButton {
     background-color: #1E1E1E;
-    border: 1px solid #2E2E2E;
+    border: 1px solid #4A4A4A;
     border-radius: 8px;
     padding: 8px 12px;
     color: #E0E0E0;
 }
 QPushButton:hover {
     background-color: #2C2C2C;
-    border: 1px solid #3E3E3E;
+    border: 1px solid #6A6A6A;
 }
-QPushButton:pressed {
+QPushButton:pressed, QPushButton:open {
     background-color: #3A3A3A;
+    border: 1px solid #8A8A8A;
+}
+QPushButton:focus {
+    outline: none;
+    border: 1px solid #6A6A6A;
+    background-color: #2C2C2C;
 }
 QPushButton:disabled {
     background-color: #1A1A1A;
@@ -57,6 +66,27 @@ QPushButton#modernButton:pressed {
     padding: 13px 20px 11px 20px;
 }
 
+QPushButton#motorPadButton {
+    background-color: #2E2E2E;
+    border: 1px solid #3E3E3E;
+    border-radius: 4px;
+    color: #E0E0E0;
+    font-weight: bold;
+    font-size: 16px;
+    padding: 0px;
+}
+QPushButton#motorPadButton:hover {
+    background-color: #3A3A3A;
+    border: 1px solid #4A4A4A;
+}
+QPushButton#motorPadButton:pressed {
+    background-color: #00796B;
+    color: #FFFFFF;
+}
+QPushButton#motorPadButton:focus {
+    outline: none;
+}
+
 QPushButton#tabButton {
     background-color: #1E1E1E;
     border: 1px solid #2E2E2E;
@@ -75,6 +105,9 @@ QPushButton#tabButton:checked {
     background-color: #A0A0A0;
     border: 1px solid #A0A0A0;
     color: #121212;
+}
+QPushButton#tabButton:focus {
+    outline: none;
 }
 QPushButton#tabButton:checked:hover {
     background-color: #A0A0A0;
@@ -162,6 +195,33 @@ QCheckBox::indicator:checked {
 QCheckBox::indicator:checked:hover {
     background-color: #A0A0A0;
     border: 2px solid #A0A0A0;
+}
+
+/* ── RadioButton ────────────────────────────────────────────── */
+QRadioButton {
+    color: #E0E0E0;
+    spacing: 8px;
+    padding: 6px;
+    background-color: transparent;
+    border: none;
+}
+QRadioButton::indicator {
+    width: 16px;
+    height: 16px;
+    border-radius: 10px; /* Mitad de width+border = 20/2 */
+    border: 2px solid #5A5A5A;
+    background-color: #1E1E1E;
+}
+QRadioButton::indicator:hover {
+    border: 2px solid #A0A0A0;
+    background-color: #2C2C2C;
+}
+QRadioButton::indicator:checked {
+    background-color: #1E1E1E;
+    border: 5px solid #009688; /* Centro oscuro rodeado de color o al revés */
+}
+QRadioButton::indicator:checked:hover {
+    border: 5px solid #4DB6AC;
 }
 
 /* ── Inputs ─────────────────────────────────────────────────── */

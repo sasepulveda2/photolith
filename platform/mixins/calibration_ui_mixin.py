@@ -53,18 +53,6 @@ class CalibrationUIMixin:
             # ════════════════════════════════════════════════════════════
             # PESTAÑA Fuente de Imagen
             # ════════════════════════════════════════════════════════════
-            source_tab_container = QWidget()
-            source_tab_container.setAutoFillBackground(False)
-            source_tab_container.setStyleSheet("background-color: transparent;")
-            source_tab_scroll = QScrollArea()
-            source_tab_scroll.setWidgetResizable(True)
-            source_tab_scroll.setFrameShape(QFrame.NoFrame)
-            source_tab_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
-            source_tab_scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
-            source_tab_scroll.setStyleSheet(
-                "QScrollArea { background-color: transparent; border: none; }"
-            )
-
             source_tab = QWidget()
             source_tab.setAutoFillBackground(False)
             source_tab.setStyleSheet("background-color: transparent;")
@@ -353,13 +341,7 @@ class CalibrationUIMixin:
                 self.on_calibration_source_changed
             )
 
-            # Agregar contenido al scroll y scroll al tab
-            source_tab_scroll.setWidget(source_tab)
-            source_tab_container_layout = QVBoxLayout(source_tab_container)
-            source_tab_container_layout.setContentsMargins(0, 0, 0, 0)
-            source_tab_container_layout.addWidget(source_tab_scroll)
-
-            self.calibration_tabs.addTab(source_tab_container, "Fuente de imagen")
+            self.calibration_tabs.addTab(source_tab, "Fuente de imagen")
 
             # ════════════════════════════════════════════════════════════
             # PESTAÑA 2: Análisis y Visualización del Brillo
@@ -990,16 +972,40 @@ class CalibrationUIMixin:
         if not hasattr(self, "calibration_widget"):
             return
             
-        bg_color = "#121212" if self.dark_mode else "#FFFFFF"
-        ax_bg = "#1E1E1E" if self.dark_mode else "#F5F5F5"
-        text_color = "#E0E0E0" if self.dark_mode else "#000000"
+        is_dark = self.dark_mode
+        
+        # Actualizar el estilo de las pestañas dinámicamente
+        if hasattr(self, "calibration_tabs"):
+            self.calibration_tabs.setStyleSheet(
+                """
+                QTabWidget::pane {
+                    background-color: #1E1E1E;
+                    border: none;
+                }
+                QTabWidget > QWidget {
+                    background-color: #1E1E1E;
+                }
+                """ if is_dark else """
+                QTabWidget::pane {
+                    background-color: #FFFFFF;
+                    border: none;
+                }
+                QTabWidget > QWidget {
+                    background-color: #FFFFFF;
+                }
+                """
+            )
+            
+        bg_color = "#1E1E1E" if is_dark else "#FFFFFF"
+        ax_bg = "#1E1E1E" if is_dark else "#FFFFFF"
+        text_color = "#E0E0E0" if is_dark else "#000000"
         
         figures = [
             (getattr(self, "calib_preview_figure", None), getattr(self, "calib_preview_ax", None), getattr(self, "calib_preview_canvas", None)),
             (getattr(self, "gray_preview_figure", None), getattr(self, "gray_preview_ax", None), getattr(self, "gray_preview_canvas", None)),
             (getattr(self, "intensity_map_figure", None), getattr(self, "intensity_map_ax", None), getattr(self, "intensity_map_canvas", None)),
             (getattr(self, "threshold_preview_figure", None), getattr(self, "threshold_preview_ax", None), getattr(self, "threshold_preview_canvas", None)),
-            (getattr(self, "attenuation_preview_figure", None), getattr(self, "attenuation_preview_ax", None), getattr(self, "attenuation_preview_canvas", None))
+            (getattr(self, "attenuation_figure", None), getattr(self, "attenuation_ax", None), getattr(self, "attenuation_canvas", None))
         ]
         
         for fig, ax, canvas in figures:

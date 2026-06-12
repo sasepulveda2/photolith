@@ -6,7 +6,7 @@ Métodos:
     _build_binary_section()      → modo binario + inversión
     _build_grid_stats_section()  → info de solo lectura del grid
 """
-from PyQt5.QtWidgets import QVBoxLayout, QHBoxLayout, QLabel, QSlider, QCheckBox, QLineEdit
+from PyQt5.QtWidgets import QVBoxLayout, QHBoxLayout, QLabel, QSlider, QCheckBox, QLineEdit, QPushButton
 from PyQt5.QtCore import Qt
 from UI.collapsible_section import CollapsibleSection
 from UI.widget_helpers import (
@@ -86,10 +86,18 @@ class DataPanelsBuilder:
         self.invert_check.setObjectName("statLabel")
         layout.addWidget(self.invert_check)
 
+        # Bloqueo de umbral
+        self.threshold_lock_button = QCheckBox("Bloquear Umbral")
+        self.threshold_lock_button.setChecked(False)
+        self.threshold_lock_button.stateChanged.connect(self.toggle_threshold_lock)
+        self.threshold_lock_button.setObjectName("statLabel")
+        layout.addWidget(self.threshold_lock_button)
+
         # Control de umbral (threshold)
         layout.addWidget(create_stat_label("Umbral (Threshold):"))
 
         threshold_row = QHBoxLayout()
+        
         self.binary_threshold_slider = QSlider(Qt.Horizontal)
         self.binary_threshold_slider.setMinimum(BINARY_THRESHOLD_SLIDER_MIN)
         self.binary_threshold_slider.setMaximum(BINARY_THRESHOLD_SLIDER_MAX)

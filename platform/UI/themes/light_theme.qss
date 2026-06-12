@@ -4,10 +4,13 @@
 
 /* ── Base ───────────────────────────────────────────────────── */
 QWidget {
-    background-color: #FFFFFF;
     color: #000000;
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     font-size: 13px;
+}
+
+QMainWindow, QDialog, QMessageBox {
+    background-color: #FFFFFF;
 }
 
 QLabel {
@@ -17,17 +20,23 @@ QLabel {
 /* ── Botones ────────────────────────────────────────────────── */
 QPushButton {
     background-color: #F5F5F5;
-    border: 1px solid #CCCCCC;
+    border: 1px solid #999999;
     border-radius: 8px;
     padding: 8px 12px;
     color: #000000;
 }
 QPushButton:hover {
     background-color: #E0E0E0;
-    border: 1px solid #BBBBBB;
+    border: 1px solid #666666;
 }
-QPushButton:pressed {
+QPushButton:pressed, QPushButton:open {
     background-color: #D0D0D0;
+    border: 1px solid #333333;
+}
+QPushButton:focus {
+    outline: none;
+    border: 1px solid #666666;
+    background-color: #E0E0E0;
 }
 QPushButton:disabled {
     background-color: #F0F0F0;
@@ -57,24 +66,48 @@ QPushButton#modernButton:pressed {
     padding: 13px 20px 11px 20px;
 }
 
+QPushButton#motorPadButton {
+    background-color: #E0E0E0;
+    border: 1px solid #CCCCCC;
+    border-radius: 4px;
+    color: #121212;
+    font-weight: bold;
+    font-size: 16px;
+    padding: 0px;
+}
+QPushButton#motorPadButton:hover {
+    background-color: #D0D0D0;
+    border: 1px solid #BBBBBB;
+}
+QPushButton#motorPadButton:pressed {
+    background-color: #00796B;
+    color: #FFFFFF;
+}
+QPushButton#motorPadButton:focus {
+    outline: none;
+}
+
 QPushButton#tabButton {
     background-color: #F5F5F5;
     border: 1px solid #CCCCCC;
     border-radius: 8px;
     padding: 10px 16px;
-    color: #666666;
+    color: #333333;
     font-weight: bold;
     font-size: 12px;
 }
 QPushButton#tabButton:hover {
     background-color: #E0E0E0;
     border: 1px solid #BBBBBB;
-    color: #444444;
+    color: #111111;
 }
 QPushButton#tabButton:checked {
     background-color: #A0A0A0;
     border: 1px solid #A0A0A0;
-    color: #000000;
+    color: #FFFFFF;
+}
+QPushButton#tabButton:focus {
+    outline: none;
 }
 QPushButton#tabButton:checked:hover {
     background-color: #A0A0A0;
@@ -162,6 +195,33 @@ QCheckBox::indicator:checked {
 QCheckBox::indicator:checked:hover {
     background-color: #A0A0A0;
     border: 2px solid #A0A0A0;
+}
+
+/* ── RadioButton ────────────────────────────────────────────── */
+QRadioButton {
+    color: #121212;
+    spacing: 8px;
+    padding: 6px;
+    background-color: transparent;
+    border: none;
+}
+QRadioButton::indicator {
+    width: 16px;
+    height: 16px;
+    border-radius: 10px;
+    border: 2px solid #888888;
+    background-color: #FFFFFF;
+}
+QRadioButton::indicator:hover {
+    border: 2px solid #333333;
+    background-color: #F0F0F0;
+}
+QRadioButton::indicator:checked {
+    background-color: #FFFFFF;
+    border: 5px solid #00796B;
+}
+QRadioButton::indicator:checked:hover {
+    border: 5px solid #009688;
 }
 
 /* ── Inputs ─────────────────────────────────────────────────── */

@@ -235,6 +235,8 @@ class FileManagementMixin:
                 if getattr(self, "_pattern_calib_view_active", False): self.toggle_pattern_calibration_view()
                 
                 self.simulate_optics()
+                if hasattr(self, "save_widget"):
+                    self.save_widget.setVisible(True)
                 self._refresh_invert_button_state()
 
 
@@ -288,6 +290,8 @@ class FileManagementMixin:
 
             self.simulate_optics()
             self.projector_button.setVisible(True)
+            if hasattr(self, "save_widget"):
+                self.save_widget.setVisible(True)
             if hasattr(self, "update_projector_button"):
                 self.update_projector_button()
             if hasattr(self, "update_spatial_labels"):
@@ -632,6 +636,8 @@ class FileManagementMixin:
             
             self.simulate_optics()
             self.projector_button.setVisible(True)
+            if hasattr(self, "save_widget"):
+                self.save_widget.setVisible(True)
             self.update_projector_button()
             self._refresh_invert_button_state()
 

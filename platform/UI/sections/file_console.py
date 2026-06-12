@@ -21,7 +21,7 @@ class FileConsolePanelBuilder:
 
     def _build_file_tree(self) -> None:
         """ ARCHIVOS — árbol de navegación de archivos del proyecto."""
-        self.files_section = CollapsibleSection("Archivos", self, expanded=True, section_id="files")
+        self.files_section = CollapsibleSection("ARCHIVOS", self, expanded=True, section_id="files")
         
         container = QWidget()
         layout = QVBoxLayout(container)

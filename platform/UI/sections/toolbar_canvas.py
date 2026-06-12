@@ -5,7 +5,7 @@ Métodos:
     _build_toolbar()  → barra de acciones, sliders de sigma/brillo
     _build_canvas()   → área de visualización y eventos de mouse
 """
-from PyQt5.QtWidgets import QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QSlider, QComboBox
+from PyQt5.QtWidgets import QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QSlider, QComboBox, QWidget
 from PyQt5.QtCore import Qt
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas,
@@ -34,18 +34,21 @@ class ToolbarCanvasBuilder:
         self.load_button = QPushButton(" Cargar patrón")
         self.load_button.clicked.connect(self.load_pattern)
 
-        self.toggle_view_button = QPushButton(" Vista Grid")
+        self.toggle_view_button = QPushButton(" Vista grid")
         self.toggle_view_button.clicked.connect(self.toggle_grid_view)
 
-        self.calibration_button = QPushButton(" Calibración Óptica")
+        self.calibration_button = QPushButton(" Calibración óptica")
         self.calibration_button.clicked.connect(self.toggle_calibration_view)
 
-        self.pattern_calib_button = QPushButton(" Calibración de Patrón")
+        self.pattern_calib_button = QPushButton(" Calibración de patrón")
         self.pattern_calib_button.clicked.connect(self.toggle_pattern_calibration_view)
         self.pattern_calib_button.setToolTip("Pestaña para calibración de tamaño espacial y exposición")
 
         self.preferences_button = QPushButton(" Preferencias")
-        self.preferences_button.clicked.connect(self.show_preferences_menu)
+        from PyQt5.QtWidgets import QMenu
+        self.preferences_menu = QMenu(self.preferences_button)
+        self.preferences_button.setMenu(self.preferences_menu)
+        self.preferences_menu.aboutToShow.connect(self.show_preferences_menu)
 
         self.motors_button = QPushButton(" Motores")
         self.motors_button.clicked.connect(self.toggle_motors_view)
@@ -53,7 +56,7 @@ class ToolbarCanvasBuilder:
         self.projector_button = QPushButton(" Proyectar")
         self.projector_button.clicked.connect(self.toggle_projector)
 
-        self.ruler_scale_button = QPushButton(" Regla de Escala")
+        self.ruler_scale_button = QPushButton(" Regla de escala")
         self.ruler_scale_button.clicked.connect(self.toggle_ruler_scale_view)
         self.ruler_scale_button.setToolTip(
             "Genera y proyecta líneas de escala calibradas con desplazamiento motorizado"
@@ -80,11 +83,23 @@ class ToolbarCanvasBuilder:
         self.brightness_label.setVisible(False)
 
         # ── Guardar imagen ────────────────────────────────────────────────────
+        self.save_widget = QWidget()
+        save_layout = QHBoxLayout(self.save_widget)
+        save_layout.setContentsMargins(0, 0, 0, 0)
+        save_layout.setSpacing(8)
+
         self.save_button = QPushButton(" Guardar imagen")
         self.save_button.clicked.connect(self.save_image)
 
+        self.format_label = QLabel("Formato:")
         self.format_combo = QComboBox()
         self.format_combo.addItems(IMAGE_FORMATS)
+
+        save_layout.addWidget(self.save_button)
+        save_layout.addWidget(self.format_label)
+        save_layout.addWidget(self.format_combo)
+
+        self.save_widget.setVisible(False)
 
         # ── Ensamblar ─────────────────────────────────────────────────────────
         for widget in (
@@ -92,12 +107,9 @@ class ToolbarCanvasBuilder:
             self.ruler_scale_button, self.preferences_button, self.motors_button, self.projector_button,
             self.sigma_label, self.sigma_slider,
             self.brightness_label, self.brightness_slider,
-            self.save_button,
+            self.save_widget,
         ):
             layout.addWidget(widget)
-
-        layout.addWidget(QLabel("Formato:"))
-        layout.addWidget(self.format_combo)
 
         return layout
 

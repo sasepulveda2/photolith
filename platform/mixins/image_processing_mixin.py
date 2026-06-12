@@ -161,6 +161,12 @@ class ImageProcessingMixin:
             f"Estado: {'  Activo' if self.binary_mode_enabled else 'Inactivo'}"
         )
 
+    def toggle_threshold_lock(self, locked: bool):
+        """Bloquea o desbloquea los controles del umbral binario."""
+        if hasattr(self, "binary_threshold_slider"):
+            self.binary_threshold_slider.setEnabled(not locked)
+        if hasattr(self, "binary_threshold_input"):
+            self.binary_threshold_input.setEnabled(not locked)
 
     def update_binary_threshold_from_slider(self):
         """Actualiza el umbral de binarización desde el slider."""

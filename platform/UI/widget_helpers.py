@@ -219,8 +219,8 @@ def create_pad_button(
 ) -> QPushButton:
     """QPushButton cuadrado para el pad de motores (XY/Z)."""
     btn = QPushButton(label)
+    btn.setObjectName("motorPadButton")
     btn.setFixedSize(size, size)
-    btn.setStyleSheet(style)
     btn.setAutoRepeat(True)
     btn.setAutoRepeatDelay(autorepeat_delay)
     return btn
