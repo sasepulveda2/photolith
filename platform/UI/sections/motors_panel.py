@@ -140,3 +140,19 @@ class MotorsPanelBuilder:
         controls_row.addSpacing(MOTOR_PAD_SPACING)
         controls_row.addLayout(z_col)
         layout.addLayout(controls_row)
+
+        # Botón de Parada de Emergencia en el sidebar
+        stop_btn = create_modern_button("PARADA EMERGENCIA", slot=self.emergency_stop_sidebar)
+        stop_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #D32F2F;
+                color: white;
+                font-weight: bold;
+                border-radius: 6px;
+                padding: 10px;
+                margin-top: 10px;
+            }
+            QPushButton:hover { background-color: #F44336; }
+            QPushButton:pressed { background-color: #B71C1C; }
+        """)
+        layout.addWidget(stop_btn)

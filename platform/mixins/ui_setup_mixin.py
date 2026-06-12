@@ -219,6 +219,7 @@ class UISetupMixin(
         scroll_area.setWidget(info_widget)
         scroll_area.setWidgetResizable(True)
         scroll_area.setFrameShape(QFrame.NoFrame)
+        scroll_area.setFocusPolicy(Qt.NoFocus)
         scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         scroll_area.setMinimumWidth(SIDEBAR_MIN_WIDTH)
         scroll_area.setMaximumWidth(SIDEBAR_MAX_WIDTH)

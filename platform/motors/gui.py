@@ -19,7 +19,7 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import Qt
 
 class MotorGUI(QWidget):
-    def __init__(self, controller, mapping=None, on_mapping_changed=None, steps_360=None, on_steps_360_changed=None):
+    def __init__(self, controller, mapping=None, on_mapping_changed=None, steps_360=None, on_steps_360_changed=None, feedrates=None, on_feedrates_changed=None):
         super().__init__()
         self.ctrl = controller
         self.mapping = mapping or {
@@ -31,6 +31,8 @@ class MotorGUI(QWidget):
         self.on_mapping_changed = on_mapping_changed
         self.steps_360 = steps_360 or {"X": 3200, "Y": 3200, "Z": 640, "E": 3200}
         self.on_steps_360_changed = on_steps_360_changed
+        self.feedrates = feedrates or {"X": 5000, "Y": 5000, "Z": 500, "E": 5000}
+        self.on_feedrates_changed = on_feedrates_changed
         
         # Suscribir la actualización de la pantalla a los cambios en el controlador
         original_callback = self.ctrl.on_positions_changed
@@ -206,6 +208,26 @@ class MotorGUI(QWidget):
         util_layout.addWidget(self.btn_zero)
         util_layout.addWidget(self.btn_home)
         main_layout.addLayout(util_layout)
+
+        # Botón de emergencia
+        self.btn_stop = QPushButton("Stop")
+        self.btn_stop.setObjectName("btnStop")
+        self.btn_stop.setMinimumHeight(45)
+        self.btn_stop.setStyleSheet("""
+            QPushButton#btnStop {
+                background-color: #D32F2F;
+                color: white;
+                font-size: 14px;
+                font-weight: bold;
+                border: 1px solid #B71C1C;
+                border-radius: 6px;
+                margin-top: 10px;
+            }
+            QPushButton#btnStop:hover { background-color: #F44336; }
+            QPushButton#btnStop:pressed { background-color: #B71C1C; }
+        """)
+        self.btn_stop.clicked.connect(self.ctrl.emergency_stop)
+        main_layout.addWidget(self.btn_stop)
 
         main_layout.addStretch()
 

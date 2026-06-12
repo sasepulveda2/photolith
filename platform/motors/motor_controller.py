@@ -112,6 +112,14 @@ class CrealityController:
         if self.on_positions_changed:
             self.on_positions_changed(dict(self.positions))
 
+    def emergency_stop(self):
+        """Envía el comando M410 de parada rápida al controlador hardware."""
+        if self.ser:
+            try:
+                self.ser.write(b"M410\n")
+            except Exception:
+                pass
+
     def home_all(self):
         """Mueve cada eje en sentido contrario a lo acumulado para regresar a 0."""
         movimientos = 0

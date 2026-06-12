@@ -518,3 +518,6 @@ QGroupBox::title {
     subcontrol-origin: margin;
     left: 10px;
 }
+
+
+* { outline: none; }

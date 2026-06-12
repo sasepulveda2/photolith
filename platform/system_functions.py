@@ -472,3 +472,9 @@ class LithographySimulator(
                 self.motors_sidebar_status.setText("Fallo Conexión")
                 self.motors_sidebar_status.setStyleSheet("color: #F44336; font-weight: bold;")
                 self.motor_controller_instance = None
+
+    def emergency_stop_sidebar(self):
+        """Dispara el botón de emergencia en el motor."""
+        if hasattr(self, 'motor_controller_instance') and self.motor_controller_instance:
+            self.motor_controller_instance.emergency_stop()
+            self.log_to_console("PARADA DE EMERGENCIA ENVIADA A MOTORES", "ERROR")
