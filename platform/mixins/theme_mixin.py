@@ -263,6 +263,12 @@ class ThemeMixin:
             
         if getattr(self, "_motors_view_active", False):
             self.toggle_motors_view()
+            
+        if getattr(self, "_proyecciones_view_active", False):
+            self.toggle_proyecciones_view()
+            
+        if getattr(self, "_proyecciones_view_active", False):
+            self.toggle_proyecciones_view()
 
         if hasattr(self, "toggle_view_button"):
             self.toggle_view_button.setText("️ Vista Imagen")
@@ -351,6 +357,8 @@ class ThemeMixin:
                 self.toggle_pattern_calibration_view()
             if getattr(self, "_motors_view_active", False):
                 self.toggle_motors_view()
+            if getattr(self, "_proyecciones_view_active", False):
+                self.toggle_proyecciones_view()
 
             if hasattr(self, "calibration_button"):
                 self.calibration_button.setText("️ Vista Normal")

@@ -5,6 +5,7 @@ Construye y gestiona la interfaz completa de calibracion con pestanas
 para fuente de imagen, analisis de brillo y generacion de matrices.
 """
 
+from constants import CALIB_PREVIEW_MIN_HEIGHT
 try:
     from pypylon import pylon
     BASLER_AVAILABLE = True
@@ -414,7 +415,7 @@ class CalibrationUIMixin:
                 facecolor="#121212" if self.dark_mode else "#FFFFFF"
             )
             self.gray_preview_canvas = FigureCanvas(self.gray_preview_figure)
-            self.gray_preview_canvas.setMinimumHeight(150)
+            self.gray_preview_canvas.setMinimumHeight(CALIB_PREVIEW_MIN_HEIGHT)
             self.gray_preview_ax = self.gray_preview_figure.add_subplot(111)
             self.gray_preview_ax.set_facecolor(
                 "#1E1E1E" if self.dark_mode else "#F5F5F5"
@@ -513,7 +514,7 @@ class CalibrationUIMixin:
                 facecolor="#121212" if self.dark_mode else "#FFFFFF"
             )
             self.intensity_map_canvas = FigureCanvas(self.intensity_map_figure)
-            self.intensity_map_canvas.setMinimumHeight(150)
+            self.intensity_map_canvas.setMinimumHeight(CALIB_PREVIEW_MIN_HEIGHT)
             self.intensity_map_ax = self.intensity_map_figure.add_subplot(111)
             self.intensity_map_ax.set_facecolor(
                 "#1E1E1E" if self.dark_mode else "#F5F5F5"
@@ -684,7 +685,7 @@ class CalibrationUIMixin:
                 facecolor="#121212" if self.dark_mode else "#FFFFFF"
             )
             self.threshold_preview_canvas = FigureCanvas(self.threshold_preview_figure)
-            self.threshold_preview_canvas.setMinimumHeight(150)
+            self.threshold_preview_canvas.setMinimumHeight(CALIB_PREVIEW_MIN_HEIGHT)
             self.threshold_preview_ax = self.threshold_preview_figure.add_subplot(111)
             self.threshold_preview_ax.set_facecolor(
                 "#1E1E1E" if self.dark_mode else "#F5F5F5"
@@ -843,7 +844,7 @@ class CalibrationUIMixin:
                 facecolor="#121212" if self.dark_mode else "#FFFFFF"
             )
             self.attenuation_canvas = FigureCanvas(self.attenuation_figure)
-            self.attenuation_canvas.setMinimumHeight(150)
+            self.attenuation_canvas.setMinimumHeight(CALIB_PREVIEW_MIN_HEIGHT)
             self.attenuation_ax = self.attenuation_figure.add_subplot(111)
             self.attenuation_ax.set_facecolor(
                 "#1E1E1E" if self.dark_mode else "#F5F5F5"
@@ -890,7 +891,7 @@ class CalibrationUIMixin:
 
             # Establecer tamaño mínimo cómodo para el área de calibración
             calibration_scroll.setMinimumWidth(800)
-            calibration_scroll.setMinimumHeight(400)
+            calibration_scroll.setMinimumHeight(200)
 
             calib_layout.addWidget(calibration_scroll)
 

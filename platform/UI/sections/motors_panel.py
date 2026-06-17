@@ -57,11 +57,20 @@ class MotorsPanelBuilder:
 
     def _build_motor_pulse_controls(self, layout: QVBoxLayout) -> None:
         """Controles de steps y velocidad (intervalo) para los motores."""
+        unit_row = QHBoxLayout()
+        unit_row.addWidget(create_stat_label("Unidad:"))
+        from PyQt5.QtWidgets import QComboBox, QDoubleSpinBox
+        self.motor_unit_combo = QComboBox()
+        self.motor_unit_combo.addItems(["Steps", "mm"])
+        unit_row.addWidget(self.motor_unit_combo)
+        layout.addLayout(unit_row)
+
         steps_row = QHBoxLayout()
-        steps_row.addWidget(create_stat_label("Steps:"))
-        self.motor_steps_spin = QSpinBox()
-        self.motor_steps_spin.setRange(*MOTOR_STEPS_RANGE)
-        self.motor_steps_spin.setValue(MOTOR_STEPS_DEFAULT)  # sobrescrito al cargar configuración
+        steps_row.addWidget(create_stat_label("Cantidad:"))
+        self.motor_steps_spin = QDoubleSpinBox()
+        self.motor_steps_spin.setRange(0.001, 10000.0)
+        self.motor_steps_spin.setDecimals(3)
+        self.motor_steps_spin.setValue(1.0)
         self.motor_steps_spin.valueChanged.connect(self.save_motor_sidebar_settings)
         steps_row.addWidget(self.motor_steps_spin)
         layout.addLayout(steps_row)
@@ -86,7 +95,7 @@ class MotorsPanelBuilder:
         directions = [
             ("Y+", "Y",  1), ("Y-", "Y", -1),
             ("X-", "X", -1), ("X+", "X",  1),
-            ("Z+", "Z",  1), ("Z-", "Z", -1),
+            ("Z+", "Z", -1), ("Z-", "Z",  1),
         ]
         buttons = {}
         for label, axis, direction in directions:

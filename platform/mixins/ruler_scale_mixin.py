@@ -19,7 +19,7 @@ from constants import CACHE_DIR
 RULER_CONFIG_FILE = os.path.join(CACHE_DIR, "ruler_config.json")
 
 RULER_DEFAULTS = {
-    "separation_um": 100.0,
+    "separation_px": 100,
     "subdivisions": 5,
     "line_width_large_px": 2,
     "line_width_small_px": 1,
@@ -87,10 +87,16 @@ class RulerScaleMixin:
             self.toggle_pattern_calibration_view()
         if getattr(self, "_motors_view_active", False):
             self.toggle_motors_view()
+        if getattr(self, "_proyecciones_view_active", False):
+            self.toggle_proyecciones_view()
 
         # Ocultar sidebar normal, mostrar panel de regla
         if hasattr(self, "_main_sidebar"):
             self._main_sidebar.setVisible(False)
+        if hasattr(self, "motors_panel_widget"):
+            self.motors_panel_widget.setVisible(False)
+        if hasattr(self, "motor_central_widget"):
+            self.motor_central_widget.setVisible(False)
         if hasattr(self, "ruler_panel_widget"):
             self.ruler_panel_widget.setVisible(True)
 
@@ -185,19 +191,9 @@ class RulerScaleMixin:
         screen_w, screen_h = dims
         cfg = self._ruler_config
 
-        separation_um = cfg["separation_um"]
-        if separation_um <= 0:
-            return None
-
-        separation_mm = separation_um / 1000.0
-        separation_px = separation_mm / mm_per_px
-
-        if separation_px < 1.0:
-            self.log_to_console(
-                f"La separación ({separation_um} µm = {separation_px:.2f} px) "
-                "es menor a 1 píxel. No se pueden resolver las líneas.",
-                "WARNING",
-            )
+        separation_px = cfg.get("separation_px", 100)
+        
+        if separation_px < 0:
             return None
 
         subdivisions = max(0, cfg["subdivisions"])
@@ -235,28 +231,39 @@ class RulerScaleMixin:
         # Dibujar líneas grandes y subdivisiones
         x = 0.0
         last_drawn_x = 0.0
-        while (x + x_offset) < screen_w:
-            last_drawn_x = x
+        
+        # Si la separación es 0, dibujamos una sola línea y paramos
+        if separation_px == 0:
             x_pos = x + x_offset
             x_int = int(round(x_pos))
-            x_start = max(0, x_int - w_large // 2)
-            x_end = min(screen_w, x_start + w_large)
-            canvas[y_top_large:y_bot_large, x_start:x_end] = 255
-
-            # Subdivisiones entre esta línea grande y la siguiente
-            next_x = x + separation_px
-            if (next_x + x_offset) < screen_w and subdivisions > 0:
-                step = separation_px / (subdivisions + 1)
-                for s in range(1, subdivisions + 1):
-                    sx = x + step * s + x_offset
-                    sx_int = int(round(sx))
-                    if sx_int >= screen_w:
-                        break
-                    sx_start = max(0, sx_int - w_small // 2)
-                    sx_end = min(screen_w, sx_start + w_small)
-                    canvas[y_top_small:y_bot_small, sx_start:sx_end] = 255
-
-            x = next_x
+            if x_int < screen_w:
+                x_start = max(0, x_int - w_large // 2)
+                x_end = min(screen_w, x_start + w_large)
+                canvas[y_top_large:y_bot_large, x_start:x_end] = 255
+            last_drawn_x = x
+        else:
+            while (x + x_offset) < screen_w:
+                last_drawn_x = x
+                x_pos = x + x_offset
+                x_int = int(round(x_pos))
+                x_start = max(0, x_int - w_large // 2)
+                x_end = min(screen_w, x_start + w_large)
+                canvas[y_top_large:y_bot_large, x_start:x_end] = 255
+    
+                # Subdivisiones entre esta línea grande y la siguiente
+                next_x = x + separation_px
+                if (next_x + x_offset) < screen_w and subdivisions > 0:
+                    step = separation_px / (subdivisions + 1)
+                    for s in range(1, subdivisions + 1):
+                        sx = x + step * s + x_offset
+                        sx_int = int(round(sx))
+                        if sx_int >= screen_w:
+                            break
+                        sx_start = max(0, sx_int - w_small // 2)
+                        sx_end = min(screen_w, sx_start + w_small)
+                        canvas[y_top_small:y_bot_small, sx_start:sx_end] = 255
+    
+                x = next_x
 
         self._ruler_last_line_distance_px = last_drawn_x
         return canvas
@@ -339,18 +346,140 @@ class RulerScaleMixin:
         self._ruler_running = True
         self._ruler_current_projection = 0
         self._ruler_total_projections = max(1, self._ruler_config["num_projections"])
-        self._ruler_motor_steps_moved = 0
         self._ruler_exposure_time_ms = int(self._ruler_config["exposure_time_s"] * 1000)
 
+        # Validaciones de límites del motor
+        controller = getattr(self, "motor_controller_instance", None)
+        if controller is None or controller.ser is None:
+            self._show_warning("Error", "Controlador de motor desconectado. No se puede hacer la secuencia automática.")
+            self._ruler_running = False
+            return
+            
+        m_sep = self._ruler_config.get("motor_sep_mm", 1.0)
+        tot_len_mm = max(0, self._ruler_total_projections - 1) * m_sep
+        steps_per_mm = 6400.0
+        tot_len_steps = int(round(tot_len_mm * steps_per_mm))
+        
+        axis_limit = controller.limits.get("X", None)
+        if axis_limit is None:
+            self._show_warning("Error", "No hay un limite asignado al eje X. Configure los limites del motor primero.")
+            self._ruler_running = False
+            return
+        
+        # La vuelta previa sera siempre dos vueltas 360 (segun la configuracion del motor X)
+        from motors.main import load_settings
+        settings = load_settings()
+        steps_360_x = settings.get("steps_360", {}).get("X", 3200)
+        self._ruler_preturn_steps = int(steps_360_x) * 2
+        
+        self.log_to_console(f"Vuelta previa configurada: {self._ruler_preturn_steps} steps (2 vueltas 360).", "INFO")
+        
+        # Sumar la vuelta previa al total para la validacion de limites
+        total_needed_steps = tot_len_steps + self._ruler_preturn_steps
+            
+        if total_needed_steps > abs(axis_limit):
+            preturn_mm = self._ruler_preturn_steps / steps_per_mm
+            self._show_warning("Error", 
+                f"El largo total ({tot_len_mm:.3f} mm) + vuelta previa backlash ({preturn_mm:.3f} mm) "
+                f"excede la distancia hasta el limite del motor X.")
+            self._ruler_running = False
+            return
+
         self._ruler_update_ui_state(running=True)
+        
+        preturn_info = ""
+        if self._ruler_preturn_steps > 0:
+            preturn_info = f" (+ vuelta previa backlash: {self._ruler_preturn_steps} steps)"
+        
         self.log_to_console(
-            f"Secuencia de escala iniciada: {self._ruler_total_projections} proyección(es), "
-            f"{self._ruler_config['exposure_time_s']}s cada una.",
+            f"Secuencia iniciada: {self._ruler_total_projections} proyeccion(es), "
+            f"separacion {m_sep} mm.{preturn_info}",
             "SUCCESS",
         )
 
-        # Arrancar la primera exposición directamente
-        self._ruler_expose_step()
+        # 1. Mover al extremo (limite) antes de comenzar
+        self._ruler_update_status("Moviendo al extremo del eje X...")
+        current_pos = controller.positions.get("X", 0)
+        steps_to_limit = axis_limit - current_pos
+        
+        if steps_to_limit != 0:
+            self.log_to_console(f"Moviendo al limite X ({axis_limit} steps)...", "INFO")
+            
+            x_feedrate = settings.get("feedrates", {}).get("X", 5000)
+            x_max_feedrate = settings.get("max_feedrates", {}).get("X", 5000)
+            
+            # La velocidad real fisica no puede superar el limite del firmware
+            effective_feedrate = min(x_feedrate, x_max_feedrate)
+            
+            try:
+                controller.step_move("X", int(steps_to_limit), feedrate=x_feedrate)
+                
+                # Distancia en unidades de firmware (step_size = 1/80)
+                firmware_dist_mm = abs(steps_to_limit) * controller.step_size
+                time_s = firmware_dist_mm / (effective_feedrate / 60.0)
+                wait_time_ms = max(500, int(time_s * 1000) + 1500)
+                
+                self.log_to_console(f"Esperando {time_s:.1f}s de viaje + 1.5s estabilizacion...", "INFO")
+                try: self._ruler_stabilize_timer.timeout.disconnect()
+                except TypeError: pass
+                self._ruler_stabilize_timer.timeout.connect(self._ruler_preturn_step)
+                self._ruler_stabilize_timer.start(wait_time_ms)
+            except Exception as e:
+                self.log_to_console(f"Error moviendo motor: {e}", "ERROR")
+                self._ruler_finish()
+        else:
+            # Ya estamos en el limite
+            self._ruler_preturn_step()
+
+    def _ruler_preturn_step(self):
+        """Ejecuta la vuelta previa de backlash mecanico si es necesario."""
+        if not self._ruler_running:
+            return
+        
+        if self._ruler_preturn_steps <= 0:
+            # No hay vuelta previa, pasar directo a proyectar
+            self._ruler_expose_step()
+            return
+        
+        controller = getattr(self, "motor_controller_instance", None)
+        if controller is None or controller.ser is None:
+            self._ruler_expose_step()
+            return
+        
+        from motors.main import load_settings
+        settings = load_settings()
+        x_feedrate = settings.get("feedrates", {}).get("X", 5000)
+        x_max_feedrate = settings.get("max_feedrates", {}).get("X", 5000)
+        effective_feedrate = min(x_feedrate, x_max_feedrate)
+        
+        current_pos = controller.positions.get("X", 0)
+        # Determinar direccion hacia el origen.
+        # Si el limite (posicion actual) es negativo, el origen (0) esta hacia el positivo.
+        # Si es positivo, el origen esta hacia el negativo.
+        direction_to_origin = 1 if current_pos < 0 else -1
+        return_steps = int(direction_to_origin * self._ruler_preturn_steps)
+        
+        self._ruler_update_status("Vuelta previa (backlash mecanico)...")
+        self.log_to_console(
+            f"Vuelta previa: moviendo {self._ruler_preturn_steps} steps hacia el origen para enganchar engranajes...", "INFO"
+        )
+        
+        try:
+            # Mover hacia el origen por la cantidad de backlash
+            controller.step_move("X", return_steps, feedrate=x_feedrate, ignore_limits=False)
+            
+            firmware_dist = abs(return_steps) * controller.step_size
+            time_s = firmware_dist / (effective_feedrate / 60.0)
+            wait_ms = max(500, int(time_s * 1000) + 1000)
+            
+            try: self._ruler_stabilize_timer.timeout.disconnect()
+            except TypeError: pass
+            self._ruler_stabilize_timer.timeout.connect(self._ruler_expose_step)
+            self._ruler_stabilize_timer.start(wait_ms)
+        except Exception as e:
+            self.log_to_console(f"Error en vuelta previa: {e}", "ERROR")
+            self._ruler_expose_step()
+
 
     def _ruler_expose_step(self):
         """Proyecta la imagen de escala e inicia el timer de exposición."""
@@ -390,77 +519,86 @@ class RulerScaleMixin:
         self._ruler_move_step()
 
     def _ruler_move_step(self):
-        """Mueve el motor en X la distancia equivalente al ancho de pantalla."""
+        """Mueve el motor en X en dirección al origen (negativo) por la separación asignada."""
         controller = getattr(self, "motor_controller_instance", None)
         if controller is None or controller.ser is None:
-            self.log_to_console(
-                "Motor no conectado. Proyectando sin desplazamiento.",
-                "WARNING",
-            )
-            # Continuar sin mover
+            self.log_to_console("Motor no conectado.", "WARNING")
             self._ruler_stabilize_timer.start(100)
             return
 
-        mm_per_px = self._get_calibration_factor()
-        dims = self._get_screen_dimensions()
-        if mm_per_px is None or dims is None:
-            self._ruler_update_status("Error: Sin calibración o monitor.")
+        m_sep = self._ruler_config.get("motor_sep_mm", 1.0)
+        if m_sep <= 0:
+            self._ruler_stabilize_timer.start(100)
+            return
+            
+        steps_per_mm = 6400.0
+        steps_to_move = int(round(m_sep * steps_per_mm))
+        
+        # Validar si nos pasaríamos del origen (0)
+        current_pos = controller.positions.get("X", 0)
+        if abs(current_pos) - steps_to_move < 0:
+            self._ruler_update_status("Se alcanzó el origen prematuramente.")
+            self.log_to_console("Origen (0) alcanzado. Deteniendo secuencia.", "WARNING")
+            self._ruler_finish()
             return
 
-        screen_w, _ = dims
-        
-        step_mode = self._ruler_config.get("step_mode", "Pantalla Completa")
-        if step_mode == "Solapar última línea" and hasattr(self, "_ruler_last_line_distance_px"):
-            move_distance_mm = self._ruler_last_line_distance_px * mm_per_px
-            if move_distance_mm <= 0:
-                move_distance_mm = screen_w * mm_per_px # Fallback
-        else:
-            move_distance_mm = screen_w * mm_per_px
-            
-        steps_to_move = controller.mm_to_steps("X", move_distance_mm)
+        direction_sign = 1 if current_pos < 0 else -1
+        move_steps = int(direction_sign * steps_to_move)
 
         self._ruler_update_status("Moviendo motor X...")
-
+        
+        from motors.main import load_settings
+        settings = load_settings()
+        x_feedrate = settings.get("feedrates", {}).get("X", 5000)
+        x_max_feedrate = settings.get("max_feedrates", {}).get("X", 5000)
+        
+        effective_feedrate = min(x_feedrate, x_max_feedrate)
+        
         self.log_to_console(
-            f"Iniciando movimiento del Motor X: +{steps_to_move} pasos ({move_distance_mm:.3f} mm, Modo: {step_mode})...",
-            "INFO"
+            f"Moviendo Motor X: {move_steps} pasos hacia origen ({m_sep:.3f} mm a F{x_feedrate})...", "INFO"
         )
-        self.log_to_console("  (La proyección se mantendrá apagada durante el movimiento)", "INFO")
+
+        # Distancia en unidades de firmware (step_size = 1/80)
+        firmware_dist_mm = abs(move_steps) * controller.step_size
+        time_s = firmware_dist_mm / (effective_feedrate / 60.0)
+        wait_time_ms = max(500, int(time_s * 1000) + 1500) # 1.5s extra de estabilización
 
         try:
-            controller.step_move("X", 1, steps_to_move)
-            self._ruler_motor_steps_moved += steps_to_move
-            self.log_to_console(
-                f"Movimiento completado (+{steps_to_move} pasos). Esperando estabilización...",
-                "SUCCESS",
-            )
+            controller.step_move("X", move_steps, feedrate=x_feedrate)
+            self.log_to_console(f"Estabilizando {wait_time_ms/1000:.1f}s ({firmware_dist_mm:.1f}mm firmware a F{effective_feedrate})...", "SUCCESS")
         except Exception as e:
             self.log_to_console(f"Error moviendo motor: {e}", "ERROR")
+            wait_time_ms = 500
 
-        # Esperar estabilización antes de la siguiente exposición
-        self._ruler_stabilize_timer.start(500)
+        self._ruler_stabilize_timer.start(wait_time_ms)
 
     def _ruler_finish(self):
-        """Finaliza la secuencia y regresa el motor al origen."""
+        """Finaliza la secuencia y regresa el motor al origen (0)."""
         controller = getattr(self, "motor_controller_instance", None)
 
-        if controller is not None and controller.ser is not None and self._ruler_motor_steps_moved > 0:
-            self._ruler_update_status("Regresando motor a posición inicial...")
-            self.log_to_console(f"Devolviendo Motor X al origen (-{self._ruler_motor_steps_moved} pasos)...", "INFO")
-            try:
-                controller.step_move("X", -1, self._ruler_motor_steps_moved)
-                self.log_to_console(
-                    f"Motor X regresado correctamente al origen.",
-                    "SUCCESS",
-                )
-            except Exception as e:
-                self.log_to_console(f"Error regresando motor: {e}", "ERROR")
+        if controller is not None and controller.ser is not None:
+            current_pos = controller.positions.get("X", 0)
+            if current_pos != 0:
+                self._ruler_update_status("Regresando motor al origen...")
+                
+                from motors.main import load_settings
+                settings = load_settings()
+                x_feedrate = settings.get("feedrates", {}).get("X", 5000)
+                x_max_feedrate = settings.get("max_feedrates", {}).get("X", 5000)
+                
+                effective_feedrate = min(x_feedrate, x_max_feedrate)
+                
+                self.log_to_console(f"Devolviendo Motor X al origen ({-current_pos} pasos a F{x_feedrate})...", "INFO")
+                try:
+                    controller.step_move("X", int(-current_pos), feedrate=x_feedrate, ignore_limits=True)
+                    self.log_to_console("Motor X regresado correctamente al origen (0).", "SUCCESS")
+                except Exception as e:
+                    self.log_to_console(f"Error regresando motor: {e}", "ERROR")
 
         self._ruler_running = False
-        self._ruler_motor_steps_moved = 0
         self._ruler_update_ui_state(running=False)
         self._ruler_update_status("Secuencia completada")
-        self.log_to_console("Secuencia de regla de escala completada.", "SUCCESS")
+        self.log_to_console("Secuencia Step-and-Repeat completada.", "SUCCESS")
 
     def stop_ruler_sequence(self):
         """Aborta la secuencia en curso."""
@@ -476,22 +614,79 @@ class RulerScaleMixin:
 
         # Regresar motor
         controller = getattr(self, "motor_controller_instance", None)
-        if controller is not None and controller.ser is not None and self._ruler_motor_steps_moved > 0:
-            self.log_to_console(f"Devolviendo Motor X al origen (-{self._ruler_motor_steps_moved} pasos)...", "INFO")
-            try:
-                controller.step_move("X", -1, self._ruler_motor_steps_moved)
-                self.log_to_console(
-                    f"Motor X regresado correctamente al origen.",
-                    "SUCCESS",
-                )
-            except Exception as e:
-                self.log_to_console(f"Error regresando motor: {e}", "ERROR")
+        if controller is not None and controller.ser is not None:
+            current_pos = controller.positions.get("X", 0)
+            if current_pos != 0:
+                from motors.main import load_settings
+                settings = load_settings()
+                x_feedrate = settings.get("feedrates", {}).get("X", 5000)
+                x_max_feedrate = settings.get("max_feedrates", {}).get("X", 5000)
+                
+                effective_feedrate = min(x_feedrate, x_max_feedrate)
+                
+                self.log_to_console(f"Devolviendo Motor X al origen ({-current_pos} pasos a F{x_feedrate})...", "INFO")
+                try:
+                    controller.step_move("X", int(-current_pos), feedrate=x_feedrate, ignore_limits=True)
+                    self.log_to_console("Motor X regresado correctamente al origen.", "SUCCESS")
+                except Exception as e:
+                    self.log_to_console(f"Error regresando motor: {e}", "ERROR")
 
         self._ruler_running = False
-        self._ruler_motor_steps_moved = 0
         self._ruler_update_ui_state(running=False)
         self._ruler_update_status("Secuencia detenida")
         self.log_to_console("Secuencia de escala detenida por el usuario.", "WARNING")
+
+    def _ruler_go_home_x(self):
+        """Mueve el motor X de regreso a su posición de inicio lógica (0) usando la odometría."""
+        controller = getattr(self, "motor_controller_instance", None)
+        if controller is None or not controller.ser:
+            self._show_warning("Error", "Controlador de motor desconectado.")
+            return
+            
+        current_steps = controller.positions.get("X", 0)
+        if current_steps == 0:
+            return
+            
+        try:
+            self.ruler_panel_widget.setEnabled(False)
+            self.log_to_console(f"Regresando motor X al origen ({-current_steps} steps)...", "INFO")
+            controller.step_move("X", -current_steps, 1, ignore_limits=True)
+            self.log_to_console("Motor X en origen", "SUCCESS")
+        except Exception as e:
+            self.log_to_console(f"Error al regresar al origen: {e}", "ERROR")
+        finally:
+            self.ruler_panel_widget.setEnabled(True)
+
+    def _ruler_manual_move(self, direction):
+        """Mueve manualmente el motor X la distancia especificada en mm."""
+        controller = getattr(self, "motor_controller_instance", None)
+        if controller is None or controller.ser is None:
+            self.log_to_console("Motor no conectado. No se puede mover.", "WARNING")
+            return
+            
+        dist_mm = getattr(self, "ruler_motor_dist_input", None)
+        if dist_mm is None: return
+        dist_val = dist_mm.value()
+        if dist_val <= 0: return
+        
+        steps_per_mm = 6400.0
+        steps = int(round(dist_val * steps_per_mm))
+        
+        axis_limit = controller.limits.get("X", None)
+        if axis_limit is None: axis_limit = float('inf')
+        current_pos = controller.positions.get("X", 0)
+        target_pos = current_pos + (steps * direction)
+        
+        if target_pos < 0 or target_pos > axis_limit:
+            self.log_to_console(f"Movimiento manual excede límites del motor X (0 - {axis_limit} steps). Destino: {target_pos}.", "WARNING")
+            return
+            
+        try:
+            controller.step_move("X", direction, steps)
+            sign = "+" if direction > 0 else "-"
+            self.log_to_console(f"Motor X movido {sign}{steps} pasos ({sign}{dist_val:.3f} mm) manualmente.", "INFO")
+        except Exception as e:
+            self.log_to_console(f"Error en movimiento manual: {e}", "ERROR")
 
     # ═══════════════════════════════════════════════════════════════════════
     # UI HELPERS
@@ -547,6 +742,28 @@ class RulerScaleMixin:
         w_um = w_mm * 1000
         h_um = h_mm * 1000
         self.ruler_info_dim_um.setText(f"Dimensión: {w_um:.1f} × {h_um:.1f} µm")
+        
+        if hasattr(self, "lbl_ruler_sep_um") and hasattr(self, "_ruler_config"):
+            sep_px = self._ruler_config.get("separation_px", 0)
+            if sep_px > 0:
+                sep_um = sep_px * mm_per_px * 1000.0
+                self.lbl_ruler_sep_um.setText(f"~ {sep_um:.1f} µm")
+            else:
+                self.lbl_ruler_sep_um.setText("~ 0 µm")
+
+        if hasattr(self, "lbl_ruler_total_len") and hasattr(self, "_ruler_config"):
+            n_proj = self._ruler_config.get("num_projections", 1)
+            m_sep = self._ruler_config.get("motor_sep_mm", 1.0)
+            tot_len = max(0, n_proj - 1) * m_sep
+            self.lbl_ruler_total_len.setText(f"Largo total a recorrer: {tot_len:.3f} mm")
+            
+        # Sincronizar el spinbox de px con el porcentaje actual
+        if hasattr(self, "ruler_height_px_spin") and hasattr(self, "ruler_height_pct_spin"):
+            pct = self.ruler_height_pct_spin.value()
+            px = int(h * pct / 100.0)
+            self.ruler_height_px_spin.blockSignals(True)
+            self.ruler_height_px_spin.setValue(px)
+            self.ruler_height_px_spin.blockSignals(False)
 
     # ═══════════════════════════════════════════════════════════════════════
     # PERSISTENCIA
@@ -575,9 +792,8 @@ class RulerScaleMixin:
     def _sync_ruler_config_from_ui(self):
         """Lee los valores actuales de los widgets y los guarda en _ruler_config."""
         try:
-            self._ruler_config["separation_um"] = float(
-                self.ruler_separation_input.text().replace(",", ".")
-            )
+            val_text = self.ruler_separation_input.text().replace(",", ".")
+            self._ruler_config["separation_px"] = int(round(float(val_text)))
         except (ValueError, AttributeError):
             pass
 
@@ -586,8 +802,8 @@ class RulerScaleMixin:
             ("ruler_line_large_spin", "line_width_large_px"),
             ("ruler_line_small_spin", "line_width_small_px"),
             ("ruler_height_pct_spin", "line_height_pct"),
-            ("ruler_num_proj_spin", "num_projections"),
             ("ruler_offset_spin", "offset_x"),
+            ("ruler_num_proj_spin", "num_projections"),
         ]:
             widget = getattr(self, attr, None)
             if widget is not None:
@@ -596,8 +812,8 @@ class RulerScaleMixin:
         if hasattr(self, "ruler_alignment_combo"):
             self._ruler_config["alignment"] = self.ruler_alignment_combo.currentText()
             
-        if hasattr(self, "ruler_step_mode_combo"):
-            self._ruler_config["step_mode"] = self.ruler_step_mode_combo.currentText()
+        if hasattr(self, "ruler_motor_sep_spin"):
+            self._ruler_config["motor_sep_mm"] = self.ruler_motor_sep_spin.value()
 
         try:
             self._ruler_config["exposure_time_s"] = float(

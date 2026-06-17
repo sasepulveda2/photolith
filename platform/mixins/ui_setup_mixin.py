@@ -111,13 +111,21 @@ class UISetupMixin(
         self.motor_central_layout = QVBoxLayout(self.motor_central_widget)
         self.motor_central_layout.setContentsMargins(0,0,0,0)
 
+        self.proyecciones_central_widget = QWidget()
+        self.proyecciones_central_widget.setVisible(False)
+        self.proyecciones_central_layout = QVBoxLayout(self.proyecciones_central_widget)
+        self.proyecciones_central_layout.setContentsMargins(0,0,0,0)
+
         self.motors_panel_widget = QWidget()
+        self.motors_panel_widget.setMinimumWidth(SIDEBAR_MIN_WIDTH)
+        self.motors_panel_widget.setMaximumWidth(SIDEBAR_MAX_WIDTH)
         self.motors_panel_widget.setVisible(False)
         self.motors_panel_layout = QVBoxLayout(self.motors_panel_widget)
         self.motors_panel_layout.setContentsMargins(0,0,0,0)
 
         canvas_layout.addWidget(self.canvas_container, stretch=3)
         canvas_layout.addWidget(self.motor_central_widget, stretch=3)
+        canvas_layout.addWidget(self.proyecciones_central_widget, stretch=3)
         canvas_layout.addWidget(sidebar, stretch=1)
         canvas_layout.addWidget(self.ruler_panel_widget, stretch=1)
         canvas_layout.addWidget(self.pattern_calib_sidebar_widget, stretch=1)

@@ -245,25 +245,15 @@ class LithographySimulator(
                 from motors.gui import MotorGUI, MotorPreferencesGUI
                 from PyQt5.QtWidgets import QMessageBox
 
+                if getattr(self, "motor_controller_instance", None) is None:
+                    self.connect_motors_sidebar()
+
+                controller = getattr(self, "motor_controller_instance", None)
+                if controller is None:
+                    # Si sigue siendo None, la conexión falló o el usuario canceló
+                    return
+
                 settings = load_settings()
-                puerto, baud = seleccionar_puerto_y_baud(settings)
-
-                if not puerto:
-                    return
-
-                controller = CrealityController(
-                    puerto.device, 
-                    baud=baud,
-                    initial_positions=settings.get("positions", {}),
-                    mapping=settings.get("mapping")
-                )
-                if not controller.connect():
-                    QMessageBox.critical(self, "Error de Conexión", f"No se pudo conectar a la placa en {puerto.device}.")
-                    return
-
-                settings["port_identity"] = puerto_key(puerto)
-                settings["baud"] = baud
-                save_settings(settings)
 
                 def guardar_posiciones(positions):
                     settings["positions"] = positions
@@ -285,8 +275,48 @@ class LithographySimulator(
                     settings["feedrates"] = feedrates
                     save_settings(settings)
 
+                def guardar_max_feedrates(max_feedrates):
+                    settings["max_feedrates"] = max_feedrates
+                    save_settings(settings)
+
+                def guardar_limites(limits):
+                    settings["limits"] = limits
+                    save_settings(settings)
+                    
+                def guardar_limits_enabled(enabled):
+                    settings["limits_enabled"] = enabled
+                    save_settings(settings)
+                    
+                def guardar_arrow_axis(axis):
+                    settings["arrow_updown_axis"] = axis
+                    save_settings(settings)
+                    # Sincronizar con MotorGUI
+                    if hasattr(self, "motor_gui"):
+                        self.motor_gui.arrow_updown_axis = axis
+                    
+                def guardar_backlash_steps(steps):
+                    settings["backlash_steps"] = steps
+                    save_settings(settings)
+                    
+                def guardar_backlash_enabled(enabled):
+                    settings["backlash_enabled"] = enabled
+                    save_settings(settings)
+
+                def guardar_keyboard_mode(mode):
+                    settings["keyboard_mode"] = mode
+                    save_settings(settings)
+                    # Sincronizar con MotorGUI
+                    if hasattr(self, "motor_gui"):
+                        self.motor_gui.keyboard_mode = mode
+
                 controller.on_positions_changed = guardar_posiciones
                 controller.on_last_movement_changed = guardar_ultimo_movimiento
+                controller.on_limits_changed = guardar_limites
+                controller.on_limits_enabled_changed = guardar_limits_enabled
+                
+                # Apply backlash settings to controller
+                controller.backlash = settings.get("backlash_steps", {"X": 0, "Y": 0, "Z": 0, "E": 0})
+                controller.backlash_enabled = settings.get("backlash_enabled", True)
 
                 # Instanciamos el MotorGUI en el centro
                 self.motor_gui = MotorGUI(
@@ -294,7 +324,11 @@ class LithographySimulator(
                     mapping=settings.get("mapping"), 
                     on_mapping_changed=guardar_mapping,
                     steps_360=settings.get("steps_360"),
-                    on_steps_360_changed=guardar_steps_360
+                    on_steps_360_changed=guardar_steps_360,
+                    feedrates=settings.get("feedrates"),
+                    on_feedrates_changed=guardar_feedrates,
+                    arrow_updown_axis=settings.get("arrow_updown_axis", "Y"),
+                    keyboard_mode=settings.get("keyboard_mode", "set_movement")
                 )
                 from PyQt5.QtCore import Qt
                 self.motor_gui.setMaximumWidth(900)
@@ -308,7 +342,17 @@ class LithographySimulator(
                     steps_360=settings.get("steps_360"),
                     on_steps_360_changed=guardar_steps_360,
                     feedrates=settings.get("feedrates"),
-                    on_feedrates_changed=guardar_feedrates
+                    on_feedrates_changed=guardar_feedrates,
+                    max_feedrates=settings.get("max_feedrates"),
+                    on_max_feedrates_changed=guardar_max_feedrates,
+                    arrow_updown_axis=settings.get("arrow_updown_axis", "Y"),
+                    on_arrow_axis_changed=guardar_arrow_axis,
+                    backlash_steps=settings.get("backlash_steps", {"X": 0, "Y": 0, "Z": 0, "E": 0}),
+                    on_backlash_steps_changed=guardar_backlash_steps,
+                    backlash_enabled=settings.get("backlash_enabled", True),
+                    on_backlash_enabled_changed=guardar_backlash_enabled,
+                    keyboard_mode=settings.get("keyboard_mode", "set_movement"),
+                    on_keyboard_mode_changed=guardar_keyboard_mode
                 )
                 self.motors_panel_layout.addWidget(self.motor_prefs_gui)
 
@@ -326,12 +370,16 @@ class LithographySimulator(
                 self.toggle_ruler_scale_view()
             if getattr(self, "_pattern_calib_view_active", False):
                 self.toggle_pattern_calibration_view()
+            if getattr(self, "_proyecciones_view_active", False):
+                self.toggle_proyecciones_view()
 
             # Ocultar canvas normal y sidebar normal
             if hasattr(self, "canvas_container"):
                 self.canvas_container.setVisible(False)
             if hasattr(self, "_main_sidebar"):
                 self._main_sidebar.setVisible(False)
+            if hasattr(self, "ruler_panel_widget"):
+                self.ruler_panel_widget.setVisible(False)
 
             # Mostrar panels de motores
             if hasattr(self, "motor_central_widget"):
@@ -357,6 +405,63 @@ class LithographySimulator(
             if hasattr(self, "_main_sidebar"):
                 self._main_sidebar.setVisible(True)
 
+    def toggle_proyecciones_view(self):
+        """Muestra u oculta la vista de Proyecciones."""
+        if not hasattr(self, "_proyecciones_view_active"):
+            self._proyecciones_view_active = False
+
+        if not getattr(self, "_proyecciones_view_active", False):
+            # Activar Vista Proyecciones
+            self._proyecciones_view_active = True
+            if hasattr(self, "btn_proyecciones"):
+                self.btn_proyecciones.setText(" Volver al editor")
+                self.btn_proyecciones.setChecked(True)
+
+            # Desactivar otras vistas
+            if getattr(self, "_motors_view_active", False):
+                self.toggle_motors_view()
+            if getattr(self, "grid_view_active", False):
+                self.toggle_grid_view()
+            if getattr(self, "calibration_view_active", False):
+                self.toggle_calibration_view()
+            if getattr(self, "_ruler_scale_view_active", False):
+                self.toggle_ruler_scale_view()
+            if getattr(self, "_pattern_calib_view_active", False):
+                self.toggle_pattern_calibration_view()
+
+            # Ocultar canvas normal y sidebar normal
+            if hasattr(self, "canvas_container"):
+                self.canvas_container.setVisible(False)
+            if hasattr(self, "_main_sidebar"):
+                self._main_sidebar.setVisible(False)
+
+            # Mostrar panel de proyecciones
+            if not hasattr(self, "proyecciones_panel_widget"):
+                from UI.sections.proyecciones_panel import ProyeccionesGUI
+                self.proyecciones_panel_widget = ProyeccionesGUI(main_app=self, controller=getattr(self, "motor_controller_instance", None))
+                if hasattr(self, "proyecciones_central_layout"):
+                    self.proyecciones_central_layout.addWidget(self.proyecciones_panel_widget)
+            
+            if hasattr(self, "proyecciones_central_widget"):
+                self.proyecciones_central_widget.setVisible(True)
+
+        else:
+            # Desactivar Vista Proyecciones
+            self._proyecciones_view_active = False
+            if hasattr(self, "btn_proyecciones"):
+                self.btn_proyecciones.setText(" Proyecciones")
+                self.btn_proyecciones.setChecked(False)
+            
+            # Ocultar panel de proyecciones
+            if hasattr(self, "proyecciones_central_widget"):
+                self.proyecciones_central_widget.setVisible(False)
+                
+            # Mostrar canvas normal y sidebar normal
+            if hasattr(self, "canvas_container"):
+                self.canvas_container.setVisible(True)
+            if hasattr(self, "_main_sidebar"):
+                self._main_sidebar.setVisible(True)
+
     # ═══════════════════════════════════════════════════════════════════════════
     # LÓGICA DE CONTROLADORES DE MOTOR (SIDEBAR INTEGRADA)
     # ═══════════════════════════════════════════════════════════════════════════
@@ -365,15 +470,19 @@ class LithographySimulator(
         try:
             from motors.main import load_settings
             settings = load_settings()
-            self._motor_sidebar_steps = settings.get("sidebar_steps", 1)
-            self._motor_sidebar_interval = settings.get("sidebar_interval", 100)
+            self._motor_sidebar_steps = float(settings.get("sidebar_steps", 1.0))
+            self._motor_sidebar_interval = int(settings.get("sidebar_interval", 100))
+            self._motor_sidebar_unit = settings.get("sidebar_unit", "Steps")
         except ImportError:
-            self._motor_sidebar_steps = 1
+            self._motor_sidebar_steps = 1.0
             self._motor_sidebar_interval = 100
+            self._motor_sidebar_unit = "Steps"
 
         # Asignar a la UI si ya está construida
         if hasattr(self, 'motor_steps_spin'):
             self.motor_steps_spin.setValue(self._motor_sidebar_steps)
+        if hasattr(self, 'motor_unit_combo'):
+            self.motor_unit_combo.setCurrentText(self._motor_sidebar_unit)
         if hasattr(self, 'motor_interval_spin'):
             self.motor_interval_spin.setValue(self._motor_sidebar_interval)
             self.update_motor_autorepeat_settings(self._motor_sidebar_interval)
@@ -392,8 +501,10 @@ class LithographySimulator(
         try:
             from motors.main import load_settings, save_settings
             settings = load_settings()
-            settings["sidebar_steps"] = steps
-            settings["sidebar_interval"] = interval
+            settings["sidebar_steps"] = float(steps)
+            settings["sidebar_interval"] = int(interval)
+            if hasattr(self, "motor_unit_combo"):
+                settings["sidebar_unit"] = self.motor_unit_combo.currentText()
             save_settings(settings)
         except ImportError:
             pass
@@ -430,6 +541,19 @@ class LithographySimulator(
             initial_positions=settings.get("positions", {}),
             mapping=settings.get("mapping")
         )
+        self.motor_controller_instance.limits_enabled = settings.get("limits_enabled", False)
+        self.motor_controller_instance.limits = settings.get("limits", {"X": None, "Y": None, "Z": None, "E": None})
+        
+        def save_limits(limits):
+            settings["limits"] = limits
+            save_settings(settings)
+            
+        def save_limits_enabled(enabled):
+            settings["limits_enabled"] = enabled
+            save_settings(settings)
+            
+        self.motor_controller_instance.on_limits_changed = save_limits
+        self.motor_controller_instance.on_limits_enabled_changed = save_limits_enabled
         
         if not self.motor_controller_instance.connect():
             self.motors_sidebar_status.setText("Fallo Conexión")
@@ -454,11 +578,31 @@ class LithographySimulator(
             if self.motor_controller_instance is None:
                 return
                 
-        steps_base = direction
-        multiplicador = self.motor_steps_spin.value()
+        try:
+            from motors.main import load_settings
+            settings = load_settings()
+            steps_360 = settings.get("steps_360", {"X": 3200, "Y": 3200, "Z": 640, "E": 3200})
+        except ImportError:
+            steps_360 = {"X": 3200, "Y": 3200, "Z": 640, "E": 3200}
+            
+        valor = self.motor_steps_spin.value()
+        unidad = "Steps"
+        if hasattr(self, "motor_unit_combo"):
+            unidad = self.motor_unit_combo.currentText()
+            
+        steps_per_rev = steps_360.get(axis, 3200)
+        steps_per_mm = 2 * steps_per_rev
+        
+        if unidad == "mm":
+            steps_totales = int(round(valor * steps_per_mm)) * direction
+        else:
+            steps_totales = int(valor) * direction
         
         try:
-            self.motor_controller_instance.step_move(axis, steps_base, multiplicador)
+            self.motor_controller_instance.step_move(axis, steps_totales, 1)
+        except ValueError as ve:
+            # Límite de seguridad alcanzado
+            self.log_to_console(f"Motor {axis} bloqueado: {str(ve)}", "WARNING")
         except Exception:
             self.motors_sidebar_status.setText("Reconectando...")
             self.motors_sidebar_status.setStyleSheet("color: #FFC107; font-weight: bold;")
@@ -467,7 +611,7 @@ class LithographySimulator(
                 self.motors_sidebar_status.setText("Conectado (Listo)")
                 self.motors_sidebar_status.setStyleSheet("color: #A0A0A0; font-weight: bold;")
                 # Reintentar el comando
-                self.motor_controller_instance.step_move(axis, steps_base, multiplicador)
+                self.motor_controller_instance.step_move(axis, steps_totales, 1)
             else:
                 self.motors_sidebar_status.setText("Fallo Conexión")
                 self.motors_sidebar_status.setStyleSheet("color: #F44336; font-weight: bold;")

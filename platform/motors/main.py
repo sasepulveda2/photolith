@@ -68,7 +68,16 @@ def load_settings():
             "Z": {"motor": "Z", "invert": False},
             "E": {"motor": "E", "invert": False}
         },
-        "steps_360": {"X": 3200, "Y": 3200, "Z": 640, "E": 3200}
+        "steps_360": {"X": 3200, "Y": 3200, "Z": 640, "E": 3200},
+        "feedrates": {"X": 5000, "Y": 5000, "Z": 500, "E": 5000},
+        "max_feedrates": {"X": 5000, "Y": 5000, "Z": 500, "E": 5000},
+        "limits_enabled": False,
+        "limits": {"X": None, "Y": None, "Z": None, "E": None},
+        "arrow_updown_axis": "Y",
+        "backlash_enabled": True,
+        "backlash_steps": {"X": 0, "Y": 0, "Z": 0, "E": 0},
+        "backlash_enabled": True,
+        "keyboard_mode": "set_movement", # "set_movement" or "360"
     }
     try:
         data = json.loads(SETTINGS_FILE.read_text(encoding="utf-8"))
@@ -107,6 +116,45 @@ def load_settings():
                     defaults["steps_360"][logical] = int(steps_360[logical])
                 except (TypeError, ValueError):
                     pass
+
+    max_feedrates = data.get("max_feedrates")
+    if isinstance(max_feedrates, dict):
+        for logical in ["X", "Y", "Z", "E"]:
+            if logical in max_feedrates:
+                try:
+                    defaults["max_feedrates"][logical] = int(max_feedrates[logical])
+                except (TypeError, ValueError):
+                    pass
+
+    defaults["limits_enabled"] = bool(data.get("limits_enabled", False))
+    limits = data.get("limits")
+    if isinstance(limits, dict):
+        for axis in ["X", "Y", "Z", "E"]:
+            val = limits.get(axis)
+            if val is not None:
+                try:
+                    defaults["limits"][axis] = int(val)
+                except (TypeError, ValueError):
+                    pass
+
+    arrow = data.get("arrow_updown_axis")
+    if arrow in ["Y", "Z"]:
+        defaults["arrow_updown_axis"] = arrow
+
+    defaults["backlash_enabled"] = bool(data.get("backlash_enabled", True))
+    
+    backlash_steps = data.get("backlash_steps")
+    if isinstance(backlash_steps, dict):
+        for logical in ["X", "Y", "Z", "E"]:
+            if logical in backlash_steps:
+                try:
+                    defaults["backlash_steps"][logical] = int(backlash_steps[logical])
+                except (TypeError, ValueError):
+                    pass
+                    
+    keyboard_mode = data.get("keyboard_mode")
+    if keyboard_mode in ["set_movement", "360"]:
+        defaults["keyboard_mode"] = keyboard_mode
 
     return defaults
 
@@ -311,6 +359,10 @@ if __name__ == "__main__":
             settings["steps_360"] = steps
             save_settings(settings)
 
+        def guardar_arrow_axis(axis):
+            settings["arrow_updown_axis"] = axis
+            save_settings(settings)
+
         controller.on_positions_changed = guardar_posiciones
         controller.on_last_movement_changed = guardar_ultimo_movimiento
 
@@ -319,7 +371,9 @@ if __name__ == "__main__":
             mapping=settings.get("mapping"), 
             on_mapping_changed=guardar_mapping,
             steps_360=settings.get("steps_360"),
-            on_steps_360_changed=guardar_steps_360
+            on_steps_360_changed=guardar_steps_360,
+            arrow_updown_axis=settings.get("arrow_updown_axis", "Y"),
+            on_arrow_axis_changed=guardar_arrow_axis
         )
         window.show()
         sys.exit(app.exec_())
@@ -358,10 +412,20 @@ if __name__ == "__main__":
             settings["mapping"] = mapping
             save_settings(settings)
 
+        def guardar_arrow_axis(axis):
+            settings["arrow_updown_axis"] = axis
+            save_settings(settings)
+
         controller.on_positions_changed = guardar_posiciones
         controller.on_last_movement_changed = guardar_ultimo_movimiento
 
-        window = MotorGUI(controller, mapping=settings.get("mapping"), on_mapping_changed=guardar_mapping)
+        window = MotorGUI(
+            controller, 
+            mapping=settings.get("mapping"), 
+            on_mapping_changed=guardar_mapping,
+            arrow_updown_axis=settings.get("arrow_updown_axis", "Y"),
+            on_arrow_axis_changed=guardar_arrow_axis
+        )
         window.show()
         sys.exit(app.exec_())
 

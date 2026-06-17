@@ -74,6 +74,8 @@ class SpatialCalibrationMixin:
             self.toggle_ruler_scale_view()
         if getattr(self, "_motors_view_active", False):
             self.toggle_motors_view()
+        if getattr(self, "_proyecciones_view_active", False):
+            self.toggle_proyecciones_view()
 
         # Ocultar sidebar normal
         if hasattr(self, "_main_sidebar"):

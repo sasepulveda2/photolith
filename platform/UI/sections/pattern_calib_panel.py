@@ -16,14 +16,27 @@ class PatternCalibPanelBuilder:
 
     def _build_pattern_calib_section(self):
         """Construye el sidebar dedicado que reemplaza al sidebar principal."""
+        from PyQt5.QtWidgets import QScrollArea
+        
         self.pattern_calib_sidebar_widget = QWidget()
         self.pattern_calib_sidebar_widget.setVisible(False)
         self.pattern_calib_sidebar_widget.setMinimumWidth(SIDEBAR_MIN_WIDTH)
         self.pattern_calib_sidebar_widget.setMaximumWidth(SIDEBAR_MAX_WIDTH)
-
-        main_layout = QVBoxLayout(self.pattern_calib_sidebar_widget)
+        
+        outer_layout = QVBoxLayout(self.pattern_calib_sidebar_widget)
+        outer_layout.setContentsMargins(0, 0, 0, 0)
+        
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QFrame.NoFrame if 'QFrame' in globals() else 0)
+        
+        content_widget = QWidget()
+        main_layout = QVBoxLayout(content_widget)
         main_layout.setContentsMargins(10, 10, 10, 10)
         main_layout.setSpacing(10)
+        
+        scroll.setWidget(content_widget)
+        outer_layout.addWidget(scroll)
 
         title = QLabel("CALIBRACIÓN DE PATRÓN")
         title.setAlignment(Qt.AlignCenter)
