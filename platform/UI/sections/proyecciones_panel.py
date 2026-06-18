@@ -35,6 +35,7 @@ class ShapeDimensionDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle(title)
         self.setModal(True)
+        self.setStyleSheet("QDialog { } QLabel { font-weight: bold; } QLineEdit { border: 1px solid #555; padding: 4px; }")
         
         lay = QFormLayout(self)
         
@@ -49,7 +50,8 @@ class ShapeDimensionDialog(QDialog):
             lay.addRow("Alto (mm):", self.inp_h)
             
         self.btn_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        self.        self.btn_box.accepted.connect(self.accept)
+        self.btn_box.setStyleSheet("QPushButton { border: 1px solid #555; padding: 4px 12px; }")
+        self.btn_box.accepted.connect(self.accept)
         self.btn_box.rejected.connect(self.reject)
         lay.addWidget(self.btn_box)
 
@@ -65,6 +67,17 @@ class ShapeDimensionDialog(QDialog):
         return w, h
 
 
+
+
+
+# -- constantes de estilo (sobrio, sin colores brillantes) --
+_STYLE_FRAME = "QFrame { border: 1px solid #333; border-radius: 6px; padding: 8px; }"
+_STYLE_LABEL = "border: none; font-size: 13px;"
+_STYLE_TITLE = "font-size: 14px; font-weight: bold; border: none;"
+_STYLE_INPUT = "border: 1px solid #3A3A3A; padding: 5px; font-size: 13px;"
+_STYLE_BTN = "padding: 8px; border-radius: 4px; font-size: 13px; border: 1px solid #3A3A3A;"
+_STYLE_BTN_ACTION = "padding: 10px; font-weight: bold; font-size: 13px; border-radius: 5px; border: 1px solid #444;"
+_STYLE_BTN_DANGER = "background-color: #f44336; color: white; padding: 10px; font-weight: bold; font-size: 13px; border-radius: 5px;"
 
 
 class ProyeccionesGUI(QWidget):
@@ -118,11 +131,13 @@ class ProyeccionesGUI(QWidget):
         
         # barra de estado superior
         self.status_bar = QLabel("listo")
+        self.status_bar.setStyleSheet("font-size: 13px; font-weight: bold; padding: 4px;")
         top_bar.addWidget(self.status_bar)
         
         top_bar.addStretch()
         
         btn_home = QPushButton("Restaurar Vista")
+        btn_home.setStyleSheet(_STYLE_BTN)
         btn_home.clicked.connect(self._restore_view)
         top_bar.addWidget(btn_home)
         
@@ -138,8 +153,10 @@ class ProyeccionesGUI(QWidget):
         right_scroll = QScrollArea()
         right_scroll.setWidgetResizable(True)
         right_scroll.setMaximumWidth(420)
+        right_scroll.setStyleSheet("QScrollArea { border: none; }")
 
         right = QWidget()
+        right.setStyleSheet("")
         rl = QVBoxLayout(right)
         rl.setSpacing(8)
 
@@ -190,6 +207,7 @@ class ProyeccionesGUI(QWidget):
 
     def _build_system_data_section(self):
         grp = QGroupBox("Datos del Sistema")
+        grp.setStyleSheet("QGroupBox { font-weight: bold; border: 1px solid #444; border-radius: 6px; margin-top: 6px; padding-top: 14px; }")
         lay = QVBoxLayout(grp)
 
         m = self.machine
@@ -198,12 +216,16 @@ class ProyeccionesGUI(QWidget):
         # dimensiones de la grilla editables
         grid_lay = QHBoxLayout()
         lbl_grid_x = QLabel("Grid X (mm):")
+        lbl_grid_x.setStyleSheet("font-size: 13px;")
         self.inp_grid_x = QLineEdit(f"{m.bed_x_max_mm:.1f}")
-        self.        self.inp_grid_x.editingFinished.connect(self._update_grid_dims)
+        self.inp_grid_x.setStyleSheet(_STYLE_INPUT)
+        self.inp_grid_x.editingFinished.connect(self._update_grid_dims)
         
         lbl_grid_y = QLabel("Grid Y (mm):")
+        lbl_grid_y.setStyleSheet("font-size: 13px;")
         self.inp_grid_y = QLineEdit(f"{m.bed_y_max_mm:.1f}")
-        self.        self.inp_grid_y.editingFinished.connect(self._update_grid_dims)
+        self.inp_grid_y.setStyleSheet(_STYLE_INPUT)
+        self.inp_grid_y.editingFinished.connect(self._update_grid_dims)
         
         grid_lay.addWidget(lbl_grid_x)
         grid_lay.addWidget(self.inp_grid_x)
@@ -213,8 +235,10 @@ class ProyeccionesGUI(QWidget):
 
         grid_lay2 = QHBoxLayout()
         lbl_grid_spacing = QLabel("Espaciado Grilla (mm):")
+        lbl_grid_spacing.setStyleSheet("font-size: 13px;")
         self.inp_grid_spacing = QLineEdit("5.0")
-        self.        self.inp_grid_spacing.editingFinished.connect(self._redraw)
+        self.inp_grid_spacing.setStyleSheet(_STYLE_INPUT)
+        self.inp_grid_spacing.editingFinished.connect(self._redraw)
         grid_lay2.addWidget(lbl_grid_spacing)
         grid_lay2.addWidget(self.inp_grid_spacing)
         lay.addLayout(grid_lay2)
@@ -226,6 +250,7 @@ class ProyeccionesGUI(QWidget):
             f"Conexion: {'conectado' if m.is_connected else 'desconectado'}",
         ]:
             lbl = QLabel(label_text)
+            lbl.setStyleSheet(_STYLE_LABEL)
             lbl.setWordWrap(True)
             lay.addWidget(lbl)
 
@@ -244,6 +269,7 @@ class ProyeccionesGUI(QWidget):
 
     def _build_tools_section(self):
         grp = QGroupBox("Herramientas")
+        grp.setStyleSheet("QGroupBox { font-weight: bold; border: 1px solid #444; border-radius: 6px; margin-top: 6px; padding-top: 14px; }")
         lay = QVBoxLayout(grp)
 
         for text, slot in [
@@ -253,14 +279,17 @@ class ProyeccionesGUI(QWidget):
             ("Eliminar Seleccionado", self._delete_selected),
         ]:
             btn = QPushButton(text)
+            btn.setStyleSheet(_STYLE_BTN)
             btn.clicked.connect(slot)
             lay.addWidget(btn)
 
         shape_lay = QHBoxLayout()
         self.combo_shapes = QComboBox()
         self.combo_shapes.addItems(["Rectangulo", "Circulo", "Linea (mm)", "Linea (Pixeles)"])
+        self.combo_shapes.setStyleSheet("QComboBox { border: 1px solid #555; padding: 4px; }")
 
         btn_add_shape = QPushButton("Anadir Figura")
+        btn_add_shape.setStyleSheet(_STYLE_BTN)
         btn_add_shape.clicked.connect(self._add_selected_shape)
         
         shape_lay.addWidget(self.combo_shapes)
@@ -271,81 +300,106 @@ class ProyeccionesGUI(QWidget):
 
     def _build_direct_projector_section(self):
         grp = QGroupBox("Control Directo Proyector")
+        grp.setStyleSheet("QGroupBox { font-weight: bold; border: 1px solid #444; border-radius: 6px; margin-top: 6px; padding-top: 14px; }")
         lay = QVBoxLayout(grp)
 
         btn_proj_sel = QPushButton("Proyectar Seleccionado")
+        btn_proj_sel.setStyleSheet(_STYLE_BTN_ACTION)
         btn_proj_sel.clicked.connect(self._project_selected_item)
         lay.addWidget(btn_proj_sel)
 
         self.btn_proj_fov = QPushButton("Alternar Proyector (Encender FOV / Apagar)")
-        self.        self.btn_proj_fov.clicked.connect(self._toggle_projector)
+        self.btn_proj_fov.setStyleSheet(_STYLE_BTN)
+        self.btn_proj_fov.clicked.connect(self._toggle_projector)
         lay.addWidget(self.btn_proj_fov)
 
         return grp
 
     def _build_properties_section(self):
         grp = QGroupBox("Propiedades del Elemento")
+        grp.setStyleSheet("QGroupBox { font-weight: bold; border: 1px solid #444; border-radius: 6px; margin-top: 6px; padding-top: 14px; }")
         lay = QVBoxLayout(grp)
 
         self.lbl_name = QLabel("ningun elemento seleccionado")
-        self.        lay.addWidget(self.lbl_name)
+        self.lbl_name.setStyleSheet("font-weight: bold; font-size: 14px;")
+        lay.addWidget(self.lbl_name)
 
         form = QFormLayout()
         form.setContentsMargins(0, 6, 0, 0)
         form.setLabelAlignment(Qt.AlignRight)
 
         # todos los labels del form en color claro
+        form_label_style = "font-size: 13px;"
+
+        # todos los labels del form en color claro
 
         self.inp_x = QLineEdit()
-        self.        self.inp_x.editingFinished.connect(self._apply_position_from_input)
+        self.inp_x.setStyleSheet(_STYLE_INPUT)
+        self.inp_x.editingFinished.connect(self._apply_position_from_input)
         lbl_x = QLabel("X (mm):")
+        lbl_x.setStyleSheet(form_label_style)
         form.addRow(lbl_x, self.inp_x)
 
         self.inp_y = QLineEdit()
-        self.        self.inp_y.editingFinished.connect(self._apply_position_from_input)
+        self.inp_y.setStyleSheet(_STYLE_INPUT)
+        self.inp_y.editingFinished.connect(self._apply_position_from_input)
         lbl_y = QLabel("Y (mm):")
+        lbl_y.setStyleSheet(form_label_style)
         form.addRow(lbl_y, self.inp_y)
 
         self.inp_w = QLineEdit()
-        self.        self.inp_w.editingFinished.connect(self._apply_size_from_input)
+        self.inp_w.setStyleSheet(_STYLE_INPUT)
+        self.inp_w.editingFinished.connect(self._apply_size_from_input)
         lbl_w = QLabel("Ancho (mm):")
+        lbl_w.setStyleSheet(form_label_style)
         form.addRow(lbl_w, self.inp_w)
 
         self.inp_h = QLineEdit()
-        self.        self.inp_h.editingFinished.connect(self._apply_size_from_input)
+        self.inp_h.setStyleSheet(_STYLE_INPUT)
+        self.inp_h.editingFinished.connect(self._apply_size_from_input)
         lbl_h = QLabel("Alto (mm):")
+        lbl_h.setStyleSheet(form_label_style)
         form.addRow(lbl_h, self.inp_h)
 
         self.inp_px_w = QLineEdit()
-        self.        self.inp_px_w.editingFinished.connect(self._apply_px_size_from_input)
+        self.inp_px_w.setStyleSheet(_STYLE_INPUT)
+        self.inp_px_w.editingFinished.connect(self._apply_px_size_from_input)
         lbl_px_w = QLabel("Ancho (px):")
+        lbl_px_w.setStyleSheet(form_label_style)
         form.addRow(lbl_px_w, self.inp_px_w)
 
         self.inp_px_h = QLineEdit()
-        self.        self.inp_px_h.editingFinished.connect(self._apply_px_size_from_input)
+        self.inp_px_h.setStyleSheet(_STYLE_INPUT)
+        self.inp_px_h.editingFinished.connect(self._apply_px_size_from_input)
         lbl_px_h = QLabel("Alto (px):")
+        lbl_px_h.setStyleSheet(form_label_style)
         form.addRow(lbl_px_h, self.inp_px_h)
 
         lay.addLayout(form)
         
         self.chk_invert = QCheckBox("Invertir Colores")
-        self.        self.chk_invert.toggled.connect(self._toggle_invert)
+        self.chk_invert.setStyleSheet("font-weight: bold;")
+        self.chk_invert.toggled.connect(self._toggle_invert)
         self.chk_invert.setVisible(False)
         lay.addWidget(self.chk_invert)
 
         self.lbl_info = QLabel("")
-        self.        self.lbl_info.setWordWrap(True)
+        self.lbl_info.setStyleSheet(_STYLE_LABEL)
+        self.lbl_info.setWordWrap(True)
         lay.addWidget(self.lbl_info)
 
         # rotacion
         rot_lay = QHBoxLayout()
         lbl_rot = QLabel("Rotacion:")
+        lbl_rot.setStyleSheet(form_label_style)
         self.slider_rot = QSlider(Qt.Horizontal)
         self.slider_rot.setRange(0, 360)
         self.slider_rot.setValue(0)
-        self.        self.slider_rot.valueChanged.connect(self._on_rotation_changed)
+        self.slider_rot.setStyleSheet("QSlider { min-height: 20px; }")
+        self.slider_rot.valueChanged.connect(self._on_rotation_changed)
         self.lbl_rot_val = QLabel("0 deg")
-        self.        rot_lay.addWidget(lbl_rot)
+        self.lbl_rot_val.setStyleSheet(_STYLE_LABEL)
+        rot_lay.addWidget(lbl_rot)
         rot_lay.addWidget(self.slider_rot)
         rot_lay.addWidget(self.lbl_rot_val)
         lay.addLayout(rot_lay)
@@ -358,18 +412,23 @@ class ProyeccionesGUI(QWidget):
         self.inp_exp.setRange(0.1, 3600.0)
         self.inp_exp.setSingleStep(0.5)
         self.inp_exp.setValue(10.0)
-        self.        lbl_exp = QLabel("Exposicion (s):")
+        self.inp_exp.setStyleSheet(_STYLE_INPUT)
+        lbl_exp = QLabel("Exposicion (s):")
+        lbl_exp.setStyleSheet(form_label_style)
         form2.addRow(lbl_exp, self.inp_exp)
 
         self.inp_delay = QDoubleSpinBox()
         self.inp_delay.setRange(0.0, 3600.0)
         self.inp_delay.setSingleStep(0.5)
         self.inp_delay.setValue(5.0)
-        self.        lbl_delay = QLabel("Espera (s):")
+        self.inp_delay.setStyleSheet(_STYLE_INPUT)
+        lbl_delay = QLabel("Espera (s):")
+        lbl_delay.setStyleSheet(form_label_style)
         form2.addRow(lbl_delay, self.inp_delay)
 
         self.chk_lock = QCheckBox("Bloquear espera para todos")
-        self.        self.chk_lock.setChecked(True)
+        self.chk_lock.setStyleSheet("font-size: 13px;")
+        self.chk_lock.setChecked(True)
         form2.addRow("", self.chk_lock)
 
         lay.addLayout(form2)
@@ -377,69 +436,85 @@ class ProyeccionesGUI(QWidget):
 
     def _build_tiling_section(self):
         grp = QGroupBox("Auto-Tiling")
+        grp.setStyleSheet("QGroupBox { font-weight: bold; border: 1px solid #444; border-radius: 6px; margin-top: 6px; padding-top: 14px; }")
         lay = QVBoxLayout(grp)
 
         form = QFormLayout()
         form.setLabelAlignment(Qt.AlignRight)
+
+        # todos los labels del form en color claro
+        form_label_style = "font-size: 13px;"
 
         self.spin_overlap = QDoubleSpinBox()
         self.spin_overlap.setRange(0.0, 5.0)
         self.spin_overlap.setSingleStep(0.1)
         self.spin_overlap.setValue(0.0)
         self.spin_overlap.setSuffix(" mm")
-        self.        lbl_ov = QLabel("Overlap:")
+        self.spin_overlap.setStyleSheet(_STYLE_INPUT)
+        lbl_ov = QLabel("Overlap:")
+        lbl_ov.setStyleSheet("font-size: 13px;")
         form.addRow(lbl_ov, self.spin_overlap)
         lay.addLayout(form)
 
         self.lbl_tiling_info = QLabel("")
-        self.        self.lbl_tiling_info.setWordWrap(True)
+        self.lbl_tiling_info.setStyleSheet(_STYLE_LABEL)
+        self.lbl_tiling_info.setWordWrap(True)
         lay.addWidget(self.lbl_tiling_info)
 
         return grp
 
     def _build_execution_section(self):
         grp = QGroupBox("Ejecucion")
+        grp.setStyleSheet("QGroupBox { font-weight: bold; border: 1px solid #444; border-radius: 6px; margin-top: 6px; padding-top: 14px; }")
         lay = QVBoxLayout(grp)
         lay.setSpacing(6)
 
         self.btn_generate = QPushButton("Generar Trayectoria")
-        self.        self.btn_generate.clicked.connect(self._generate_trajectory)
+        self.btn_generate.setStyleSheet(_STYLE_BTN_ACTION)
+        self.btn_generate.clicked.connect(self._generate_trajectory)
         lay.addWidget(self.btn_generate)
 
         self.btn_simulate = QPushButton("Simular Recorrido")
-        self.        self.btn_simulate.clicked.connect(self._simulate)
+        self.btn_simulate.setStyleSheet(_STYLE_BTN_ACTION)
+        self.btn_simulate.clicked.connect(self._simulate)
         self.btn_simulate.setEnabled(False)
         lay.addWidget(self.btn_simulate)
 
         self.btn_execute = QPushButton("Ejecutar en Maquina")
-        self.        self.btn_execute.clicked.connect(self._execute)
+        self.btn_execute.setStyleSheet(_STYLE_BTN_ACTION)
+        self.btn_execute.clicked.connect(self._execute)
         self.btn_execute.setEnabled(False)
         lay.addWidget(self.btn_execute)
 
         self.btn_home_motors = QPushButton("Ir al Origen")
-        self.        self.btn_home_motors.clicked.connect(self._home_motors)
+        self.btn_home_motors.setStyleSheet(_STYLE_BTN)
+        self.btn_home_motors.clicked.connect(self._home_motors)
         lay.addWidget(self.btn_home_motors)
 
         self.btn_stop = QPushButton("Parar de Emergencia")
-        self.btn_stop.setStyleSheet("background-color: #f44336; color: white; font-weight: bold; border-radius: 6px; padding: 10px;")
-        self.        self.btn_stop.clicked.connect(self._emergency_stop)
+        self.btn_stop.setStyleSheet(_STYLE_BTN_DANGER)
+        self.btn_stop.clicked.connect(self._emergency_stop)
         self.btn_stop.setEnabled(False)
         lay.addWidget(self.btn_stop)
 
         self.progress = QProgressBar()
         self.progress.setValue(0)
-        self.        lay.addWidget(self.progress)
+        self.progress.setStyleSheet("QProgressBar { border: 1px solid #3A3A3A; border-radius: 4px; text-align: center; } QProgressBar::chunk { border-radius: 3px; }")
+        lay.addWidget(self.progress)
 
         self.lbl_exec_time = QLabel("Tiempo estimado: --")
-        self.        lay.addWidget(self.lbl_exec_time)
+        self.lbl_exec_time.setStyleSheet("font-size: 11px;")
+        lay.addWidget(self.lbl_exec_time)
 
         self.lbl_exec_status = QLabel("esperando...")
-        self.        self.lbl_exec_status.setWordWrap(True)
+        self.lbl_exec_status.setStyleSheet(_STYLE_LABEL)
+        self.lbl_exec_status.setWordWrap(True)
         lay.addWidget(self.lbl_exec_status)
 
         self.task_list = QListWidget()
         self.task_list.setMaximumHeight(150)
-        self.        lay.addWidget(self.task_list)
+        self.task_list.setStyleSheet("QListWidget { border: 1px solid #444; font-size: 12px; }")
+        lay.addWidget(self.task_list)
 
         return grp
 
@@ -1046,6 +1121,7 @@ class ProyeccionesGUI(QWidget):
             for inp in [self.inp_x, self.inp_y, self.inp_w, self.inp_h, self.inp_px_w, self.inp_px_h]:
                 inp.clear()
             self.slider_rot.setValue(0)
+            self.slider_rot.setStyleSheet("QSlider { min-height: 20px; }")
             self.lbl_rot_val.setText("0 deg")
             return
 
@@ -1283,6 +1359,7 @@ class ProyeccionesGUI(QWidget):
         self.lbl_exec_status.setText(f"trayectoria generada: {len(self.task_queue)} tareas")
         self.progress.setMaximum(len(self.task_queue))
         self.progress.setValue(0)
+        self.progress.setStyleSheet("QProgressBar { border: 1px solid #3A3A3A; border-radius: 4px; text-align: center; } QProgressBar::chunk { border-radius: 3px; }")
 
         self.btn_simulate.setEnabled(True)
         self.btn_execute.setEnabled(True)
@@ -1362,6 +1439,7 @@ class ProyeccionesGUI(QWidget):
         self.btn_execute.setEnabled(False)
         self.btn_stop.setEnabled(True)
         self.progress.setValue(0)
+        self.progress.setStyleSheet("QProgressBar { border: 1px solid #3A3A3A; border-radius: 4px; text-align: center; } QProgressBar::chunk { border-radius: 3px; }")
 
         mode = "simulacion" if controller is None else "ejecucion real"
         self.lbl_exec_status.setText(f"iniciando {mode}...")
