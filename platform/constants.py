@@ -252,7 +252,6 @@ STYLE_MOTOR_PAD_BUTTON = """
 SEGMENTATION_MODES = [
     "Automático (usar grid)",
     "Manual (especificar)",
-    "Por tamaño de campo",
     "Imagen Completa (sin slice)",
 ]
 

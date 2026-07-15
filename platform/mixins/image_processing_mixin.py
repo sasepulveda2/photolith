@@ -71,12 +71,12 @@ class ImageProcessingMixin:
         self.plot_results(display_pattern, psf_result, intensity_percentage)
         self.update_info_panel(intensity_percentage)
 
-        # Si estamos en modo "Imagen Completa" (segmentation_mode == 3) y hay proyección activa,
+        # Si estamos en modo "Imagen Completa" (segmentation_mode == 2) y hay proyección activa,
         # actualizar la proyección con la imagen completa
         if (
             self.projector_active
             and self.projection_window is not None
-            and self.segmentation_mode == 3
+            and self.segmentation_mode == 2
         ):
             # Aplicar efectos si corresponde
             processed = self._apply_effects_to_segment(self.pattern)
@@ -253,9 +253,9 @@ class ImageProcessingMixin:
         if not hasattr(self, "invert_button"):
             return
         if self.invert_projection:
-            self.invert_button.setText("⬛⬜ Intensidad Invertida")
+            self.invert_button.setText("Intensidad Invertida")
         else:
-            self.invert_button.setText("⬜⬛ Invertir Intensidad")
+            self.invert_button.setText("Invertir Intensidad")
 
 
     def _refresh_invert_button_state(self):
@@ -410,15 +410,15 @@ class ImageProcessingMixin:
             chunk_height = max(1, int(cell_size / self.downscale_factor))
 
             if self.downscale_factor > 1.0:
-                direction = f"↓ Reducido {(1.0 - 1.0/self.downscale_factor)*100:.0f}%"
+                direction = f"Reducido {(1.0 - 1.0/self.downscale_factor)*100:.0f}%"
             elif self.downscale_factor < 1.0:
-                direction = f"↑ Aumentado {(1.0/self.downscale_factor - 1.0)*100:.0f}%"
+                direction = f"Aumentado {(1.0/self.downscale_factor - 1.0)*100:.0f}%"
             else:
-                direction = "= Sin cambio"
+                direction = "Sin cambio"
 
             self.downscale_info_label.setText(
-                f"Resolución por chunk: {chunk_width}×{chunk_height} px {direction} "
-                f"(Celda: {cell_size}×{cell_size} px)"
+                f"Resolución por chunk: {chunk_width}x{chunk_height} px {direction} "
+                f"(Celda: {cell_size}x{cell_size} px)"
             )
         else:
             self.downscale_info_label.setText(
@@ -585,7 +585,7 @@ class ImageProcessingMixin:
 
     def update_segmentation_preview(self):
         """Actualiza la información de vista previa de segmentación."""
-        if self.segmentation_mode == 3:  # Imagen Completa
+        if self.segmentation_mode == 2:  # Imagen Completa
             self.segments_x = 1
             self.segments_y = 1
             self.segment_info_label.setText("Modo: Imagen Completa (1 segmento)")
