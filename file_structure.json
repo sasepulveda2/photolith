@@ -1,14 +1,18 @@
 {
-    "mm_per_pixel": 0.007344656384290256,
-    "exp_base_time": 0.0,
-    "exp_step_time": 1.0,
-    "exp_stripes": 20,
-    "exp_direction": "C\u00edrculo Central",
-    "exp_mode": "Decremento",
+    "mm_per_pixel": 0.09833184143222505,
+    "exp_base_time": 1.0,
+    "exp_step_time": 2.0,
+    "exp_stripes": 10,
+    "exp_direction": "Rect\u00e1ngulo Central",
+    "exp_mode": "Incremento",
     "exp_invert": false,
-    "cd_limit": 1,
-    "cd_spacing": 2,
+    "cd_limit": 20,
+    "cd_spacing": 10,
     "cd_orient": "Vertical",
     "cd_invert": true,
-    "cd_exp_time": 5.0
+    "cd_exp_time": 555.0,
+    "grating_lines": 10,
+    "grating_width": 50,
+    "grating_spacing": 20,
+    "exp_apply_pattern": false
 }
