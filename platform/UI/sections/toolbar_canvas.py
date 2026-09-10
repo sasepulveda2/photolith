@@ -53,9 +53,10 @@ class ToolbarCanvasBuilder:
         self.motors_button = QPushButton(" Motores")
         self.motors_button.clicked.connect(self.toggle_motors_view)
 
-        self.btn_proyecciones = QPushButton(" Proyecciones")
+        self.btn_proyecciones = QPushButton(" Proyecciones (Multi)")
         self.btn_proyecciones.setCheckable(True)
         self.btn_proyecciones.clicked.connect(self.toggle_proyecciones_view)
+        self.btn_proyecciones.setVisible(False)
 
         self.projector_button = QPushButton(" Proyectar")
         self.projector_button.clicked.connect(self.toggle_projector)

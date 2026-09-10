@@ -156,6 +156,10 @@ class SpatialCalibrationMixin:
 
     def _deactivate_pattern_calib_view(self):
         """Regresa a la vista principal normal."""
+        # Detener matriz de exposición si estaba corriendo
+        if hasattr(self, "_exp_timer") and self._exp_timer.isActive():
+            self.stop_exposure_matrix()
+            
         # Ocultar panel, mostrar sidebar normal
         if hasattr(self, "pattern_calib_sidebar_widget"):
             self.pattern_calib_sidebar_widget.setVisible(False)
@@ -229,6 +233,11 @@ class SpatialCalibrationMixin:
                 self.log_to_console("Imagen de calibración cargada.", "SUCCESS")
             else:
                 QMessageBox.warning(self, "Error", "No se pudo cargar la imagen.")
+
+    def reset_pattern_calib_view(self):
+        """Restablece el zoom y paneo a la vista original de la imagen."""
+        if hasattr(self, "_update_pattern_calib_canvas"):
+            self._update_pattern_calib_canvas(0)
 
     def _spatial_on_mouse_scroll(self, event):
         if getattr(self, "pattern_calib_stacked", None) is not None and self.pattern_calib_stacked.currentIndex() != 0:
@@ -473,6 +482,8 @@ class SpatialCalibrationMixin:
         config['exp_mode'] = self.combo_exp_mode.currentText()
         if hasattr(self, "chk_exp_invert"):
             config['exp_invert'] = self.chk_exp_invert.isChecked()
+        if hasattr(self, "chk_exp_apply_pattern"):
+            config['exp_apply_pattern'] = self.chk_exp_apply_pattern.isChecked()
             
         if hasattr(self, "input_grating_lines"):
             config['grating_lines'] = self.input_grating_lines.value()
@@ -554,13 +565,11 @@ class SpatialCalibrationMixin:
             self._exp_current_stripe = 0
             matrix = self._draw_current_stripe()
             
-            # Invertir para enviar (simular proyector invertido)
-            matrix_to_send = matrix.copy()
-            if getattr(self, "invert_projection", False):
-                matrix_to_send = 255 - matrix_to_send
+            # Preparar matriz aplicando la máscara si corresponde
+            matrix_to_show = self._prepare_exp_matrix_to_send(matrix)
                 
             self.ax.clear()
-            self.ax.imshow(matrix, cmap='gray', vmin=0, vmax=255)
+            self.ax.imshow(matrix_to_show, cmap='gray', vmin=0, vmax=255)
             self.ax.axis('off')
             if hasattr(self, "canvas"):
                 self.canvas.draw_idle()
@@ -652,7 +661,12 @@ class SpatialCalibrationMixin:
 
     def _prepare_exp_matrix_to_send(self, exp_matrix):
         matrix_to_send = exp_matrix.copy()
-        if getattr(self, "pattern", None) is not None:
+        
+        apply_pattern = False
+        if hasattr(self, "chk_exp_apply_pattern"):
+            apply_pattern = self.chk_exp_apply_pattern.isChecked()
+            
+        if apply_pattern and getattr(self, "pattern", None) is not None:
             pattern_img = self._apply_effects_to_segment(self.pattern)
             import cv2
             import numpy as np
@@ -668,6 +682,9 @@ class SpatialCalibrationMixin:
                 pattern_img = (pattern_img * 255.0 if pattern_img.max() <= 1.0 else pattern_img).astype(np.uint8)
             else:
                 pattern_img = pattern_img.astype(np.uint8)
+                
+            if len(pattern_img.shape) > 2:
+                pattern_img = cv2.cvtColor(pattern_img, cv2.COLOR_BGR2GRAY)
                 
             matrix_to_send = cv2.bitwise_and(pattern_img, matrix_to_send)
         else:

@@ -31,7 +31,7 @@ class SegmentationPanelBuilder:
     def _build_segmentation_section(self) -> None:
         """️ SEGMENTACIÓN — modo de corte, transformaciones geométricas y aplicación."""
         self.segmentation_section = CollapsibleSection(
-            " Segmentación ", self, expanded=False, section_id="segmentation"
+            "SEGMENTACIÓN", self, expanded=False, section_id="segmentation"
         )
         content, layout = create_section_content(spacing=SECTION_CONTENT_SPACING_WIDE)
 

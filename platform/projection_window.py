@@ -245,7 +245,7 @@ class ProjectionWindow(QWidget):
                 self.screen_geometry.width(),
                 self.screen_geometry.height(),
                 Qt.KeepAspectRatio,
-                Qt.SmoothTransformation,
+                Qt.FastTransformation,
             )
         else:
             scale_factor = scale_percentage / 100.0
@@ -253,7 +253,7 @@ class ProjectionWindow(QWidget):
                 int(pixmap.width() * scale_factor),
                 int(pixmap.height() * scale_factor),
                 Qt.KeepAspectRatio,
-                Qt.SmoothTransformation,
+                Qt.FastTransformation,
             )
 
         if self.parent_simulator:
