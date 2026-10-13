@@ -2,13 +2,18 @@
 
 Open-source maskless photolithography system for transferring micrometric patterns onto copper substrates coated with dry film photoresist.
 <p align="center">
-  <img src="images/system_assembly.png" alt="Physical Lithography Workstation" width="48%" />
-  <img src="images/hair_comparison_30um.png" alt="30 um Resolution vs Human Hair" width="48%" />
+  <img src="images/system_assembly.png" alt="Physical Lithography Workstation" width="60%" />
 </p>
 <p align="center">
-  <em>Figure 1: (a) Cyber-physical lithography setup with motorized XYZ stage; (b) Transferred copper pattern reaching 30 µm resolution compared to a human hair.</em>
+  <em>Figure 1a: Cyber-physical lithography setup with motorized XYZ stage.</em>
 </p>
----
+
+<p align="center">
+  <img src="images/hair_comparison_30um.png" alt="30 um Resolution vs Human Hair" width="80%" />
+</p>
+<p align="center">
+  <em>Figure 1b: Transferred copper pattern reaching 30 µm resolution compared to a human hair.</em>
+</p>
 
 ## Table of Contents
 
