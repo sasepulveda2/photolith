@@ -14,7 +14,7 @@ Sistema abierto de fotolitografía sin máscara física (*Maskless Photolithogra
    - [Paso 1: Conexión y Enlace con el Hardware](#paso-1-conexión-y-enlace-con-el-hardware)
    - [Paso 2: Carga e Ingesta del Patrón Litográfico](#paso-2-carga-e-ingesta-del-patrón-litográfico)
    - [Paso 3: Acondicionamiento Digital y Binarización](#paso-3-acondicionamiento-digital-y-binarización)
-   - [Paso 4: Calibración Espacial ($\mu\text{m/px}$)](#paso-4-calibración-espacial-mutextmpx)
+   - [Paso 4: Calibración Espacial (µm/px)](#paso-4-calibración-espacial-mutextmpx)
    - [Paso 5: Segmentación y Configuración Step-and-Repeat](#paso-5-segmentación-y-configuración-step-and-repeat)
    - [Paso 6: Ajuste de Dosis y Exposición UV](#paso-6-ajuste-de-dosis-y-exposición-uv)
    - [Paso 7: Módulos Autónomos de Calibración](#paso-7-módulos-autónomos-de-calibración)
