@@ -148,8 +148,8 @@ If the pattern exceeds the single-exposure optical field of view:
 1. Expand the **EXPOSURE** side panel:
 * **Exposure time:** Set according to substrate characterization.
 * **Calibrated optimal range:** $7\text{ s}$ to $15\text{ s}$.
-* *Wide traces ($> 200\ \mu\text{m}$):* $7\text{ s} - 10\text{ s}$.
-* *Fine features ($30 - 60\ \mu\text{m}$):* $15\text{ s}$.
+* **Wide traces (> 200 µm):** 7–10 s
+* **Fine features (30–60 µm):** 15 s
 * *Warning:* Exposure times near or exceeding $20\text{ s}$ cause lateral over-polymerization and unwanted feature widening.
 
 
