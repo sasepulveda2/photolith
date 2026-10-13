@@ -6,18 +6,18 @@ Open-source maskless photolithography system for transferring micrometric patter
 
 ## Table of Contents
 
-1. [Requirements and Installation](https://www.google.com/search?q=%23requirements-and-installation)
-2. [Physical Environment Pre-Configuration](https://www.google.com/search?q=%23physical-environment-pre-configuration)
-3. [User Guide and Operation Manual](https://www.google.com/search?q=%23user-guide-and-operation-manual)
-    * [Step 1: Hardware Connection and Linking](https://www.google.com/search?q=%23step-1-hardware-connection-and-linking)
-    * [Step 2: Loading and Ingestion of the Lithographic Pattern](https://www.google.com/search?q=%23step-2-loading-and-ingestion-of-the-lithographic-pattern)
-    * [Step 3: Digital Conditioning and Binarization](https://www.google.com/search?q=%23step-3-digital-conditioning-and-binarization)
-    * [Step 4: Spatial Calibration ($\mu\text{m/px}$)](https://www.google.com/search?q=%23step-4-spatial-calibration-mutextmpx)
-    * [Step 5: Segmentation and Step-and-Repeat Configuration](https://www.google.com/search?q=%23step-5-segmentation-and-step-and-repeat-configuration)
-    * [Step 6: Dose Adjustment and UV Exposure](https://www.google.com/search?q=%23step-6-dose-adjustment-and-uv-exposure)
-    * [Step 7: Autonomous Calibration Modules](https://www.google.com/search?q=%23step-7-autonomous-calibration-modules)
-4. [Quick Chemical Protocol (Dry Film)](https://www.google.com/search?q=%23quick-chemical-protocol-dry-film)
-5. [Repository Structure](https://www.google.com/search?q=%23repository-structure)
+1. [Requirements and Installation](#requirements-and-installation)
+2. [Physical Environment Pre-Configuration](#physical-environment-pre-configuration)
+3. [User Guide and Operation Manual](#user-guide-and-operation-manual)
+    * [Step 1: Hardware Connection and Linking](#step-1-hardware-connection-and-linking)
+    * [Step 2: Loading and Ingestion of the Lithographic Pattern](#step-2-loading-and-ingestion-of-the-lithographic-pattern)
+    * [Step 3: Digital Conditioning and Binarization](#step-3-digital-conditioning-and-binarization)
+    * [Step 4: Spatial Calibration ($\mu\text{m/px}$)](#step-4-spatial-calibration-mutextmpx)
+    * [Step 5: Segmentation and Step-and-Repeat Configuration](#step-5-segmentation-and-step-and-repeat-configuration)
+    * [Step 6: Dose Adjustment and UV Exposure](#step-6-dose-adjustment-and-uv-exposure)
+    * [Step 7: Autonomous Calibration Modules](#step-7-autonomous-calibration-modules)
+4. [Quick Chemical Protocol (Dry Film)](#quick-chemical-protocol-dry-film)
+5. [Repository Structure](#repository-structure)
 
 ---
 
