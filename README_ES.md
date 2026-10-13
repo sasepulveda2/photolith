@@ -122,8 +122,8 @@ Si el patrón supera las dimensiones del campo óptico de enfoque único:
 1. Desplegar el panel lateral **EXPOSICIÓN**:
    - **Tiempo de exposición:** Fijar el tiempo según la caracterización del sustrato.
      - **Rango óptimo calibrado:** $7\text{ s}$ a $15\text{ s}$.
-     - *Pistas anchas ($> 200\ \mu\text{m}$):* $7\text{ s} - 10\text{ s}$.
-     - *Detalles finos ($30 - 60\ \mu\text{m}$):* $15\text{ s}$.
+     - **Wide traces (> 200 µm):** $7–10\text{ s}.
+     - **Fine features (30–60 µm):** $15\text{ s}.
      - *Advertencia:* Tiempos cercanos a $20\text{ s}$ o superiores generan sobrepolimerización lateral y engrosamiento indeseado de pistas.
    - **Modo de disparo:** Continuo o Pulsado (frecuencia entre $1$ y $100\text{ Hz}$).
 2. Presionar **Proyecciones > Iniciar Secuencia**.
