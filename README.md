@@ -10,7 +10,7 @@ Open-source maskless photolithography system for transferring micrometric patter
     * [Step 1: Hardware Connection and Linking](#step-1-hardware-connection-and-linking)
     * [Step 2: Loading and Ingestion of the Lithographic Pattern](#step-2-loading-and-ingestion-of-the-lithographic-pattern)
     * [Step 3: Digital Conditioning and Binarization](#step-3-digital-conditioning-and-binarization)
-    * [Step 4: Spatial Calibration (µm/px)](#step-4-spatial-calibration-µmpx)
+    * [Step 4: Spatial Calibration (µm/px)](#step-4-spatial-calibration-mutextmpx)
     * [Step 5: Segmentation and Step-and-Repeat Configuration](#step-5-segmentation-and-step-and-repeat-configuration)
     * [Step 6: Dose Adjustment and UV Exposure](#step-6-dose-adjustment-and-uv-exposure)
     * [Step 7: Autonomous Calibration Modules](#step-7-autonomous-calibration-modules)
