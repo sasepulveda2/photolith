@@ -2,7 +2,7 @@
 
 Open-source maskless photolithography system for transferring micrometric patterns onto copper substrates coated with dry film photoresist.
 <p align="center">
-  <img src="images/system_assembly.png" alt="Physical Lithography Workstation" width="60%" />
+  <img src="images/system_assembly.jpg" alt="Physical Lithography Workstation" width="60%" />
 </p>
 <p align="center">
   <em>Figure 1a: Cyber-physical lithography setup with motorized XYZ stage.</em>
