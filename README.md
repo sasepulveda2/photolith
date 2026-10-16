@@ -299,7 +299,7 @@ The control engine is architected around a centralized multi-mixin design patter
 
 - **Asynchronous Execution:** Long-running jobs run in a secondary `QThread` (`CamWorker`), keeping the main Qt event loop responsive.
 - **Backlash Compensation:** The kinematic controller evaluates movement direction changes and automatically injects pre-calibrated compensation pulses.
-- **Software Travel Limits (*Soft Limits*):** Validates every incoming Cartesian vector against physical stage boundaries before transmitting G-code, preventing mechanical collisions.
+- **Software Travel Limits (*Soft Limits*):** Validates every command against physical stage boundaries before transmitting G-code, preventing mechanical collisions.
 
 ## Repository Structure
 
