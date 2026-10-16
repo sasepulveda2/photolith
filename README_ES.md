@@ -114,8 +114,8 @@ python platform/main.py
   <em>Figura 3: Interfaz de control de motores con pad de jog, escala de distancia de pulso y parada de emergencia.</em>
 </p>
 
-4. Mediante el pad direccional ($X+$, $X-$, $Y+$, $Y-$, $Z+$, $Z-$), desplazar manualmente la platina hasta la posición de origen del sustrato. Se puede alternar entre pasos enteros (*Steps*) o milímetros (*mm*).
-5. Fijar el origen virtual de trabajo para inicializar la odometría interna.
+4. Mediante el pad direccional ($X+$, $X-$, $Y+$, $Y-$, $Z+$, $Z-$), desplazar manualmente la base hasta la posición de origen del sustrato. Se puede alternar entre pasos (*Steps*) o milímetros (*mm*).
+5. Fijar el origen de trabajo.
 
 ### Paso 2: Carga e Ingesta del Patrón Litográfico
 
@@ -220,7 +220,7 @@ Permite encontrar la dosis óptima sobre una sola placa virgen:
 
 1. Acceder al menú de utilidades y seleccionar **Matriz de Barrido**.
 2. Configurar el tipo de figura (rejilla de líneas paralelas con grosores decrecientes).
-3. Iniciar el ensayo: el sistema proyectará las franjas de forma incremental acumulativa mediante temporizadores Qt. Cada franja recibirá una dosis distinta (escalones de $2$ a $20\text{ s}$), permitiendo evaluar bajo microscopio el punto óptimo de polimerización tras el revelado.
+3. Iniciar el ensayo: el sistema proyectará las franjas de forma incremental acumulativa mediante temporizadores. Cada franja recibirá una dosis distinta (escalones de $2$ a $20\text{ s}$), permitiendo evaluar bajo microscopio el punto óptimo de polimerización tras el revelado.
 
 #### Módulo de Regla Micrométrica (*RulerScaleMixin*)
 
@@ -295,7 +295,7 @@ El motor de control está diseñado en torno a un patrón multi-mixin centraliza
 
 - **Ejecución Asíncrona:** Los trabajos de larga duración se ejecutan en un `QThread` secundario (`CamWorker`), manteniendo el bucle de eventos Qt principal siempre responsivo.
 - **Compensación de Backlash:** El controlador cinemático evalúa los cambios de dirección del movimiento e inyecta automáticamente pulsos de compensación pre-calibrados.
-- **Límites de Recorrido por Software (*Soft Limits*):** Valida cada vector cartesiano entrante contra los límites físicos de la platina antes de transmitir el G-code, previniendo colisiones mecánicas.
+- **Límites de Recorrido por Software (*Soft Limits*):** Valida cada comando entrante contra los límites físicos de la base antes de transmitir el G-code, previniendo colisiones mecánicas.
 
 ## Estructura del Repositorio
 
