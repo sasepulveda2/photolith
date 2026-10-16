@@ -1,5 +1,7 @@
 # Maskless Photolithography System for Micro and Nanofabrication (Digital Mask)
 
+**English** • [Español](README_ES.md)
+
 Open-source maskless photolithography system for transferring micrometric patterns onto copper substrates coated with dry film photoresist.
 
 ## Table of Contents
@@ -17,6 +19,8 @@ Open-source maskless photolithography system for transferring micrometric patter
 5. [Quick Chemical Protocol (Dry Film)](#quick-chemical-protocol-dry-film)
 6. [Software Architecture & Control Flow](#software-architecture--control-flow)
 7. [Repository Structure](#repository-structure)
+8. [Citation](#citation)
+9. [License](#license)
 
 
 
@@ -95,7 +99,7 @@ pip install -r requirements.txt
 
 1. Run the main application:
 ```bash
-python main.py
+python platform/main.py
 ```
 
 2. Expand the **MOTORS (X, Y, Z)** side panel.
@@ -160,7 +164,7 @@ $$\text{Scale Factor} = \frac{\text{Actual Distance (mm)}}{L_{px}}\quad [\text{m
 
 $$\text{Resolution} = \text{Scale Factor} \times 1000\quad [\mu\text{m/px}]$$
 
-This factor is automatically saved to `config.json` for subsequent sessions.
+This factor is automatically saved to `file_structure.json` (and `platform/cache_photolith/file_structure.json`) for subsequent sessions.
 
 <p align="center">
   <img src="images/gui_spatial_calibration.png" alt="Spatial Calibration Module" width="68%" />
@@ -283,7 +287,7 @@ The control engine is architected around a centralized multi-mixin design patter
   <img src="images/mixin_architecture.png" alt="Mixin Class Architecture" width="56%" />
 </p>
 <p align="center">
-  <em>Figure 9: (a) Modular controller composition via 12 mixin subsystems.</em>
+  <em>Figure 9: (a) Modular controller composition via 13 mixins + QWidget.</em>
 </p>
 <p align="center">
   <img src="images/backlash_softlimits_flow.png" alt="Backlash and Soft Limits Flowchart" width="40%" />
@@ -300,21 +304,35 @@ The control engine is architected around a centralized multi-mixin design patter
 
 ```text
 photolith/
-├── main.py                          # Application entry point
-├── requirements.txt                 # Python environment dependencies
-├── config.json                      # Calibration persistence, soft limits, and backlash
-├── images/                          # Screenshots, system diagrams, and microphotographs
-├── controllers/
-│   ├── creality_controller.py       # G-code abstraction layer, odometry, and PySerial
-│   └── worker.py                    # Asynchronous worker thread (CamWorker on QThread)
-├── mixins/
-│   ├── ui_setup_mixin.py            # Modular UI assembly of panels and widgets
-│   ├── image_processing_mixin.py    # Binarization, inversion, and transformations
-│   ├── grid_mixin.py                # Chunk splitting and overlap algorithms
-│   ├── spatial_calibration_mixin.py # Micrometric scale calculation
-│   ├── ruler_scale_mixin.py         # Step-and-Repeat routine for graduated scales
-│   ├── projection_mixin.py          # Secondary projector window lifecycle management
-│   ├── file_management_mixin.py     # Ingestion and rasterization of SVG/DXF/raster
-│   └── preferences_mixin.py         # JSON parameter serialization and persistence
-└── tests/                           # Unit tests for kinematics and segmentation
+├── requirements.txt        # Python environment dependencies
+├── file_structure.json     # Calibration persistence and exposure parameters
+├── images/                 # Screenshots, system diagrams, and microphotographs
+└── platform/               # Application source root
+    ├── main.py             # Application entry point
+    ├── system_functions.py # LithographySimulator main class (mixin composition)
+    ├── constants.py        # Global constants and tuneable parameters
+    ├── projection_window.py# Secondary UV projection display window
+    ├── motors/             # Serial motor control subsystem
+    ├── mixins/             # 13 functional subsystems (UI, vision, processing)
+    └── UI/                 # Panels, widgets, themes, and async worker
 ```
+
+## Citation
+
+This software was developed as part of an engineering thesis at **Universidad de los Andes (Chile)**, **Facultad de Ciencias e Ingeniería**. If you use this platform, software algorithms, or calibration methodologies in academic or technical work, please cite:
+
+```bibtex
+@thesis{sepulveda2026photolith,
+  author       = {Sergio A. Sepúlveda Véliz},
+  title        = {Maskless Photolithography System for Micro and Nanofabrication (Digital Mask)},
+  school       = {Universidad de los Andes},
+  department   = {Facultad de Ciencias e Ingeniería},
+  year         = {2026},
+  address      = {Santiago, Chile},
+  note         = {Open-source repository}
+}
+```
+
+## License
+
+This project is open-source software licensed under the [MIT License](LICENSE).
