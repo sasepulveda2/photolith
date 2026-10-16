@@ -263,6 +263,7 @@ To ensure adequate adhesion and edge definition of fabricated patterns:
 <p align="center">
   <em>Figure 8: (b) Alkaline development in 1% w/v Na2CO3 bath.</em>
 </p>
+
 1. **Mechanical Conditioning:** Wet-sand the bare copper board with 1250-grit sandpaper using gentle, even strokes until all surface oxide ($CuO / Cu_2O$) is removed.
 2. **Chemical Decontamination:**
 - Clean with **Acetone ($C_3H_6O$)** to strip grease, oils, and organic residues.
