@@ -30,10 +30,10 @@ Sistema abierto de fotolitografía sin máscara física (*Maskless Photolithogra
   <img src="images/system_assembly.jpg" alt="Estación de Trabajo de Litografía" width="60%" />
 </p>
 <p align="center">
-  <em>Figura 1a: Stepper litográfico con platina motorizada XYZ.</em>
+  <em>Figura 1: Stepper litográfico con base motorizada XYZ.</em>
 </p>
 
-La estación de trabajo acopla un motor de proyección óptica con una platina de traslación de tres ejes controlada mediante comunicación serial:
+La estación de trabajo acopla un motor de proyección óptica con una base de traslación de tres ejes controlada mediante comunicación serial:
 
 | N.º | Componente | Especificación Técnica / Rol |
 | :---: | :--- | :--- |
@@ -44,7 +44,7 @@ La estación de trabajo acopla un motor de proyección óptica con una platina d
 | **5** | Anillo Espaciador Focal | Espaciador óptico que calibra la distancia de trabajo focal hasta el plano del sustrato. |
 | **6** | Ensamblaje de Óptica de Proyección | Stack de lentes compuesto para reducción focal e imagen de plano micrométrico. |
 | **7** | Circuito de Bypass de Color | Circuito temporizador NE555 generando una onda cuadrada de 120 Hz (ciclo de trabajo 10%) para eludir los bloqueos de firmware del proyector. |
-| **8** | Platina de Traslación Cinemática | Platina de traslación micrométrica de 3 ejes. |
+| **8** | base de Traslación Cinemática | base de traslación micrométrica de 3 ejes. |
 | **9** | Motores NEMA 17 | Movimiento a 6.400 pasos/mm con reducciones de engranajes. |
 | **10** | Placa Controladora Creality | Microcontrolador que ejecuta instrucciones de movimiento mediante G-code. |
 
@@ -84,13 +84,13 @@ pip install -r requirements.txt
 
 1. **Configuración de Pantalla (SO):** Fijar el proyector en modo **Extender estas pantallas** (resolución nativa 1920×1080).
 2. **Iluminación de Seguridad:** No exponer placas laminadas a luz blanca o solar directa (se recomienda ambiente de luz de seguridad ámbar/amarilla).
-3. **Alineación de Sustrato:** Montar la placa de cobre laminada sobre la platina motorizada, nivelando el plano focal directamente bajo la óptica de proyección.
+3. **Alineación de Sustrato:** Montar la placa de cobre laminada sobre la base motorizada, nivelando el plano focal directamente bajo la óptica de proyección.
 
 <p align="center">
   <img src="images/uv_exposure_stage.png" alt="Alineación Focal del Sustrato" width="45%" />
 </p>
 <p align="center">
-  <em>Figura 2: Sustrato de cobre laminado alineado sobre la platina bajo proyección UV enfocada.</em>
+  <em>Figura 2: Sustrato de cobre laminado alineado sobre la base bajo proyección UV enfocada.</em>
 </p>
 
 ## Guía de Uso y Manual de Operación
@@ -228,7 +228,7 @@ Permite fabricar escalas de medición física graduadas sobre vidrio o cobre:
 
 1. Abrir la vista **Regla de escala**.
 2. Indicar la separación entre marcas principales en píxeles (calculada a partir del factor de escala del sistema), el número de subdivisiones, grosor de líneas y largo total a recorrer.
-3. Presionar **Iniciar secuencia de escala**: la platina avanzará secuencialmente en el eje X compensando el *backlash* residual y exponiendo tramo por tramo.
+3. Presionar **Iniciar secuencia de escala**: la base avanzará secuencialmente en el eje X compensando el *backlash* residual y exponiendo tramo por tramo.
 
 <p align="center">
   <img src="images/gui_ruler_module.png" alt="GUI del Módulo de Regla" width="56%" />

@@ -30,7 +30,7 @@ Open-source maskless photolithography system for transferring micrometric patter
   <img src="images/system_assembly.jpg" alt="Physical Lithography Workstation" width="60%" />
 </p>
 <p align="center">
-  <em>Figure 1a: Lithography stepper with motorized XYZ stage.</em>
+  <em>Figure 1: Lithography stepper with motorized XYZ stage.</em>
 </p>
 
 The physical workstation couples an optical projection engine with a three-axis motorized motion stage controlled via serial communication:
@@ -200,7 +200,7 @@ If the pattern exceeds the single-exposure optical field of view:
 4. In case of motor stall, misalignment, or collision risk, immediately press the red **STOP** button to abort the routine.
 
 <p align="center">
-  <img src="images/multithread_sequence_diagram.png" alt="Execution Sequence Diagram" width="58%" />
+  <img src="images/multithread_sequence_diagram_en.jpg" alt="Execution Sequence Diagram" width="58%" />
 </p>
 
 <p align="center">
@@ -240,8 +240,7 @@ Fabricates calibrated physical measurement scales on glass or copper substrates:
   <em>Figure 7: (a) Scale ruler generator interface.</em>
 </p>
 <p align="center">
-
-<img src="images/micrometric_ruler_glass.png" alt="Microfabricated Ruler on Glass" width="40%" />
+  <img src="images/micrometric_ruler_glass.png" alt="Microfabricated Ruler on Glass" width="40%" />
 </p>
 <p align="center">
   <em>Figure 7: (b) Microfabricated micrometer ruler on glass, verified against a 100 µm reference wire.</em>
@@ -291,7 +290,7 @@ The control engine is architected around a centralized multi-mixin design patter
   <em>Figure 9: (a) Modular controller composition via 13 mixins + QWidget.</em>
 </p>
 <p align="center">
-  <img src="images/backlash_softlimits_flow.png" alt="Backlash and Soft Limits Flowchart" width="40%" />
+  <img src="images/backlash_softlimits_flow_en.jpg" alt="Backlash and Soft Limits Flowchart" width="40%" />
 </p>
 <p align="center">
   <em>Figure 9: (b) Kinematic decision tree enforcing soft travel limits and backlash absorption.</em>
